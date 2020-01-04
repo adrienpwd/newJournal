@@ -16,7 +16,7 @@ db = mongo.db
 def index():
     return jsonify(
         status=True,
-        message='Hey to the Dockerized Flask MongoDB app! TEST'
+        message='Yo to the Dockerized Flask MongoDB app! TEST'
     )
 
 
