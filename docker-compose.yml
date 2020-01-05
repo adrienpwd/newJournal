@@ -7,6 +7,8 @@ services:
     container_name: flask
     image: flask
     restart: unless-stopped
+    ports:
+      - 5001:5000
     environment:
       FLASK_ENV: development
       #FLASK_DEBUG: 1
@@ -62,6 +64,22 @@ services:
       - flask
     networks:
       - frontend
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: react
+    volumes:
+      - './client:/usr/src/app'
+      - '/usr/src/app/node_modules'
+    ports:
+      - 3007:3000
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_USERS_SERVICE_URL=${REACT_APP_USERS_SERVICE_URL}
+    depends_on:
+      - flask
 
 networks:
   frontend:
