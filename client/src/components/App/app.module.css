@@ -1,0 +1,16 @@
+html,
+body {
+  height: 100%;
+}
+
+/* 
+  padding: 65px 16px 16px;
+
+  We want to have a 48px padding top because of the navbar
+  And we also want 16 px padding everywhere, so top is 48 + 16
+*/
+
+.container {
+  padding: 65px 16px 16px;
+  height: 100%;
+}

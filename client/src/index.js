@@ -1,41 +1,22 @@
-import React, { Component } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
-import axios from 'axios' // new
+import { Provider } from 'react-redux'
 
-class App extends Component {
-  constructor() {
-    super()
-    this.getUsers()
-  }
+import configureStore from './store/configureStore'
 
-  // new
-  getUsers() {
-    axios
-      .get(`${process.env.REACT_APP_USERS_SERVICE_URL}/todo`)
-      .then(res => {
-        console.log(res)
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
 
-  render() {
-    return (
-      <section className="section">
-        <div className="container">
-          <div className="columns">
-            <div className="column is-one-third">
-              <br />
-              <h1 className="title is-1">Users</h1>
-              <hr />
-              <br />
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-}
+import './index.scss'
 
-ReactDOM.render(<App />, document.getElementById('root'))
+import { App } from 'components'
+
+const store = configureStore()
+
+const app = (
+  <Provider store={store}>
+    <App />
+  </Provider>
+)
+
+ReactDOM.render(app, document.getElementById('root'))

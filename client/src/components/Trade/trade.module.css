@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.tradeArea {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.tradeAreaDetails {
+  flex: 1;
+}
+
+.tradeAreaActions {
+  flex: 1;
+}
+
+.tradeAreaAction {
+  margin: 8px 0;
+}
+
+.imagesArea {
+  flex: 1;
+}
