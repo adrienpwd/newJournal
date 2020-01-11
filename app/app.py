@@ -15,47 +15,7 @@ cors = CORS()
 
 cors.init_app(application, resources={r"*": {"origins": "*"}})
 
-
-@application.route('/')
-def index():
-    return jsonify(
-        status=True,
-        message='Yo to the Dockerized Flask MongoDB app! TEST'
-    )
-
-
-@application.route('/todo')
-def todo():
-    _todos = db.todo.find()
-
-    item = {}
-    data = []
-    for todo in _todos:
-        item = {
-            'id': str(todo['_id']),
-            'todo': todo['todo']
-        }
-        data.append(item)
-
-    return jsonify(
-        status=True,
-        data=data
-    )
-
-
-@application.route('/todo', methods=['POST'])
-def createTodo():
-    data = request.get_json(force=True)
-    item = {
-        'todo': data['todo']
-    }
-    db.todo.insert_one(item)
-
-    return jsonify(
-        status=True,
-        message='To-do saved successfully!'
-    ), 201
-
+from app.api import *
 
 if __name__ == "__main__":
     ENVIRONMENT_DEBUG = os.environ.get("APP_DEBUG", True)

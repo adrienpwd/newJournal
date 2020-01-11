@@ -25,4 +25,6 @@ USER www
 
 #EXPOSE 5000
 
-CMD [ "gunicorn", "-w", "4", "--bind", "0.0.0.0:5000", "wsgi"]
+#Remove "--reload" for PRODUCTION ENV !!!
+
+CMD [ "gunicorn", "-w", "4", "--bind", "0.0.0.0:5000", "--reload", "wsgi"]

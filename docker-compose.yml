@@ -20,7 +20,7 @@ services:
       MONGODB_PASSWORD: ayqgqc2h2o
       MONGODB_HOSTNAME: mongodb
     volumes:
-      - ./app:/var/www
+      - ./app:/var/www/
     depends_on:
       - mongodb
     networks:
