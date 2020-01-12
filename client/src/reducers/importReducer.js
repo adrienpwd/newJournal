@@ -1,5 +1,4 @@
-// import aggregatedTrades from './../mock_data/aggregatedTrades.js'
-import { createTradeId } from 'utils'
+import aggregatedTrades from './../mock_data/aggregatedTrades'
 
 const initial_state = {
   error: null,
@@ -8,7 +7,7 @@ const initial_state = {
   built: false,
   rawOrders: [],
   rawTrades: [],
-  aggregatedTrades: {}
+  aggregatedTrades
 }
 
 const onGetBuiltFiles = (state, payload) => {
@@ -22,8 +21,7 @@ const onGetBuiltFilesSuccess = (state, payload) => {
   const { aggregatedTrades, trades, orders } = payload
   const aggregatedTradesObj = {}
   aggregatedTrades.forEach(trade => {
-    const tradeId = createTradeId(trade)
-    aggregatedTradesObj[tradeId] = trade
+    aggregatedTradesObj[trade._id] = trade
   })
 
   console.log(aggregatedTradesObj)

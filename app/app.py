@@ -97,7 +97,11 @@ def init_trade(row, order):
     timestamp = get_timestamp(row[14])
     is_short = row[9] == 'Y'
 
+    # id that will be used for mongodb
+    _id = row[11] + "-" + str(int(timestamp))
+
     return {
+        '_id': _id,
         'account': row[3],
         'trader': row[2],
         'ticker': row[11],

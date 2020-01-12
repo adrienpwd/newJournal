@@ -1,21 +1,42 @@
+import axios from 'axios'
+
+// process.env.REACT_APP_USERS_SERVICE_URL has to be set to "http://localhost:5001"
+// Need to be do (root of the project)
+// export REACT_APP_USERS_SERVICE_URL=http://localhost:5001
+
 export function loadTrades() {
   return dispatch => {
     dispatch({
       type: 'LOAD_TRADES'
     })
 
-    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
-      .then(results => {
-        return results.json()
-      })
-      .then(data => {
-        if (data.ok === true) {
+    axios
+      .get(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
+      .then(res => {
+        if (res.data.ok === true) {
           dispatch({
             type: 'LOAD_TRADES_SUCCESS',
-            payload: data
+            payload: res.data
           })
         }
       })
+      .catch(err => {
+        console.log(err)
+      })
+
+    // fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
+    //   .then(results => {
+    //     console.log(results)
+    //     return results.json()
+    //   })
+    //   .then(data => {
+    //     if (data.ok === true) {
+    //       dispatch({
+    //         type: 'LOAD_TRADES_SUCCESS',
+    //         payload: data
+    //       })
+    //     }
+    //   })
   }
 }
 

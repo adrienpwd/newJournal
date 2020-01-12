@@ -1,15 +1,10 @@
 import React from 'react'
 import { Link, useRouteMatch } from 'react-router-dom'
-import classnames from 'classnames'
-
-import { createTradeId } from 'utils'
 
 import styles from './tradeCard.module.css'
 
-export default function TradeCard({ trade }) {
+export default function TradeCard({ trade, url }) {
   let match = useRouteMatch()
-
-  const tradeId = createTradeId(trade)
 
   const getTradeType = function(type) {
     if (type === 'B') return 'Long'
@@ -19,7 +14,7 @@ export default function TradeCard({ trade }) {
   const gainClass = trade.gain > 0 ? styles.positive : styles.negative
 
   return (
-    <Link to={`${match.url}/${tradeId}`}>
+    <Link to={`${match.url}/${trade._id}`}>
       <div title={trade.ticker} className={styles.container}>
         <div className={styles.card}>
           <h2>{trade.ticker}</h2>

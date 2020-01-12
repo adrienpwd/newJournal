@@ -15,6 +15,8 @@ export default function ReviewTrade() {
   const aggregatedTrades = data.aggregatedTrades
 
   const { tradeId } = useParams()
+  console.log(useParams())
+
   const trade = aggregatedTrades[tradeId]
 
   let fileUploader
