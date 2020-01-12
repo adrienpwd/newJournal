@@ -6,26 +6,12 @@ import { TradeCard } from 'components/Common'
 
 import styles from './review.module.css'
 
-export default function Import(props) {
+export default function Review() {
   const myTrades = useSelector(state => state.tradeReducer)?.trades
   const { day } = useParams()
 
-  const { data, trades } = props
-  let tradesReview
-  let allTrades
-
-  if (data === 'import') {
-    tradesReview = trades
-    allTrades = Object.keys(tradesReview).map((key, index) => (
-      <TradeCard key={index} trade={trades[key]} url={'/import'} />
-    ))
-  } else {
-    // data = "db"
-    tradesReview = myTrades[day]
-    allTrades = tradesReview.map(trade => (
-      <TradeCard key={trade._id} trade={trade} url={'/review'} />
-    ))
-  }
+  const tradesReview = myTrades[day]
+  const allTrades = tradesReview.map(trade => <TradeCard key={trade._id} trade={trade} />)
 
   return allTrades.length ? (
     <>

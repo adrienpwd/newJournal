@@ -1,25 +1,50 @@
-import React, { Fragment } from 'react'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import React from 'react'
+import { useDispatch } from 'react-redux'
 
-import Form from './Form'
+import { FileUploader, Form, FormGroup } from 'carbon-components-react'
 
-import { Review, Trade } from 'components'
+import { importFiles } from 'actions/trades'
 
 export default function Import() {
-  let match = useRouteMatch()
-  const data = useSelector(state => state.importReducer)
-  const aggregatedTrades = data.aggregatedTrades
+  const dispatch = useDispatch()
+  let fileUploader
+
+  const _handleUpload = e => {
+    const formData = new FormData()
+    let ordersInput
+    let tradesInput
+
+    const files = e.target.files
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].name === 'Orders.csv') {
+        ordersInput = files[i]
+      }
+      if (files[i].name === 'Trades.csv') {
+        tradesInput = files[i]
+      }
+    }
+
+    formData.append('ordersInput', ordersInput)
+    formData.append('tradesInput', tradesInput)
+
+    dispatch(importFiles(formData))
+
+    fileUploader.clearFiles()
+  }
 
   return (
-    <Switch>
-      <Route path={`${match.path}/:tradeId`}>
-        <Trade />
-      </Route>
-      <Route path={match.path}>
-        <Form />
-        <Review data="import" trades={aggregatedTrades} />
-      </Route>
-    </Switch>
+    <div>
+      <Form id="importInput">
+        <FormGroup legendText="Upload">
+          <FileUploader
+            labelDescription="Import Orders and Trades"
+            buttonLabel="Import"
+            multiple
+            ref={node => (fileUploader = node)}
+            onChange={_handleUpload}
+          />
+        </FormGroup>
+      </Form>
+    </div>
   )
 }

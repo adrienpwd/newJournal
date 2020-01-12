@@ -10,14 +10,11 @@ import styles from './trade.module.css'
 
 export default function ReviewTrade() {
   const dispatch = useDispatch()
+  const { tradeId, day } = useParams()
 
-  const data = useSelector(state => state.importReducer)
-  const aggregatedTrades = data.aggregatedTrades
-
-  const { tradeId } = useParams()
-  console.log(useParams())
-
-  const trade = aggregatedTrades[tradeId]
+  const data = useSelector(state => state.tradeReducer)
+  const trades = data.trades?.[day]
+  const trade = trades.find(t => t._id === tradeId)
 
   let fileUploader
 
@@ -54,8 +51,6 @@ export default function ReviewTrade() {
       </div>
     ))
   }
-
-  console.log(trade)
 
   return (
     <div className={styles.container}>
