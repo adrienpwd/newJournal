@@ -22,14 +22,17 @@ export default function ReviewTrade() {
     const formData = new FormData()
 
     const files = e.target.files
-    files.forEach((file, index) => {
-      const imageName = `${tradeId}-${index}`
-      formData.append(imageName, file, imageName)
-    })
 
-    dispatch(importImages(formData))
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const imageName = `${tradeId}-${i}`
+        formData.append(imageName, files[i], imageName)
+      }
 
-    fileUploader.clearFiles()
+      dispatch(importImages(formData))
+
+      fileUploader.clearFiles()
+    }
   }
 
   const renderImages = function() {

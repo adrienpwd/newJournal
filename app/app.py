@@ -355,10 +355,11 @@ def post_raw_data():
 @application.route('/importImages', methods=['POST'])
 def post_trade_images():
     if request.method == 'POST':
+        timestamp = 0
         # filename should be this format
         # ticker-timestap-index
         # ex: QGEN-1574098671-1
-        timestamp = 0
+
         for trade_image in request.files:
             timestamp = request.files[trade_image].filename.split('-')[1]
         date = datetime.fromtimestamp(int(timestamp))

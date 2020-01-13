@@ -21,6 +21,7 @@ services:
       MONGODB_HOSTNAME: mongodb
     volumes:
       - ./app:/var/www/
+      - /home/adrien/tradeLogs:/tradeLogs
     depends_on:
       - mongodb
     networks:
@@ -89,8 +90,6 @@ networks:
 
 volumes:
   mongodbdata:
-    driver: local
-  appdata:
     driver: local
   nginxdata:
     driver: local

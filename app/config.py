@@ -6,7 +6,7 @@ class Config(object):
     # must specify retryWrites=alse in connection string !
     MONGO_URI = os.environ.get(
         'MONGO_URL') or 'mongodb://adrien:ayqgqc2h2o@ds335668.mlab.com:35668/tradeslog?retryWrites=false'
-    IMAGES_UPLOAD_FOLDER = '/home/adrien/tradeLogs'
+    IMAGES_UPLOAD_FOLDER = '/tradeLogs'
     # Date format for DAS Trader csv files
     DATE_FORMAT_INPUT = '%m/%d/%y %H:%M:%S'
     DATE_FORMAT_OUTPUT = '%d/%m/%Y %H:%M:%S'
