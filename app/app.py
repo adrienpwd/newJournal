@@ -97,11 +97,11 @@ def init_trade(row, order):
     timestamp = get_timestamp(row[14])
     is_short = row[9] == 'Y'
 
-    # id that will be used for mongodb
-    _id = row[11] + "-" + str(int(timestamp))
+    # id that we use for a trade
+    id = row[11] + "-" + str(int(timestamp))
 
     return {
-        '_id': _id,
+        'id': id,
         'account': row[3],
         'trader': row[2],
         'ticker': row[11],
@@ -157,10 +157,10 @@ def get_gain(trade):
 
     for action in trade['actions']:
         if action.get('action_type') == 'Buy':
-            buy += action.get('price') * action.get('qty')
+            buy += action.get('init_price') * action.get('qty')
 
         if action.get('action_type') == 'Sell':
-            sell += action.get('price') * action.get('qty')
+            sell += action.get('init_price') * action.get('qty')
 
      # Long
     if trade.get('type') == 'B':
@@ -171,6 +171,24 @@ def get_gain(trade):
         gain = buy - sell
 
     return round(gain, 2)
+
+
+def get_slippage(trade):
+    slippage = 0
+
+    # Long
+    if trade.get('type') == 'B':
+        for action in trade['actions']:
+            if action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell':
+                slippage += (action.get('price') -
+                             action.get('init_price')) * action.get('qty')
+
+    # Short
+    # if trade.get('type') == 'S':
+        # if action.get('action_type') == 'Short':
+        # slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
+
+    return round(slippage, 2)
 
 
 def consolidate_trade(all_trades, built_trades, orders_dictionary):
@@ -245,6 +263,14 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             gain = get_gain(initial_trade)
             initial_trade['gain'] = gain
 
+            # risk / reward ratio
+            risk = 10
+            r = round(gain / risk, 2)
+            initial_trade['r'] = r
+
+            # slippage
+            initial_trade['slippage'] = get_slippage(initial_trade)
+
             initial_trade['img'] = []
 
             # add duration of trade using first entry and last partial
@@ -296,6 +322,9 @@ def post_raw_data():
         csv_orders_input = csv.reader(orders_stream)
         orders_dictionary = {}
         orders_list = []
+
+        print('csv_orders_input')
+        print(csv_orders_input)
 
         for row in csv_orders_input:
             order = init_order(row)
@@ -383,7 +412,7 @@ def post_trade_images():
             file = request.files[trade_image]
             image_original_index = int(file.filename.split('-')[2])
             final_image_index = str(image_original_index + base_index)
-            image_final_name = trade_id + '-' + final_image_index
+            image_final_name = trade_id + '-' + final_image_index + '.PNG'
 
             filename = secure_filename(image_final_name)
             image_full_path = os.path.join(

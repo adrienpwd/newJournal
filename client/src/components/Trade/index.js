@@ -14,7 +14,9 @@ export default function ReviewTrade() {
 
   const data = useSelector(state => state.tradeReducer)
   const trades = data.trades?.[day]
-  const trade = trades.find(t => t._id === tradeId)
+  const trade = trades.find(t => t.id === tradeId)
+
+  console.log(trade)
 
   let fileUploader
 
@@ -60,8 +62,11 @@ export default function ReviewTrade() {
       <div className={styles.tradeArea}>
         <div className={styles.tradeAreaDetails}>
           <h2>{trade.ticker}</h2>
+          <h4>{trade.account}</h4>
           <h4>{trade.time}</h4>
           <h4>{trade.gain}</h4>
+          <h4>R: {trade.r}</h4>
+          <h4>slippage: {trade.slippage}</h4>
         </div>
         <div className={styles.tradeAreaActions}>
           <h2>Actions</h2>

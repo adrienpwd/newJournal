@@ -14,7 +14,7 @@ export default function TradeCard({ trade, url }) {
   const gainClass = trade.gain > 0 ? styles.positive : styles.negative
 
   return (
-    <Link to={`/review/${match.params.day}/${trade._id}`}>
+    <Link to={`/review/${match.params.day}/${trade.id}`}>
       <div title={trade.ticker} className={styles.container}>
         <div className={styles.card}>
           <h2>{trade.ticker}</h2>

@@ -11,7 +11,7 @@ export default function Review() {
   const { day } = useParams()
 
   const tradesReview = myTrades[day]
-  const allTrades = tradesReview.map(trade => <TradeCard key={trade._id} trade={trade} />)
+  const allTrades = tradesReview.map(trade => <TradeCard key={trade.id} trade={trade} />)
 
   return allTrades.length ? (
     <>

@@ -1,6 +1,6 @@
 export default {
   'CHWY-1578567348': {
-    _id: 'CHWY-1578567348',
+    id: 'CHWY-1578567348',
     account: 'U3470252',
     actions: [
       {
@@ -69,7 +69,7 @@ export default {
     type: 'B'
   },
   'LK-1578566404': {
-    _id: 'LK-1578566404',
+    id: 'LK-1578566404',
     account: 'U3470252',
     actions: [
       {
