@@ -21,7 +21,7 @@ const onGetBuiltFilesSuccess = (state, payload) => {
   const { aggregatedTrades, trades, orders } = payload
   const aggregatedTradesObj = {}
   aggregatedTrades.forEach(trade => {
-    aggregatedTradesObj[trade._id] = trade
+    aggregatedTradesObj[trade.id] = trade
   })
 
   console.log(aggregatedTradesObj)

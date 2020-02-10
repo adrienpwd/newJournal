@@ -141,7 +141,7 @@ def get_action_type(order, trade_type):
     if trade_type == 'B':
         if order['type'] == 'B' and order['is_stop'] == False:
             action_type = 'Buy'
-        elif order['type'] == 'S' and order['market_type'] == 'Mkt' and order['is_stop'] == False:
+        elif order['type'] == 'S' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Sell'
         elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == True:
             action_type = 'Set Limit (Long)'
@@ -207,7 +207,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
     init_size = initial_trade.get('qty')
 
     entry_time = initial_trade['time']
-    trade_entry_time = datetime.strptime(entry_time, '%d/%m/%Y %H:%M:%S')
+    trade_entry_time = datetime.strptime(
+        entry_time, '%d/%m/%Y %H:%M:%S').timestamp()
 
     while init_size >= 0:
         if len(all_trades) == 0:
@@ -241,7 +242,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
         # Trade is consolidated
         if next_size == 0:
             exit_time = next_trade.get('time')
-            trade_exit_time = datetime.strptime(exit_time, '%d/%m/%Y %H:%M:%S')
+            trade_exit_time = datetime.strptime(
+                exit_time, '%d/%m/%Y %H:%M:%S').timestamp()
 
             for order in orders_dictionary:
                 my_order = orders_dictionary[order]
@@ -249,8 +251,10 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                     initial_trade.get('ticker') == my_order.get('ticker')
                 ):
                     order_time = datetime.strptime(
-                        my_order.get('time'), '%d/%m/%Y %H:%M:%S')
-                    if trade_entry_time <= order_time <= trade_exit_time:
+                        my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
+                    # DAS seems to have some issue with the timestamp, in so me cases there was
+                    # an order that came before the trade by 1 sec. so I use the "- 1" to allow for 1 sec. margin error
+                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time - 1 <= order_time <= trade_exit_time:
                         # Find action type (Buy, Sell, Stop, ...)
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
@@ -364,8 +368,8 @@ def post_raw_data():
 
         # if everything was ok
         # insert in DB raw data
-        mongo.db.raw_orders.insert_many(orders_list)
-        mongo.db.raw_trades.insert_many(trades_list)
+        # mongo.db.raw_orders.insert_many(orders_list)
+        # mongo.db.raw_trades.insert_many(trades_list)
 
         # then we build aggregated trades
         all_my_trades = []
