@@ -6,7 +6,7 @@ import styles from './tradeCard.module.css'
 export default function TradeCard({ trade, url }) {
   let match = useRouteMatch()
 
-  const getTradeType = function(type) {
+  const getTradeType = function (type) {
     if (type === 'B') return 'Long'
     if (type === 'S') return 'Short'
   }
@@ -19,6 +19,7 @@ export default function TradeCard({ trade, url }) {
         <div className={styles.card}>
           <h2>{trade.ticker}</h2>
           <div className={styles.element}>{trade.time}</div>
+          <div className={styles.element}>{trade.account}</div>
           <div className={styles.element}>{trade.duration}</div>
           <div className={styles.element}>{getTradeType(trade.type)}</div>
           <div className={styles.element + ' ' + gainClass}>{trade.gain}</div>

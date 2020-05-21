@@ -27,3 +27,11 @@
 .imagesArea {
   flex: 1;
 }
+
+.tradeHeader {
+  display: flex;
+}
+
+.editButton {
+  margin-left: 16px;
+}

@@ -25,6 +25,10 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
+# application.config["MONGO_URI"] = 'mongodb://' + 'userJournal' + ':' + \
+#    'ayqgqc2h2o' + '@' + "192.168.1.72" + \
+#    ':27017/' + 'journal'
+
 mongo = PyMongo(application)
 db = mongo.db
 cors = CORS()
@@ -71,6 +75,7 @@ def init_order(row):
     is_short = row[8] == 'Y'
 
     order = {
+        'account': row[2],
         'order_id': row[0],
         'route': row[4],
         'type': row[7],
@@ -147,6 +152,20 @@ def get_action_type(order, trade_type):
             action_type = 'Set Limit (Long)'
         elif order['type'] == 'S' and order['market_type'] == 'Mkt' and order['is_stop'] == True:
             action_type = 'Set Stop (Long)'
+        elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
+            action_type = '???'
+    if trade_type == 'S':
+        # TODO: implement SHORT actions
+        if order['type'] == 'S' and order['is_stop'] == False:
+            action_type = 'Short'
+        elif order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
+            action_type = 'Cover'
+        elif order['type'] == 'B' and order['market_type'] == 'Lmt' and order['is_stop'] == True:
+            action_type = 'Set Limit (Short)'
+        elif order['type'] == 'B' and order['market_type'] == 'Mkt' and order['is_stop'] == True:
+            action_type = 'Set Stop (Short)'
+        elif order['type'] == 'B' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
+            action_type = '???'
     return action_type
 
 
@@ -183,10 +202,11 @@ def get_slippage(trade):
                 slippage += (action.get('price') -
                              action.get('init_price')) * action.get('qty')
 
+    # TODO: implement this
     # Short
     # if trade.get('type') == 'S':
         # if action.get('action_type') == 'Short':
-        # slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
+            #slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
 
     return round(slippage, 2)
 
@@ -248,7 +268,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             for order in orders_dictionary:
                 my_order = orders_dictionary[order]
                 if (
-                    initial_trade.get('ticker') == my_order.get('ticker')
+                    initial_trade.get('ticker') == my_order.get(
+                        'ticker') and initial_trade.get('account') == my_order.get('account')
                 ):
                     order_time = datetime.strptime(
                         my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
@@ -327,9 +348,6 @@ def post_raw_data():
         orders_dictionary = {}
         orders_list = []
 
-        print('csv_orders_input')
-        print(csv_orders_input)
-
         for row in csv_orders_input:
             order = init_order(row)
             orders_dictionary[row[0]] = order
@@ -356,15 +374,23 @@ def post_raw_data():
 
             trades_list.append(trade)
 
-            # Group all Trades by Symbol (ticker)
-            if row[11] in trades_dictionary:
-                trades_dictionary[row[11]].append(trade)
+            currentTicker = row[11]
+            currentUser = row[3]
+
+            # Group all Trades by User and Ticker
+            if currentUser in trades_dictionary:
+                if currentTicker in trades_dictionary[currentUser]:
+                    trades_dictionary[currentUser][currentTicker].append(trade)
+                else:
+                    trades_dictionary[currentUser].update(
+                        {currentTicker: [trade]})
             else:
-                trades_dictionary[row[11]] = [trade]
+                trades_dictionary[currentUser] = {currentTicker: [trade]}
 
         # sort by date and time
-        for ticker in trades_dictionary:
-            trades_dictionary[ticker].sort(key=lambda t: t['time'])
+        for user in trades_dictionary:
+            for ticker in trades_dictionary[user]:
+                trades_dictionary[user][ticker].sort(key=lambda t: t['time'])
 
         # if everything was ok
         # insert in DB raw data
@@ -375,14 +401,15 @@ def post_raw_data():
         all_my_trades = []
 
         # Consolidate all Trades
-        for trade in trades_dictionary:
-            all_my_trades.extend(consolidate_trade(
-                trades_dictionary[trade], [], orders_dictionary))
+        for user in trades_dictionary:
+            for trade in trades_dictionary[user]:
+                all_my_trades.extend(consolidate_trade(
+                    trades_dictionary[user][trade], [], orders_dictionary))
 
         # all aggregated trades
         mongo.db.trades.insert_many(all_my_trades)
 
-        return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades})
+        return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades, 'trades_dictionary': trades_dictionary})
 
 
 @application.route('/importImages', methods=['POST'])
