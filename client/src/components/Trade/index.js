@@ -1,16 +1,21 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { useForm } from 'react-hook-form'
+
+import { catalysts, strategies } from './../../utils'
 
 import {
   Button,
+  Checkbox,
   FileUploader,
   Form,
   FormGroup,
+  MultiSelect,
   Select,
   SelectItem,
   TextInput,
-  TextArea,
+  TextArea
 } from 'carbon-components-react'
 import { Edit16, Checkmark16 } from '@carbon/icons-react'
 
@@ -30,12 +35,24 @@ export default function ReviewTrade() {
 
   const [isEditMode, setEditMode] = useState(false)
 
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      strategy: '',
+      description: ''
+    }
+  })
+
   function makeEditState() {
     setEditMode(true)
   }
 
   function makeViewState() {
     setEditMode(false)
+  }
+
+  const onSubmit = (data) => {
+    console.log(JSON.stringify(data))
+    makeViewState()
   }
 
   const _handleUpload = (e) => {
@@ -83,7 +100,7 @@ export default function ReviewTrade() {
           <Button
             className={styles.editButton}
             kind="primary"
-            onClick={makeViewState}
+            onClick={handleSubmit(onSubmit)}
             hasIconOnly
             renderIcon={Checkmark16}
             iconDescription="Validate trade details"
@@ -97,35 +114,33 @@ export default function ReviewTrade() {
         <h4>slippage: {trade.slippage}</h4>
 
         <Form>
-          <FormGroup>
-            <TextInput
-              id="test2"
-              invalidText="Invalid error message."
-              labelText="Text Input label"
-              placeholder="Placeholder text"
-            />
-          </FormGroup>
-          <FormGroup>
+          <FormGroup legendText="Trade details">
+            <Select
+              ref={register}
+              id="strategy"
+              name="strategy"
+              defaultValue=""
+              invalidText="This is an invalid error message."
+              labelText="Strategy"
+            >
+              {strategies.map((s) => (
+                <SelectItem text={s.label} value={s.id} key={s.id} />
+              ))}
+            </Select>
             <TextArea
+              ref={register}
               cols={50}
-              id="test5"
+              id="description"
+              name="description"
               invalidText="Invalid error message."
-              labelText="Text Area label"
-              placeholder="Placeholder text"
+              labelText="Description"
+              placeholder="Enter trade description"
               rows={4}
             />
-          </FormGroup>
-          <FormGroup>
-            <Select
-              defaultValue="placeholder-item"
-              id="select-1"
-              invalidText="This is an invalid error message."
-              labelText="Select"
-            >
-              <SelectItem text="Option 1" value="option-1" />
-              <SelectItem text="Option 2" value="option-2" />
-              <SelectItem text="Option 3" value="option-3" />
-            </Select>
+            <legend>Catalyst(s)</legend>
+            {catalysts.map((c) => (
+              <Checkbox ref={register} labelText={c.label} id={c.id} name={c.id} key={c.id} />
+            ))}
           </FormGroup>
         </Form>
       </>
@@ -152,6 +167,9 @@ export default function ReviewTrade() {
         <h4>{trade.gain}</h4>
         <h4>R: {trade.r}</h4>
         <h4>slippage: {trade.slippage}</h4>
+        <h4>strategy: {trade.strategy}</h4>
+        <h4>trade plan:</h4>
+        <p>{trade.plan}</p>
       </>
     )
   }
@@ -182,4 +200,28 @@ export default function ReviewTrade() {
       </div>
     </div>
   )
+}
+{
+  /* <FormGroup>
+            <TextArea
+              cols={50}
+              id="test5"
+              invalidText="Invalid error message."
+              labelText="Text Area label"
+              placeholder="Placeholder text"
+              rows={4}
+            />
+          </FormGroup>
+          <FormGroup>
+            <Select
+              defaultValue="placeholder-item"
+              id="select-1"
+              invalidText="This is an invalid error message."
+              labelText="Select"
+            >
+              <SelectItem text="Option 1" value="option-1" />
+              <SelectItem text="Option 2" value="option-2" />
+              <SelectItem text="Option 3" value="option-3" />
+            </Select>
+          </FormGroup> */
 }

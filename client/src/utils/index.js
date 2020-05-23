@@ -1,3 +1,4 @@
 import createTradeId from './createTradeId'
+import { catalysts, strategies } from './tradeDetails'
 
-export { createTradeId }
+export { catalysts, createTradeId, strategies }
