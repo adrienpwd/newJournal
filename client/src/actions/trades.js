@@ -68,13 +68,13 @@ export function importFiles(files) {
   }
 }
 
-export function importImages(images) {
+export function uploadImages(images) {
   return (dispatch) => {
     dispatch({
       type: 'IMPORT_IMAGES'
     })
 
-    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`, {
+    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/uploadImages`, {
       method: 'POST',
       body: images
     })
@@ -82,14 +82,14 @@ export function importImages(images) {
       .then((data) => {
         if (data.ok === true) {
           dispatch({
-            type: 'IMPORT_IMAGES_SUCCESS',
+            type: 'UPLOAD_IMAGES_SUCCESS',
             payload: data
           })
         }
       })
       .catch((error) => {
         dispatch({
-          type: 'IMPORT_IMAGES_ERROR',
+          type: 'UPLOAD_IMAGES_ERROR',
           error
         })
       })
@@ -124,4 +124,12 @@ export function editTrade(trade, data) {
         })
       })
   }
+}
+
+export function importImages() {
+  return axios({
+    method: 'get',
+    url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
+    responseType: 'blob'
+  })
 }

@@ -27,7 +27,6 @@ export default function TradeCard({ trade, url }) {
           <h2>{trade.ticker}</h2>
           <div className={styles.element}>{trade.time}</div>
           <div className={styles.element}>{trade.account}</div>
-          <div className={styles.element}>{trade.duration}</div>
           <div className={styles.element}>{getTradeType(trade.type)}</div>
           <div className={styles.element + ' ' + gainClass}>{trade.gain}</div>
         </div>

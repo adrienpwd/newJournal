@@ -36,11 +36,17 @@ const onGetBuiltFilesSuccess = (state, payload) => {
   }
 }
 
-const onImportImagesSuccess = (state, payload) => {
+const onUploadImagesSuccess = (state, payload) => {
   const { imagePathes, tradeId } = payload
   const newAggregatedTrade = state.aggregatedTrades[tradeId]
   newAggregatedTrade.img = newAggregatedTrade.img.concat(imagePathes)
   state.aggregatedTrades[tradeId] = newAggregatedTrade
+
+  return state
+}
+
+const onImportImagesSuccess = (state, payload) => {
+  console.log(payload)
 
   return state
 }
@@ -52,6 +58,8 @@ export default (state = initial_state, action = {}) => {
       return onGetBuiltFiles(state, payload)
     case 'IMPORT_FILES_SUCCESS':
       return onGetBuiltFilesSuccess(state, payload)
+    case 'UPLOAD_IMAGES_SUCCESS':
+      return onUploadImagesSuccess(state, payload)
     case 'IMPORT_IMAGES_SUCCESS':
       return onImportImagesSuccess(state, payload)
     default:

@@ -1,7 +1,7 @@
 import os
 import json
 from bson.objectid import ObjectId
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -417,7 +417,7 @@ def post_raw_data():
         return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades, 'trades_dictionary': trades_dictionary})
 
 
-@application.route('/importImages', methods=['POST'])
+@application.route('/uploadImages', methods=['POST'])
 def post_trade_images():
     if request.method == 'POST':
         timestamp = 0
@@ -457,6 +457,14 @@ def post_trade_images():
             file.save(image_full_path)
             image_pathes.append(image_full_path)
 
+            mongo.db.trades.update_one(
+                {'id': trade_id},
+                {"$set": {
+                    'img': image_pathes
+                }
+                }, upsert=False
+            )
+
         return jsonify({'ok': True, 'tradeId': trade_id, 'imagePathes': image_pathes})
 
 
@@ -478,6 +486,11 @@ def edit_trade_data():
             }, upsert=False
         )
         return jsonify({'ok': True, 'tradeID': trade['_id'], 'strategy': details['strategy']})
+
+
+@application.route('/importImages', methods=['GET'])
+def send_image():
+    return send_from_directory(IMAGES_UPLOAD_FOLDER + '/2020/1/10', 'LB-1578652287-0.PNG', as_attachment=True)
 
 
 if __name__ == "__main__":

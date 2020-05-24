@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
+import axios from 'axios'
 
 import { catalysts, strategies } from './../../utils'
 
@@ -17,9 +18,9 @@ import {
   TextArea,
   Tag
 } from 'carbon-components-react'
-import { Edit16, Checkmark16 } from '@carbon/icons-react'
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
-import { editTrade, importImages } from 'actions/trades'
+import { editTrade, uploadImages } from 'actions/trades'
 
 import styles from './trade.module.css'
 
@@ -31,16 +32,36 @@ export default function ReviewTrade() {
   const trades = data.trades?.[day]
   const trade = trades.find((t) => t.id === tradeId)
 
-  console.log(trade)
+  const [images, setImages] = useState()
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      axios({
+        method: 'get',
+        url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
+        responseType: 'blob'
+      }).then(function (response) {
+        setImages(response.data)
+      })
+    }
+
+    fetchImages()
+  }, [])
 
   let fileUploader
 
   const [isEditMode, setEditMode] = useState(false)
 
+  let catalystsCheckboxes = {}
+  trade.catalysts.map((c) => {
+    catalystsCheckboxes[c] = true
+  })
+
   const { register, handleSubmit } = useForm({
     defaultValues: {
       strategy: trade?.strategy || '',
-      description: trade?.description || ''
+      description: trade?.description || '',
+      ...catalystsCheckboxes
     }
   })
 
@@ -70,18 +91,14 @@ export default function ReviewTrade() {
         formData.append(imageName, files[i], imageName)
       }
 
-      dispatch(importImages(formData))
+      dispatch(uploadImages(formData))
 
       fileUploader.clearFiles()
     }
   }
 
   const renderImages = function () {
-    const uploadedimages = trade.img.map((i) => {
-      return <img src={i} alt=""></img>
-    })
-
-    return uploadedimages
+    return images ? <img src={URL.createObjectURL(images)} /> : <div />
   }
 
   const renderActions = function () {
@@ -108,6 +125,15 @@ export default function ReviewTrade() {
             hasIconOnly
             renderIcon={Checkmark16}
             iconDescription="Validate trade details"
+            tooltipPosition="bottom"
+          />
+          <Button
+            className={styles.editButton}
+            kind="primary"
+            onClick={makeViewState}
+            hasIconOnly
+            renderIcon={Close16}
+            iconDescription="Cancel"
             tooltipPosition="bottom"
           />
         </div>
@@ -195,7 +221,10 @@ export default function ReviewTrade() {
           />
         </div>
         <h4>{trade.account}</h4>
+        <h4>Trade entry</h4>
         <h4>{trade.time}</h4>
+        <h4>Duration</h4>
+        <h4>{trade.duration}</h4>
         <h4 className={gainClass}>{trade.gain}</h4>
         <h4>R/R: {trade?.r}</h4>
         <h4>slippage: {trade?.slippage}</h4>
@@ -236,6 +265,7 @@ export default function ReviewTrade() {
             onChange={_handleUpload}
           />
         </Form>
+        {renderImages()}
       </div>
     </div>
   )
