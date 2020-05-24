@@ -11,7 +11,14 @@ export default function TradeCard({ trade, url }) {
     if (type === 'S') return 'Short'
   }
 
-  const gainClass = trade.gain > 0 ? styles.positive : styles.negative
+  let gainClass
+  if (trade.r >= 2) {
+    gainClass = styles.positive
+  } else if (trade.r < 2 && trade.r >= 0) {
+    gainClass = styles.neuter
+  } else {
+    gainClass = styles.negative
+  }
 
   return (
     <Link to={`/review/${match.params.day}/${trade.id}`}>

@@ -5,14 +5,14 @@ import axios from 'axios'
 // export REACT_APP_USERS_SERVICE_URL=http://localhost:5001
 
 export function loadTrades() {
-  return dispatch => {
+  return (dispatch) => {
     dispatch({
       type: 'LOAD_TRADES'
     })
 
     axios
       .get(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
-      .then(res => {
+      .then((res) => {
         if (res.data.ok === true) {
           dispatch({
             type: 'LOAD_TRADES_SUCCESS',
@@ -20,7 +20,7 @@ export function loadTrades() {
           })
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err)
       })
 
@@ -41,7 +41,7 @@ export function loadTrades() {
 }
 
 export function importFiles(files) {
-  return dispatch => {
+  return (dispatch) => {
     dispatch({
       type: 'IMPORT_FILES'
     })
@@ -50,8 +50,8 @@ export function importFiles(files) {
       method: 'POST',
       body: files
     })
-      .then(results => results.json())
-      .then(data => {
+      .then((results) => results.json())
+      .then((data) => {
         if (data.ok === true) {
           dispatch({
             type: 'IMPORT_FILES_SUCCESS',
@@ -59,7 +59,7 @@ export function importFiles(files) {
           })
         }
       })
-      .catch(error => {
+      .catch((error) => {
         dispatch({
           type: 'IMPORT_FILES_ERROR',
           error
@@ -69,7 +69,7 @@ export function importFiles(files) {
 }
 
 export function importImages(images) {
-  return dispatch => {
+  return (dispatch) => {
     dispatch({
       type: 'IMPORT_IMAGES'
     })
@@ -78,8 +78,8 @@ export function importImages(images) {
       method: 'POST',
       body: images
     })
-      .then(results => results.json())
-      .then(data => {
+      .then((results) => results.json())
+      .then((data) => {
         if (data.ok === true) {
           dispatch({
             type: 'IMPORT_IMAGES_SUCCESS',
@@ -87,9 +87,39 @@ export function importImages(images) {
           })
         }
       })
-      .catch(error => {
+      .catch((error) => {
         dispatch({
           type: 'IMPORT_IMAGES_ERROR',
+          error
+        })
+      })
+  }
+}
+
+export function editTrade(trade, data) {
+  return (dispatch) => {
+    dispatch({
+      type: 'EDIT_TRADE'
+    })
+
+    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/editTrade`, {
+      method: 'PUT',
+      body: JSON.stringify({ trade, data }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((results) => results.json())
+      .then((data) => {
+        if (data.ok === true) {
+          dispatch({
+            type: 'EDIT_TRADE_SUCCESS'
+          })
+        }
+      })
+      .catch((error) => {
+        dispatch({
+          type: 'EDIT_TRADE_ERROR',
           error
         })
       })

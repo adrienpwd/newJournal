@@ -35,3 +35,15 @@
 .editButton {
   margin-left: 16px;
 }
+
+.positive {
+  color: green;
+}
+
+.negative {
+  color: red;
+}
+
+.neuter {
+  color: orange;
+}

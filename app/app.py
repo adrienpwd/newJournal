@@ -119,7 +119,12 @@ def init_trade(row, order):
         'trade_id': row[0],
         'route': row[5],
         'order_id': order_id,
-        'timestamp': timestamp
+        'timestamp': timestamp,
+        'strategy': '',
+        'description': '',
+        'catalysts': [],
+        'rvol': 0,
+        'rating': 0
     }
 
 
@@ -206,7 +211,7 @@ def get_slippage(trade):
     # Short
     # if trade.get('type') == 'S':
         # if action.get('action_type') == 'Short':
-            #slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
+            # slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
 
     return round(slippage, 2)
 
@@ -453,6 +458,26 @@ def post_trade_images():
             image_pathes.append(image_full_path)
 
         return jsonify({'ok': True, 'tradeId': trade_id, 'imagePathes': image_pathes})
+
+
+@application.route('/editTrade', methods=['GET', 'PUT'])
+def edit_trade_data():
+    ''' route to edit a trade '''
+    if request.method == 'PUT':
+        trade = request.json['trade']
+        details = request.json['data']
+        mongo.db.trades.update_one(
+            {'id': trade['id']},
+            {"$set": {
+                'strategy': details['strategy'],
+                'description': details['description'],
+                'catalysts': details['catalysts'],
+                'rvol': details['rvol'],
+                'rating': details['rating']
+            }
+            }, upsert=False
+        )
+        return jsonify({'ok': True, 'tradeID': trade['_id'], 'strategy': details['strategy']})
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ import {
   HeaderMenuButton,
   HeaderName,
   HeaderNavigation,
-  HeaderMenuItem,
   HeaderSideNavItems,
   SkipToContent,
   SideNav,

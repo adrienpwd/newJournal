@@ -11,15 +11,15 @@ import {
   FileUploader,
   Form,
   FormGroup,
-  MultiSelect,
   Select,
   SelectItem,
-  TextInput,
-  TextArea
+  NumberInput,
+  TextArea,
+  Tag
 } from 'carbon-components-react'
 import { Edit16, Checkmark16 } from '@carbon/icons-react'
 
-import { importImages } from 'actions/trades'
+import { editTrade, importImages } from 'actions/trades'
 
 import styles from './trade.module.css'
 
@@ -31,14 +31,16 @@ export default function ReviewTrade() {
   const trades = data.trades?.[day]
   const trade = trades.find((t) => t.id === tradeId)
 
+  console.log(trade)
+
   let fileUploader
 
   const [isEditMode, setEditMode] = useState(false)
 
   const { register, handleSubmit } = useForm({
     defaultValues: {
-      strategy: '',
-      description: ''
+      strategy: trade?.strategy || '',
+      description: trade?.description || ''
     }
   })
 
@@ -51,7 +53,9 @@ export default function ReviewTrade() {
   }
 
   const onSubmit = (data) => {
-    console.log(JSON.stringify(data))
+    const tradeCatalysts = catalysts.filter((c) => data[c.id] === true).map((c) => c.id)
+    data.catalysts = tradeCatalysts
+    dispatch(editTrade(trade, data))
     makeViewState()
   }
 
@@ -114,40 +118,68 @@ export default function ReviewTrade() {
         <h4>slippage: {trade.slippage}</h4>
 
         <Form>
-          <FormGroup legendText="Trade details">
-            <Select
-              ref={register}
-              id="strategy"
-              name="strategy"
-              defaultValue=""
-              invalidText="This is an invalid error message."
-              labelText="Strategy"
-            >
-              {strategies.map((s) => (
-                <SelectItem text={s.label} value={s.id} key={s.id} />
-              ))}
-            </Select>
-            <TextArea
-              ref={register}
-              cols={50}
-              id="description"
-              name="description"
-              invalidText="Invalid error message."
-              labelText="Description"
-              placeholder="Enter trade description"
-              rows={4}
-            />
-            <legend>Catalyst(s)</legend>
-            {catalysts.map((c) => (
-              <Checkbox ref={register} labelText={c.label} id={c.id} name={c.id} key={c.id} />
+          <Select
+            ref={register}
+            id="strategy"
+            name="strategy"
+            defaultValue=""
+            invalidText="This is an invalid error message."
+            labelText="Strategy"
+          >
+            {strategies.map((s) => (
+              <SelectItem text={s.label} value={s.id} key={s.id} />
             ))}
+          </Select>
+          <TextArea
+            ref={register}
+            cols={50}
+            id="description"
+            name="description"
+            invalidText="Invalid error message."
+            labelText="Description"
+            placeholder="Enter trade description"
+            rows={4}
+          />
+          <FormGroup legendText="Catalysts">
+            {catalysts.map((c) => {
+              return (
+                <Checkbox ref={register} labelText={c.label} id={c.id} name={c.id} key={c.id} />
+              )
+            })}
           </FormGroup>
+          <NumberInput
+            ref={register}
+            id="rvol"
+            name="rvol"
+            invalidText="Number is not valid"
+            label="Relative Volume"
+            min={0}
+          />
+          <NumberInput
+            ref={register}
+            id="rating"
+            name="rating"
+            invalidText="Number is not valid"
+            label="Rate Trade"
+            min={0}
+            max={5}
+            step={1}
+          />
         </Form>
       </>
     )
   }
 
   const renderNormalView = function () {
+    let gainClass
+    if (trade.r >= 2) {
+      gainClass = styles.positive
+    } else if (trade.r < 2 && trade.r >= 0) {
+      gainClass = styles.neuter
+    } else {
+      gainClass = styles.negative
+    }
+    const strategy = strategies.find((s) => s.id === trade.strategy)
     return (
       <>
         <div className={styles.tradeHeader}>
@@ -164,12 +196,20 @@ export default function ReviewTrade() {
         </div>
         <h4>{trade.account}</h4>
         <h4>{trade.time}</h4>
-        <h4>{trade.gain}</h4>
-        <h4>R: {trade.r}</h4>
-        <h4>slippage: {trade.slippage}</h4>
-        <h4>strategy: {trade.strategy}</h4>
-        <h4>trade plan:</h4>
-        <p>{trade.plan}</p>
+        <h4 className={gainClass}>{trade.gain}</h4>
+        <h4>R/R: {trade?.r}</h4>
+        <h4>slippage: {trade?.slippage}</h4>
+        <h4>strategy: {strategy?.label}</h4>
+        <h4>trade description:</h4>
+        <p>{trade?.description}</p>
+        <h4>catalysts</h4>
+        {trade?.catalysts.map((c) => (
+          <Tag key={c} type="red" title={c}>
+            {c}
+          </Tag>
+        ))}
+        <h4>RVOL: {trade?.rvol}</h4>
+        <h4>Rating: {trade?.rating}</h4>
       </>
     )
   }
@@ -187,41 +227,16 @@ export default function ReviewTrade() {
       </div>
       <div className={styles.imagesArea}>
         <Form id="importInput">
-          <FormGroup legendText="Upload">
-            <FileUploader
-              labelDescription="Import Images"
-              buttonLabel="Import"
-              multiple
-              ref={(node) => (fileUploader = node)}
-              onChange={_handleUpload}
-            />
-          </FormGroup>
+          <FileUploader
+            accept={['.jpg', '.png']}
+            labelDescription="Import Images"
+            buttonLabel="Import"
+            multiple
+            ref={(node) => (fileUploader = node)}
+            onChange={_handleUpload}
+          />
         </Form>
       </div>
     </div>
   )
-}
-{
-  /* <FormGroup>
-            <TextArea
-              cols={50}
-              id="test5"
-              invalidText="Invalid error message."
-              labelText="Text Area label"
-              placeholder="Placeholder text"
-              rows={4}
-            />
-          </FormGroup>
-          <FormGroup>
-            <Select
-              defaultValue="placeholder-item"
-              id="select-1"
-              invalidText="This is an invalid error message."
-              labelText="Select"
-            >
-              <SelectItem text="Option 1" value="option-1" />
-              <SelectItem text="Option 2" value="option-2" />
-              <SelectItem text="Option 3" value="option-3" />
-            </Select>
-          </FormGroup> */
 }
