@@ -22,6 +22,9 @@ import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
 import { editTrade, uploadImages } from 'actions/trades'
 
+import 'react-responsive-carousel/lib/styles/carousel.min.css'
+import { Carousel } from 'react-responsive-carousel'
+
 import styles from './trade.module.css'
 
 export default function ReviewTrade() {
@@ -32,20 +35,25 @@ export default function ReviewTrade() {
   const trades = data.trades?.[day]
   const trade = trades.find((t) => t.id === tradeId)
 
-  const [images, setImages] = useState()
+  const [images, setImages] = useState([])
 
   useEffect(() => {
-    const fetchImages = async () => {
+    trade.img.forEach((i) => {
+      const imgArr = i.split('/')
+      const path = `${imgArr[0]}/${imgArr[1]}/${imgArr[2]}`
+      const filename = imgArr[3]
       axios({
         method: 'get',
         url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
+        params: {
+          filename,
+          path
+        },
         responseType: 'blob'
-      }).then(function (response) {
-        setImages(response.data)
+      }).then((response) => {
+        setImages((images) => images.concat(response.data))
       })
-    }
-
-    fetchImages()
+    })
   }, [])
 
   let fileUploader
@@ -98,7 +106,17 @@ export default function ReviewTrade() {
   }
 
   const renderImages = function () {
-    return images ? <img src={URL.createObjectURL(images)} /> : <div />
+    // <img src={URL.createObjectURL(images)} />
+    const tradeImages = images.map((img, i) => {
+      return (
+        <div key={i}>
+          <img src={URL.createObjectURL(img)} />
+          <p className="legend">Legend</p>
+        </div>
+      )
+    })
+
+    return <Carousel autoPlay={false}>{tradeImages}</Carousel>
   }
 
   const renderActions = function () {

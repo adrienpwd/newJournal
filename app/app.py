@@ -457,13 +457,13 @@ def post_trade_images():
             file.save(image_full_path)
             image_pathes.append(image_full_path)
 
-            mongo.db.trades.update_one(
-                {'id': trade_id},
-                {"$set": {
-                    'img': image_pathes
-                }
-                }, upsert=False
-            )
+        mongo.db.trades.update_one(
+            {'id': trade_id},
+            {"$push": {
+                'img': date_path + '/' + filename
+            }
+            }, upsert=False
+        )
 
         return jsonify({'ok': True, 'tradeId': trade_id, 'imagePathes': image_pathes})
 
@@ -490,7 +490,9 @@ def edit_trade_data():
 
 @application.route('/importImages', methods=['GET'])
 def send_image():
-    return send_from_directory(IMAGES_UPLOAD_FOLDER + '/2020/1/10', 'LB-1578652287-0.PNG', as_attachment=True)
+    imgFilename = request.args['filename']
+    imgPath = request.args['path']
+    return send_from_directory(IMAGES_UPLOAD_FOLDER + '/' + imgPath, imgFilename, as_attachment=True)
 
 
 if __name__ == "__main__":
