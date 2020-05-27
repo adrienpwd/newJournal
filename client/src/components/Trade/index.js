@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
+import { loadTrades } from './../../actions/trades'
 
 import { catalysts, strategies } from './../../utils'
 
@@ -18,7 +19,15 @@ import {
   TextArea,
   Tag
 } from 'carbon-components-react'
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
+
+import {
+  Edit16,
+  Checkmark16,
+  Close16,
+  CaretSortDown16,
+  CaretSortUp16,
+  StopFilledAlt16
+} from '@carbon/icons-react'
 
 import { editTrade, uploadImages } from 'actions/trades'
 
@@ -27,51 +36,64 @@ import { Carousel } from 'react-responsive-carousel'
 
 import styles from './trade.module.css'
 
-export default function ReviewTrade() {
+const ReviewTrade = () => {
   const dispatch = useDispatch()
   const { tradeId, day } = useParams()
 
   const data = useSelector((state) => state.tradeReducer)
-  const trades = data.trades?.[day]
+  const { loaded } = data
+  const trades = data.trades?.[day] || []
   const trade = trades.find((t) => t.id === tradeId)
+
+  let catalystsCheckboxes = {}
+  trade &&
+    trade.catalysts &&
+    trade.catalysts.map((c) => {
+      catalystsCheckboxes[c] = true
+    })
+
+  // TODO:
+  // the edit form doesn't re-render with the new defaultValues after editing a trade
+  // It will populate the form with the old values
+  const defaultValues = {
+    strategy: trade?.strategy || '',
+    description: trade?.description || '',
+    ...catalystsCheckboxes
+  }
+  const { register, handleSubmit, reset } = useForm({ defaultValues })
+
+  useEffect(() => {
+    if (!loaded) {
+      dispatch(loadTrades())
+    }
+  }, [reset])
 
   const [images, setImages] = useState([])
 
   useEffect(() => {
-    trade.img.forEach((i) => {
-      const imgArr = i.split('/')
-      const path = `${imgArr[0]}/${imgArr[1]}/${imgArr[2]}`
-      const filename = imgArr[3]
-      axios({
-        method: 'get',
-        url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
-        params: {
-          filename,
-          path
-        },
-        responseType: 'blob'
-      }).then((response) => {
-        setImages((images) => images.concat(response.data))
+    if (trade?.img) {
+      trade.img.forEach((i) => {
+        const imgArr = i.split('/')
+        const path = `${imgArr[0]}/${imgArr[1]}/${imgArr[2]}`
+        const filename = imgArr[3]
+        axios({
+          method: 'get',
+          url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
+          params: {
+            filename,
+            path
+          },
+          responseType: 'blob'
+        }).then((response) => {
+          setImages((images) => images.concat(response.data))
+        })
       })
-    })
+    }
   }, [])
 
   let fileUploader
 
   const [isEditMode, setEditMode] = useState(false)
-
-  let catalystsCheckboxes = {}
-  trade.catalysts.map((c) => {
-    catalystsCheckboxes[c] = true
-  })
-
-  const { register, handleSubmit } = useForm({
-    defaultValues: {
-      strategy: trade?.strategy || '',
-      description: trade?.description || '',
-      ...catalystsCheckboxes
-    }
-  })
 
   function makeEditState() {
     setEditMode(true)
@@ -86,6 +108,9 @@ export default function ReviewTrade() {
     data.catalysts = tradeCatalysts
     dispatch(editTrade(trade, data))
     makeViewState()
+    // Object.keys(defaultValues).forEach((k) => {
+    //   setValues(k, defaultValues[k])
+    // })
   }
 
   const _handleUpload = (e) => {
@@ -106,7 +131,6 @@ export default function ReviewTrade() {
   }
 
   const renderImages = function () {
-    // <img src={URL.createObjectURL(images)} />
     const tradeImages = images.map((img, i) => {
       return (
         <div key={i}>
@@ -119,16 +143,36 @@ export default function ReviewTrade() {
     return <Carousel autoPlay={false}>{tradeImages}</Carousel>
   }
 
-  const renderActions = function () {
-    return trade.actions.map((action, i) => (
-      <div key={i} className={styles.tradeAreaAction}>
-        {action.is_stop || (action.market_type === 'Lmt' && !action.init_price)
-          ? `${action.action_type} ${action.qty} shares at ${
-              action.market_type === 'Mkt' ? action.stop_price : action.price
-            }`
-          : `${action.action_type} ${action.qty} shares at ${action.price} (init. price: ${action.init_price})`}
-      </div>
-    ))
+  const renderActions = () =>
+    trade.actions.map((action, i) => {
+      let actionType
+      let actionIcon
+      if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
+        actionIcon = <StopFilledAlt16 />
+        actionType = `${action.action_type} ${action.qty} at ${
+          action.market_type === 'Mkt' ? action.stop_price : action.price
+        }`
+      } else {
+        actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
+        actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
+      }
+
+      return (
+        <div key={i} className={styles.tradeAreaAction}>
+          {actionIcon}
+          {actionType}
+        </div>
+      )
+    })
+
+  const renderCatalystsTag = () => {
+    return trade?.catalysts
+      ? trade?.catalysts.map((c) => (
+          <Tag key={c} type="red" title={c}>
+            {c}
+          </Tag>
+        ))
+      : false
   }
 
   const renderEditView = function () {
@@ -139,6 +183,7 @@ export default function ReviewTrade() {
           <Button
             className={styles.editButton}
             kind="primary"
+            size="small"
             onClick={handleSubmit(onSubmit)}
             hasIconOnly
             renderIcon={Checkmark16}
@@ -148,6 +193,7 @@ export default function ReviewTrade() {
           <Button
             className={styles.editButton}
             kind="primary"
+            size="small"
             onClick={makeViewState}
             hasIconOnly
             renderIcon={Close16}
@@ -166,7 +212,6 @@ export default function ReviewTrade() {
             ref={register}
             id="strategy"
             name="strategy"
-            defaultValue=""
             invalidText="This is an invalid error message."
             labelText="Strategy"
           >
@@ -187,7 +232,14 @@ export default function ReviewTrade() {
           <FormGroup legendText="Catalysts">
             {catalysts.map((c) => {
               return (
-                <Checkbox ref={register} labelText={c.label} id={c.id} name={c.id} key={c.id} />
+                <Checkbox
+                  ref={register}
+                  labelText={c.label}
+                  id={c.id}
+                  name={c.id}
+                  key={c.id}
+                  //defaultChecked={trade.catalysts.includes(c.id)}
+                />
               )
             })}
           </FormGroup>
@@ -231,6 +283,7 @@ export default function ReviewTrade() {
           <Button
             className={styles.editButton}
             kind="primary"
+            size="small"
             onClick={makeEditState}
             hasIconOnly
             renderIcon={Edit16}
@@ -250,41 +303,43 @@ export default function ReviewTrade() {
         <h4>trade description:</h4>
         <p>{trade?.description}</p>
         <h4>catalysts</h4>
-        {trade?.catalysts.map((c) => (
-          <Tag key={c} type="red" title={c}>
-            {c}
-          </Tag>
-        ))}
+        {renderCatalystsTag()}
         <h4>RVOL: {trade?.rvol}</h4>
         <h4>Rating: {trade?.rating}</h4>
       </>
     )
   }
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.tradeArea}>
-        <div className={styles.tradeAreaDetails}>
-          {isEditMode ? renderEditView() : renderNormalView()}
+  if (trade) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.tradeArea}>
+          <div className={styles.tradeAreaDetails}>
+            {isEditMode ? renderEditView() : renderNormalView()}
+          </div>
+          <div className={styles.tradeAreaActions}>
+            <h2>Actions</h2>
+            {trade?.actions && renderActions()}
+          </div>
         </div>
-        <div className={styles.tradeAreaActions}>
-          <h2>Actions</h2>
-          {renderActions()}
+        <div className={styles.imagesArea}>
+          <Form id="importInput">
+            <FileUploader
+              accept={['.jpg', '.png']}
+              labelDescription="Import Images"
+              buttonLabel="Import"
+              multiple
+              ref={(node) => (fileUploader = node)}
+              onChange={_handleUpload}
+            />
+          </Form>
+          <div>{renderImages()}</div>
         </div>
       </div>
-      <div className={styles.imagesArea}>
-        <Form id="importInput">
-          <FileUploader
-            accept={['.jpg', '.png']}
-            labelDescription="Import Images"
-            buttonLabel="Import"
-            multiple
-            ref={(node) => (fileUploader = node)}
-            onChange={_handleUpload}
-          />
-        </Form>
-        {renderImages()}
-      </div>
-    </div>
-  )
+    )
+  } else {
+    return 'Loading'
+  }
 }
+
+export default ReviewTrade

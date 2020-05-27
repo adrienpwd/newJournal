@@ -7,7 +7,7 @@ const initial_state = {
 
 const groupBy = (list, keyGetter) => {
   const tradesByDay = {}
-  list.forEach(item => {
+  list.forEach((item) => {
     const key = keyGetter(item)
     const collection = tradesByDay[key]
     if (!collection) {
@@ -25,7 +25,7 @@ const onLoadTradeSuccess = (state, payload) => {
 
   return {
     ...state,
-    trades: groupBy(trades, trade => {
+    trades: groupBy(trades, (trade) => {
       // Days in the trade have YYYY/MM/DD format
       // It messes up the app when we try to use the day in the router
       // So I have to change to YYYY-MM-DD (- instead of /)
@@ -37,12 +37,30 @@ const onLoadTradeSuccess = (state, payload) => {
   }
 }
 
+const onEditTradeSuccess = (state, { trade, data }) => {
+  const formattedDay = trade.time.substring(0, 10).replace(/\//g, '-')
+  const updatedTrades = state.trades[formattedDay].map((t) => {
+    if (t.id === trade.id) return { ...trade, ...data }
+    return t
+  })
+
+  return {
+    ...state,
+    trades: {
+      ...state.trades,
+      [formattedDay]: updatedTrades
+    }
+  }
+}
+
 export default (state = initial_state, action = {}) => {
   const { type, payload, error } = action
 
   switch (type) {
     case 'LOAD_TRADES_SUCCESS':
       return onLoadTradeSuccess(state, payload)
+    case 'EDIT_TRADE_SUCCESS':
+      return onEditTradeSuccess(state, payload)
     default:
       return state
   }

@@ -4,14 +4,20 @@ import axios from 'axios'
 // Need to be do (root of the project)
 // export REACT_APP_USERS_SERVICE_URL=http://localhost:5001
 
-export function loadTrades() {
+export function loadTrades(start, end) {
   return (dispatch) => {
     dispatch({
       type: 'LOAD_TRADES'
     })
 
-    axios
-      .get(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
+    axios({
+      method: 'get',
+      url: `${process.env.REACT_APP_USERS_SERVICE_URL}/trades`,
+      params: {
+        start,
+        end
+      }
+    })
       .then((res) => {
         if (res.data.ok === true) {
           dispatch({
@@ -23,20 +29,6 @@ export function loadTrades() {
       .catch((err) => {
         console.log(err)
       })
-
-    // fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/trades`)
-    //   .then(results => {
-    //     console.log(results)
-    //     return results.json()
-    //   })
-    //   .then(data => {
-    //     if (data.ok === true) {
-    //       dispatch({
-    //         type: 'LOAD_TRADES_SUCCESS',
-    //         payload: data
-    //       })
-    //     }
-    //   })
   }
 }
 
@@ -110,10 +102,11 @@ export function editTrade(trade, data) {
       }
     })
       .then((results) => results.json())
-      .then((data) => {
-        if (data.ok === true) {
+      .then((res) => {
+        if (res.ok === true) {
           dispatch({
-            type: 'EDIT_TRADE_SUCCESS'
+            type: 'EDIT_TRADE_SUCCESS',
+            payload: { trade, data }
           })
         }
       })

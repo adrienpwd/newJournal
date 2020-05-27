@@ -1,13 +1,14 @@
 .container {
-  background-color: #f4f4f4;
-  margin: 16px;
+  background-color: #e0e0e0;
+  box-shadow: 4px 4px 4px 0px rgba(0, 0, 0, 0.3);
+  margin: 6px;
   padding: 8px;
   cursor: pointer;
   display: flex;
   justify-content: center;
   flex-direction: row;
-  width: 250px;
-  height: 250px;
+  width: 180px;
+  height: 180px;
   text-decoration: none;
 }
 

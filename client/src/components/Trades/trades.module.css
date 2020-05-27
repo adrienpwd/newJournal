@@ -1,4 +1,27 @@
-.container {
+.calendarContainer {
   display: flex;
   flex-direction: column;
+  height: 120px;
+}
+
+.submitButton {
+  width: 80px;
+}
+
+.tradeContainer {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tradesList {
+  display: flex;
+  flex-direction: column;
+}
+
+.tradeLink {
+  margin-top: 4px;
+}
+.tradeLink:hover {
+  color: #0f62fe;
 }

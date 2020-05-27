@@ -333,10 +333,18 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
 @application.route('/trades', methods=['GET'])
 def list_trades():
-    ''' route to get all the trades '''
+    ''' route to get the trades '''
     if request.method == 'GET':
-        data = db.trades.find()
-        return_data = list(data)
+        if request.args:
+            startTimestamp = int(request.args['start'])
+            endTimestamp = int(request.args['end'])
+            matching_trades = db.trades.find(
+                {"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            return_data = list(matching_trades)
+            return jsonify({'ok': True, 'trades': return_data})
+
+        allTrades = db.trades.find()
+        return_data = list(allTrades)
         return jsonify({'ok': True, 'trades': return_data})
 
 
@@ -412,7 +420,7 @@ def post_raw_data():
                     trades_dictionary[user][trade], [], orders_dictionary))
 
         # all aggregated trades
-        mongo.db.trades.insert_many(all_my_trades)
+        db.trades.insert_many(all_my_trades)
 
         return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades, 'trades_dictionary': trades_dictionary})
 
@@ -457,7 +465,7 @@ def post_trade_images():
             file.save(image_full_path)
             image_pathes.append(image_full_path)
 
-        mongo.db.trades.update_one(
+        db.trades.update_one(
             {'id': trade_id},
             {"$push": {
                 'img': date_path + '/' + filename
@@ -474,7 +482,7 @@ def edit_trade_data():
     if request.method == 'PUT':
         trade = request.json['trade']
         details = request.json['data']
-        mongo.db.trades.update_one(
+        db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
                 'strategy': details['strategy'],
@@ -485,7 +493,7 @@ def edit_trade_data():
             }
             }, upsert=False
         )
-        return jsonify({'ok': True, 'tradeID': trade['_id'], 'strategy': details['strategy']})
+        return jsonify({'ok': True, 'tradeID': trade['_id']})
 
 
 @application.route('/importImages', methods=['GET'])
