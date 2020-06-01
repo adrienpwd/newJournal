@@ -36,6 +36,11 @@
   margin-left: 16px;
 }
 
+.uploadButton {
+  margin-left: 8px;
+  width: 45px;
+}
+
 .positive {
   color: green;
 }

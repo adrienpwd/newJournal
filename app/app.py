@@ -348,6 +348,18 @@ def list_trades():
         return jsonify({'ok': True, 'trades': return_data})
 
 
+@application.route('/overview', methods=['GET'])
+def get_overview():
+    ''' route to get an overview '''
+    if request.method == 'GET':
+        if request.args:
+            day = request.args['day']
+            overview = db.overviews.find_one({"id": day})
+            if overview:
+                return jsonify({'ok': True, 'overview': overview})
+        return jsonify({'ok': False, 'error': "No overview id given"})
+
+
 @application.route('/importTrades', methods=['GET', 'POST'])
 def post_raw_data():
     ''' route to post raw data '''
@@ -428,52 +440,88 @@ def post_raw_data():
 @application.route('/uploadImages', methods=['POST'])
 def post_trade_images():
     if request.method == 'POST':
-        timestamp = 0
-        # filename should be this format
-        # ticker-timestap-index
-        # ex: QGEN-1574098671-1
-
-        for trade_image in request.files:
-            timestamp = request.files[trade_image].filename.split('-')[1]
-        date = datetime.fromtimestamp(int(timestamp))
-        year_val = str(date.year)
-        month_val = str(date.month)
-        day_val = str(date.day)
-        date_path = os.path.join(year_val, month_val, day_val)
-        base_index = 0
+        image_type = request.args['type']
+        day = request.args['day']
         image_pathes = []
+        trade_id = ''
+        overview_id = ''
 
-        try:
-            os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
-        except FileExistsError:
-            # directory already exists
-            saved_images = os.listdir(os.path.join(
-                IMAGES_UPLOAD_FOLDER, date_path))
-            base_index = len(saved_images)
+        if image_type == 'overview':
+            # filename should be this format
+            # date-index
+            # ex: 9-01-2020-0
+            for i, overview_image in enumerate(request.files):
+                dayArr = day.split('-')
+                year_val = dayArr[2]
+                month_val = dayArr[1]
+                day_val = dayArr[0]
+                date_path = os.path.join(year_val, month_val, day_val)
+                try:
+                    os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
+                except FileExistsError:
+                    # directory already exists
+                    print('Folder already exists')
+                overview_id = overview_image.split('/')[0]
+                overview_img_name = overview_image.split('/')[0] + '-' + str(i)
+                file = request.files[overview_image]
+                image_final_name = overview_img_name + '.PNG'
+                filename = secure_filename(image_final_name)
+                image_full_path = os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path, filename)
 
-        for trade_image in request.files:
-            trade_id = trade_image.split('-')[0] + '-' + timestamp
-            file = request.files[trade_image]
-            image_original_index = int(file.filename.split('-')[2])
-            final_image_index = str(image_original_index + base_index)
-            image_final_name = trade_id + '-' + final_image_index + '.PNG'
+                file.save(image_full_path)
+                image_pathes.append(image_full_path)
 
-            filename = secure_filename(image_final_name)
-            image_full_path = os.path.join(
-                IMAGES_UPLOAD_FOLDER, date_path, filename)
+                db.overviews.update_one(
+                    {'id': overview_id},
+                    {"$push": {
+                        'img': date_path + '/' + filename
+                    }
+                    }, upsert=True
+                )
 
-            file.save(image_full_path)
-            image_pathes.append(image_full_path)
+        if image_type == 'trade':
+            # filename should be this format
+            # ticker-timestamp-index
+            # ex: QGEN-1574098671-1
 
-        db.trades.update_one(
-            {'id': trade_id},
-            {"$push": {
-                'img': date_path + '/' + filename
-            }
-            }, upsert=False
-        )
+            for trade_image in request.files:
+                dayArr = day.split('-')
+                year_val = dayArr[2]
+                month_val = dayArr[1]
+                day_val = dayArr[0]
+                date_path = os.path.join(year_val, month_val, day_val)
+                try:
+                    os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
+                except FileExistsError:
+                    # directory already exists
+                    print('Folder already exists')
+                saved_images = os.listdir(os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path))
+                base_index = len(saved_images)
+                timestamp = request.files[trade_image].filename.split('-')[1]
+                trade_id = trade_image.split('-')[0] + '-' + timestamp
+                file = request.files[trade_image]
+                image_original_index = int(file.filename.split('-')[2])
+                final_image_index = str(image_original_index + base_index)
+                image_final_name = trade_id + '-' + final_image_index + '.PNG'
 
-        return jsonify({'ok': True, 'tradeId': trade_id, 'imagePathes': image_pathes})
+                filename = secure_filename(image_final_name)
+                image_full_path = os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path, filename)
+
+                file.save(image_full_path)
+                image_pathes.append(image_full_path)
+
+                db.trades.update_one(
+                    {'id': trade_id},
+                    {"$push": {
+                        'img': date_path + '/' + filename
+                    }
+                    }, upsert=False
+                )
+
+        return jsonify({'ok': True, 'tradeId': trade_id, 'imagePathes': image_pathes, 'type': image_type, 'overview_id': overview_id})
 
 
 @application.route('/editTrade', methods=['GET', 'PUT'])
@@ -494,6 +542,22 @@ def edit_trade_data():
             }, upsert=False
         )
         return jsonify({'ok': True, 'tradeID': trade['_id']})
+
+
+@application.route('/editOverview', methods=['GET', 'PUT'])
+def edit_overview_data():
+    ''' route to edit an overview '''
+    if request.method == 'PUT':
+        overview = request.json['overview']
+        details = request.json['data']
+        db.overviews.update_one(
+            {'id': overview['id']},
+            {"$set": {
+                'description': details['description']
+            }
+            }, upsert=True
+        )
+        return jsonify({'ok': True, 'overviewID': overview['_id']})
 
 
 @application.route('/importImages', methods=['GET'])

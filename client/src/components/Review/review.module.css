@@ -3,3 +3,18 @@
   flex-direction: row;
   flex-wrap: wrap;
 }
+
+.tradeCards {
+  display: flex;
+  flex-direction: row;
+}
+
+.editContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.buttonsRow {
+  display: flex;
+  flex-direction: row;
+}

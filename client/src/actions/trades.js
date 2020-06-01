@@ -60,16 +60,21 @@ export function importFiles(files) {
   }
 }
 
-export function uploadImages(images) {
+export function uploadImages(images, type, day) {
   return (dispatch) => {
     dispatch({
       type: 'IMPORT_IMAGES'
     })
 
-    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/uploadImages`, {
-      method: 'POST',
-      body: images
-    })
+    const formattedDay = encodeURIComponent(day)
+
+    fetch(
+      `${process.env.REACT_APP_USERS_SERVICE_URL}/uploadImages?type=${type}&day=${formattedDay}`,
+      {
+        method: 'POST',
+        body: images
+      }
+    )
       .then((results) => results.json())
       .then((data) => {
         if (data.ok === true) {

@@ -10,12 +10,14 @@ import { catalysts, strategies } from './../../utils'
 import {
   Button,
   Checkbox,
-  FileUploader,
+  FileUploaderButton,
   Form,
   FormGroup,
   Select,
   SelectItem,
   NumberInput,
+  Tabs,
+  Tab,
   TextArea,
   Tag
 } from 'carbon-components-react'
@@ -91,7 +93,7 @@ const ReviewTrade = () => {
     }
   }, [])
 
-  let fileUploader
+  // let fileUploader
 
   const [isEditMode, setEditMode] = useState(false)
 
@@ -108,12 +110,9 @@ const ReviewTrade = () => {
     data.catalysts = tradeCatalysts
     dispatch(editTrade(trade, data))
     makeViewState()
-    // Object.keys(defaultValues).forEach((k) => {
-    //   setValues(k, defaultValues[k])
-    // })
   }
 
-  const _handleUpload = (e) => {
+  const _handleUploadImages = (e) => {
     const formData = new FormData()
 
     const files = e.target.files
@@ -124,9 +123,9 @@ const ReviewTrade = () => {
         formData.append(imageName, files[i], imageName)
       }
 
-      dispatch(uploadImages(formData))
+      dispatch(uploadImages(formData, 'trade', day))
 
-      fileUploader.clearFiles()
+      //fileUploader.clearFiles()
     }
   }
 
@@ -135,7 +134,7 @@ const ReviewTrade = () => {
       return (
         <div key={i}>
           <img src={URL.createObjectURL(img)} />
-          <p className="legend">Legend</p>
+          {/*<p className="legend">Legend</p>*/}
         </div>
       )
     })
@@ -180,6 +179,16 @@ const ReviewTrade = () => {
       <>
         <div className={styles.tradeHeader}>
           <h2>{trade.ticker}</h2>
+          <FileUploaderButton
+            className={styles.uploadButton}
+            buttonKind="tertiary"
+            accept={['.jpg', '.png']}
+            size="small"
+            labelText="Images"
+            multiple
+            //ref={(node) => (fileUploader = node)}
+            onChange={_handleUploadImages}
+          />
           <Button
             className={styles.editButton}
             kind="primary"
@@ -192,7 +201,7 @@ const ReviewTrade = () => {
           />
           <Button
             className={styles.editButton}
-            kind="primary"
+            kind="danger"
             size="small"
             onClick={makeViewState}
             hasIconOnly
@@ -282,7 +291,7 @@ const ReviewTrade = () => {
           <h2>{trade.ticker}</h2>
           <Button
             className={styles.editButton}
-            kind="primary"
+            kind="tertiary"
             size="small"
             onClick={makeEditState}
             hasIconOnly
@@ -312,30 +321,27 @@ const ReviewTrade = () => {
 
   if (trade) {
     return (
-      <div className={styles.container}>
-        <div className={styles.tradeArea}>
-          <div className={styles.tradeAreaDetails}>
-            {isEditMode ? renderEditView() : renderNormalView()}
+      <Tabs>
+        <Tab id="view" label="View">
+          <div className={styles.container}>
+            <div className={styles.tradeArea}>
+              <div className={styles.tradeAreaDetails}>
+                {isEditMode ? renderEditView() : renderNormalView()}
+              </div>
+              <div className={styles.tradeAreaActions}>
+                <h2>Actions</h2>
+                {trade?.actions && renderActions()}
+              </div>
+            </div>
+            <div className={styles.imagesArea}>
+              <div>{renderImages()}</div>
+            </div>
           </div>
-          <div className={styles.tradeAreaActions}>
-            <h2>Actions</h2>
-            {trade?.actions && renderActions()}
-          </div>
-        </div>
-        <div className={styles.imagesArea}>
-          <Form id="importInput">
-            <FileUploader
-              accept={['.jpg', '.png']}
-              labelDescription="Import Images"
-              buttonLabel="Import"
-              multiple
-              ref={(node) => (fileUploader = node)}
-              onChange={_handleUpload}
-            />
-          </Form>
-          <div>{renderImages()}</div>
-        </div>
-      </div>
+        </Tab>
+        <Tab id="review" label="Review">
+          <div className="some-content">Review</div>
+        </Tab>
+      </Tabs>
     )
   } else {
     return 'Loading'
