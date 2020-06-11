@@ -25,9 +25,9 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
-# application.config["MONGO_URI"] = 'mongodb://' + 'userJournal' + ':' + \
-#    'ayqgqc2h2o' + '@' + "192.168.1.72" + \
-#    ':27017/' + 'journal'
+# application.config["MONGO_URI"] = 'mongodb://' + 'tradeLogsUser' + ':' + \
+#    'kill2mkt' + '@' + "192.168.1.72" + \
+#    ':27017/' + 'tradeLogs'
 
 mongo = PyMongo(application)
 db = mongo.db
