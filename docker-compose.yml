@@ -21,8 +21,7 @@ services:
       MONGODB_HOSTNAME: 172.17.0.1
     volumes:
       - ./app:/var/www/
-      - ./tradeLogs:/tradeLogs
-#      - ./mongodbdata:/data/db
+      - /home/adrien/tradeLogs:/tradeLogs
 
     networks:
       - frontend
