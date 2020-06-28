@@ -10,20 +10,16 @@ services:
     ports:
       - 5001:5000
     environment:
-      FLASK_ENV: development
-      #FLASK_DEBUG: 1
-      #APP_ENV: 'prod'
-      APP_DEBUG: 'True'
+      FLASK_ENV: production
+      APP_ENV: 'prod'
       APP_PORT: 5000
       MONGODB_DATABASE: tradeLogs
       MONGODB_USERNAME: tradeLogsUser
       MONGODB_PASSWORD: kill2mkt
-      #MONGODB_HOSTNAME: 192.168.1.70
       MONGODB_HOSTNAME: 192.168.1.70
     volumes:
       - ./app:/var/www/
       - ./tradeLogs:/tradeLogs
-    #      - ./mongodbdata:/data/db
 
     networks:
       - frontend
@@ -37,7 +33,7 @@ services:
     container_name: webserver
     restart: unless-stopped
     environment:
-      FLASK_ENV: development
+      FLASK_ENV: production
       APP_ENV: 'prod'
       APP_NAME: 'webserver'
       APP_DEBUG: 'true'
@@ -63,7 +59,7 @@ services:
     ports:
       - 3007:3000
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - REACT_APP_USERS_SERVICE_URL=${REACT_APP_USERS_SERVICE_URL}
     depends_on:
       - flask
@@ -75,7 +71,5 @@ networks:
     driver: bridge
 
 volumes:
-  mongodbdata:
-    driver: local
   nginxdata:
     driver: local

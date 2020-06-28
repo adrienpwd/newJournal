@@ -27,4 +27,4 @@ USER www
 
 #Remove "--reload" for PRODUCTION ENV !!!
 
-CMD [ "gunicorn", "-w", "4", "--bind", "0.0.0.0:5000", "--reload", "wsgi"]
+CMD [ "gunicorn", "-w", "4", "--bind", "0.0.0.0:5000", "wsgi"]
