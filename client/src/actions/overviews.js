@@ -1,10 +1,11 @@
-import axios from 'axios'
+import axios from 'axios';
 
 export function loadOverview(day) {
-  return (dispatch) => {
+  return dispatch => {
     dispatch({
-      type: 'LOAD_OVERVIEW'
-    })
+      type: 'LOAD_OVERVIEW',
+      payload: { day }
+    });
 
     axios({
       method: 'get',
@@ -13,25 +14,25 @@ export function loadOverview(day) {
         day
       }
     })
-      .then((res) => {
+      .then(res => {
         if (res.data.ok === true) {
           dispatch({
             type: 'LOAD_OVERVIEW_SUCCESS',
             payload: res.data
-          })
+          });
         }
       })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
+      .catch(err => {
+        console.log(err);
+      });
+  };
 }
 
 export function editOverview(overview, data) {
-  return (dispatch) => {
+  return dispatch => {
     dispatch({
       type: 'EDIT_OVERVIEW'
-    })
+    });
 
     fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/editOverview`, {
       method: 'PUT',
@@ -40,20 +41,20 @@ export function editOverview(overview, data) {
         'Content-Type': 'application/json'
       }
     })
-      .then((results) => results.json())
-      .then((res) => {
+      .then(results => results.json())
+      .then(res => {
         if (res.ok === true) {
           dispatch({
             type: 'EDIT_OVERVIEW_SUCCESS',
             payload: { overview, data }
-          })
+          });
         }
       })
-      .catch((error) => {
+      .catch(error => {
         dispatch({
           type: 'EDIT_OVERVIEW_ERROR',
           error
-        })
-      })
-  }
+        });
+      });
+  };
 }
