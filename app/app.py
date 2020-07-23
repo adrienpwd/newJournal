@@ -353,7 +353,8 @@ def get_overview():
             overview = db.overviews.find_one({"id": day})
             if overview:
                 return jsonify({'ok': True, 'overview': overview})
-        return jsonify({'ok': False, 'error': "No overview id given"})
+        # If no overview exists we return an Object with the requested id (to store in redux)
+        return jsonify({'ok': True, 'overview': {"id": day}})
 
 
 @application.route('/importTrades', methods=['GET', 'POST'])
@@ -458,9 +459,15 @@ def post_trade_images():
                     # directory already exists
                     print('Folder already exists')
                 overview_id = overview_image.split('/')[0]
-                overview_img_name = overview_image.split('/')[0] + '-' + str(i)
+                overview_img_name = overview_image.split('/')[0]
                 file = request.files[overview_image]
-                image_final_name = overview_img_name + '.PNG'
+
+                saved_images = os.listdir(os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path))
+                base_index = len(saved_images)
+                image_final_name = overview_img_name + '-' + str(base_index) + '.PNG'
+
+                #image_final_name = overview_img_name + '.PNG'
                 filename = secure_filename(image_final_name)
                 image_full_path = os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path, filename)
@@ -471,7 +478,8 @@ def post_trade_images():
                 db.overviews.update_one(
                     {'id': overview_id},
                     {"$push": {
-                        'img': date_path + '/' + filename
+                        #'img': date_path + '/' + filename
+                        'img': filename
                     }
                     }, upsert=True
                 )
