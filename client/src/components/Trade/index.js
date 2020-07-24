@@ -47,6 +47,8 @@ const ReviewTrade = () => {
   const trades = data.trades?.[day] || []
   const trade = trades.find((t) => t.id === tradeId)
 
+  console.log(trade)
+
   let catalystsCheckboxes = {}
   trade &&
     trade.catalysts &&
@@ -147,19 +149,20 @@ const ReviewTrade = () => {
       let actionType
       let actionIcon
       if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
-        actionIcon = <StopFilledAlt16 />
+        //actionIcon = <StopFilledAlt16 />
         actionType = `${action.action_type} ${action.qty} at ${
           action.market_type === 'Mkt' ? action.stop_price : action.price
         }`
       } else {
-        actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
+        //actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
         actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
       }
 
+      const time = action.time.split(' ')[1]
+
       return (
         <div key={i} className={styles.tradeAreaAction}>
-          {actionIcon}
-          {actionType}
+          {time} - {actionType}
         </div>
       )
     })

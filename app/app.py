@@ -176,13 +176,13 @@ def get_gain(trade):
     sell = 0
 
     for action in trade['actions']:
-        if action.get('action_type') == 'Buy':
+        if action.get('action_type') == 'Buy' and action.get('init_price'):
             buy += action.get('init_price') * action.get('qty')
 
-        if action.get('action_type') == 'Sell':
+        if action.get('action_type') == 'Sell' and action.get('init_price'):
             sell += action.get('init_price') * action.get('qty')
 
-     # Long
+    # Long
     if trade.get('type') == 'B':
         gain = sell - buy
 
@@ -199,15 +199,17 @@ def get_slippage(trade):
     # Long
     if trade.get('type') == 'B':
         for action in trade['actions']:
-            if action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell':
+            if action.get('market_type') == 'Mkt' and (action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell'):
                 slippage += (action.get('price') -
                              action.get('init_price')) * action.get('qty')
 
     # TODO: implement this
     # Short
-    # if trade.get('type') == 'S':
-        # if action.get('action_type') == 'Short':
-            # slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
+    if trade.get('type') == 'S':
+        for action in trade['actions']:
+            if action.get('market_type') == 'Mkt' and (action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell'):
+                slippage += (action.get('init_price') -
+                             action.get('price')) * action.get('qty')
 
     return round(slippage, 2)
 
@@ -465,9 +467,10 @@ def post_trade_images():
                 saved_images = os.listdir(os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path))
                 base_index = len(saved_images)
-                image_final_name = overview_img_name + '-' + str(base_index) + '.PNG'
+                image_final_name = overview_img_name + \
+                    '-' + str(base_index) + '.PNG'
 
-                #image_final_name = overview_img_name + '.PNG'
+                # image_final_name = overview_img_name + '.PNG'
                 filename = secure_filename(image_final_name)
                 image_full_path = os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path, filename)
@@ -478,7 +481,7 @@ def post_trade_images():
                 db.overviews.update_one(
                     {'id': overview_id},
                     {"$push": {
-                        #'img': date_path + '/' + filename
+                        # 'img': date_path + '/' + filename
                         'img': filename
                     }
                     }, upsert=True

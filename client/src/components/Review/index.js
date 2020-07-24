@@ -1,56 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import { TradeCard } from 'components/Common';
-import { Carousel } from 'react-responsive-carousel';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import {
-  Button,
-  Form,
-  TextArea,
-  FileUploaderButton,
-  Loading
-} from 'carbon-components-react';
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useParams } from 'react-router-dom'
+import { TradeCard } from 'components/Common'
+import { Carousel } from 'react-responsive-carousel'
+import { useForm } from 'react-hook-form'
+import axios from 'axios'
+import { Button, Form, TextArea, FileUploaderButton, Loading } from 'carbon-components-react'
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
-import { uploadImages } from 'actions/trades';
-import { editOverview, loadOverview } from 'actions/overviews';
+import { uploadImages } from 'actions/trades'
+import { editOverview, loadOverview } from 'actions/overviews'
 
-import styles from './review.module.css';
+import styles from './review.module.css'
 
 export default function Review() {
-  const dispatch = useDispatch();
-  const myTrades = useSelector(state => state.tradeReducer)?.trades;
-  const { day } = useParams();
+  const dispatch = useDispatch()
+  const myTrades = useSelector((state) => state.tradeReducer)?.trades
+  const { day } = useParams()
 
   useEffect(() => {
-    dispatch(loadOverview(day));
-  }, []);
+    dispatch(loadOverview(day))
+  }, [])
 
-  const overviewState = useSelector(state => state.overviewReducer)?.overviews[
-    day
-  ];
-  const isLoading = overviewState?.loading;
-  const isLoaded = overviewState?.loaded;
-  const overview = overviewState?.overview || {};
+  const overviewState = useSelector((state) => state.overviewReducer)?.overviews[day]
+  const isLoading = overviewState?.loading
+  const isLoaded = overviewState?.loaded
+  const overview = overviewState?.overview || {}
 
-  const tradesReview = myTrades[day];
+  const tradesReview = myTrades[day]
 
-  const [isEditMode, setEditMode] = useState(false);
+  const [isEditMode, setEditMode] = useState(false)
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit } = useForm()
 
-  const [images, setImages] = useState([]);
-
-  console.log('overview', overview);
+  const [images, setImages] = useState([])
 
   useEffect(() => {
     if (overview?.img) {
-      overview.img.forEach(i => {
-        const imgArr = i.split('-');
-        const path = `${imgArr[2]}/${imgArr[1]}/${imgArr[0]}`;
-        const filename = i;
+      overview.img.forEach((i) => {
+        const imgArr = i.split('-')
+        const path = `${imgArr[2]}/${imgArr[1]}/${imgArr[0]}`
+        const filename = i
         axios({
           method: 'get',
           url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
@@ -59,42 +49,42 @@ export default function Review() {
             path
           },
           responseType: 'blob'
-        }).then(response => {
-          setImages(images => images.concat(response.data));
-        });
-      });
+        }).then((response) => {
+          setImages((images) => images.concat(response.data))
+        })
+      })
     }
-  }, [isLoading]);
+  }, [isLoading])
 
   function makeEditState() {
-    setEditMode(true);
+    setEditMode(true)
   }
 
   function makeViewState() {
-    setEditMode(false);
+    setEditMode(false)
   }
 
-  const onSubmit = data => {
-    dispatch(editOverview(overview, data));
-    makeViewState();
-  };
+  const onSubmit = (data) => {
+    dispatch(editOverview(overview, data))
+    makeViewState()
+  }
 
-  const _handleUploadImages = e => {
-    const formData = new FormData();
+  const _handleUploadImages = (e) => {
+    const formData = new FormData()
 
-    const files = e.target.files;
+    const files = e.target.files
 
     if (files.length > 0) {
       for (let i = 0; i < files.length; i++) {
-        const imageName = `${day}/${i}`;
-        formData.append(imageName, files[i], imageName);
+        const imageName = `${day}/${i}`
+        formData.append(imageName, files[i], imageName)
       }
 
-      dispatch(uploadImages(formData, 'overview', day));
+      dispatch(uploadImages(formData, 'overview', day))
 
       //fileUploader.clearFiles()
     }
-  };
+  }
 
   const renderImages = function () {
     const overviewImages = images.map((img, i) => {
@@ -102,16 +92,16 @@ export default function Review() {
         <div key={i}>
           <img src={URL.createObjectURL(img)} />
         </div>
-      );
-    });
+      )
+    })
 
-    return <Carousel autoPlay={false}>{overviewImages}</Carousel>;
-  };
+    return <Carousel autoPlay={false}>{overviewImages}</Carousel>
+  }
 
   const renderTradesCard = () =>
-    tradesReview.map(trade => <TradeCard key={trade.id} trade={trade} />);
+    tradesReview.map((trade) => <TradeCard key={trade.id} trade={trade} />)
 
-  let display;
+  let display
 
   if (isEditMode) {
     display = (
@@ -161,7 +151,7 @@ export default function Review() {
           />
         </Form>
       </div>
-    );
+    )
   } else {
     display = (
       <div>
@@ -179,12 +169,12 @@ export default function Review() {
         <div className={styles.tradeCards}>{renderTradesCard()}</div>
         <div>{renderImages()}</div>
       </div>
-    );
+    )
   }
 
   return isLoading && !isLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{display}</div>
-  );
+  )
 }
