@@ -176,19 +176,20 @@ def get_gain(trade):
     sell = 0
 
     for action in trade['actions']:
-        if action.get('action_type') == 'Buy' and action.get('init_price'):
+        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
             buy += action.get('init_price') * action.get('qty')
 
-        if action.get('action_type') == 'Sell' and action.get('init_price'):
+        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
             sell += action.get('init_price') * action.get('qty')
 
     # Long
-    if trade.get('type') == 'B':
-        gain = sell - buy
+    #if trade.get('type') == 'B':
+
+    gain = sell - buy
 
     # Short
-    if trade.get('type') == 'S':
-        gain = buy - sell
+    #if trade.get('type') == 'S':
+        #gain = buy - sell
 
     return round(gain, 2)
 
@@ -292,6 +293,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             initial_trade['gain'] = gain
 
             # risk / reward ratio
+            #TODO: use constant file to set up the risk amount
             risk = 10
             r = round(gain / risk, 2)
             initial_trade['r'] = r
