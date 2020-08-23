@@ -1,8 +1,8 @@
 import App from './App'
-import Home from './Home'
+import Dashboard from './Dashboard'
 import Import from './Import'
 import Trades from './Trades'
 import Trade from './Trade'
 import Review from './Review'
 
-export { App, Home, Import, Trades, Trade, Review }
+export { App, Dashboard, Import, Trades, Trade, Review }

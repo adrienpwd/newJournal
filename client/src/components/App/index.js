@@ -2,7 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 
 import { Navbar } from 'components/Common'
-import { Home, Import, Review, Trades, Trade } from './../'
+import { Dashboard, Import, Review, Trades, Trade } from './../'
 
 import styles from './app.module.css'
 
@@ -25,8 +25,8 @@ export default function App() {
             <Route path="/review/:day">
               <Review />
             </Route>
-            <Route path="/">
-              <Home />
+            <Route path="/dashboard">
+              <Dashboard />
             </Route>
           </Switch>
         </div>

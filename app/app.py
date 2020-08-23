@@ -27,6 +27,10 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
+print('THIIIIIS')
+print('mongodb://' + os.environ['MONGODB_USERNAME'] + ':' +
+      os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] +
+      ':27017/' + os.environ['MONGODB_DATABASE'])
 mongo = PyMongo(application)
 db = mongo.db
 cors = CORS()
@@ -572,6 +576,14 @@ def send_image():
     imgFilename = request.args['filename']
     imgPath = request.args['path']
     return send_from_directory(IMAGES_UPLOAD_FOLDER + '/' + imgPath, imgFilename, as_attachment=True)
+
+
+@application.route('/statistics', methods=['GET'])
+def get_statistics():
+    all_time_total_by_account = db.trades.aggregate(
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$gain"}}}])
+    return_data = list(all_time_total_by_account)
+    return jsonify({'ok': True, 'all_time_total_by_account': return_data})
 
 
 if __name__ == "__main__":
