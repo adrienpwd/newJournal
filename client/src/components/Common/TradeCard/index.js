@@ -1,21 +1,19 @@
 import React from 'react'
 import { Link, useRouteMatch } from 'react-router-dom'
 import { strategies } from './../../../utils'
+import { ArrowDownRight16, ArrowUpRight16 } from '@carbon/icons-react'
 
 import styles from './tradeCard.module.css'
 
 export default function TradeCard({ trade, url }) {
   let match = useRouteMatch()
 
-  const getTradeType = function (type) {
-    if (type === 'B') return 'Long'
-    if (type === 'S') return 'Short'
-  }
+  const getTradeType = (type) => (type === 'B' ? <ArrowUpRight16 /> : <ArrowDownRight16 />)
 
   let gainClass
-  if (trade.r >= 2) {
+  if (trade.r >= 1) {
     gainClass = styles.positive
-  } else if (trade.r < 2 && trade.r >= 0) {
+  } else if (trade.r <= 1 && trade.r >= -1) {
     gainClass = styles.neuter
   } else {
     gainClass = styles.negative

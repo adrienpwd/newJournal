@@ -17,6 +17,8 @@ import pprint
 import shutil
 import json
 
+pp = pprint.PrettyPrinter(indent=4)
+
 application = Flask(__name__)
 application.config.from_object(Config)
 
@@ -145,7 +147,7 @@ def get_duration(entry_time, exit_time):
 def get_action_type(order, trade_type):
     action_type = ''
     if trade_type == 'B':
-        if order['type'] == 'B' and order['is_stop'] == False:
+        if order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Buy'
         elif order['type'] == 'S' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Sell'
@@ -182,14 +184,7 @@ def get_gain(trade):
         if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
             sell += action.get('init_price') * action.get('qty')
 
-    # Long
-    #if trade.get('type') == 'B':
-
     gain = sell - buy
-
-    # Short
-    #if trade.get('type') == 'S':
-        #gain = buy - sell
 
     return round(gain, 2)
 
@@ -197,20 +192,14 @@ def get_gain(trade):
 def get_slippage(trade):
     slippage = 0
 
-    # Long
-    if trade.get('type') == 'B':
-        for action in trade['actions']:
-            if action.get('market_type') == 'Mkt' and (action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell'):
-                slippage += (action.get('price') -
-                             action.get('init_price')) * action.get('qty')
+    for action in trade['actions']:
+        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
+            slippage += abs((action.get('price') -
+                             action.get('init_price')) * action.get('qty'))
 
-    # TODO: implement this
-    # Short
-    if trade.get('type') == 'S':
-        for action in trade['actions']:
-            if action.get('market_type') == 'Mkt' and (action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell'):
-                slippage += (action.get('init_price') -
-                             action.get('price')) * action.get('qty')
+        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
+            slippage += abs((action.get('price') -
+                             action.get('init_price')) * action.get('qty'))
 
     return round(slippage, 2)
 
@@ -284,7 +273,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
                         my_order['action_type'] = action_type
-                        initial_trade['actions'].append(my_order)
+                        if action_type:
+                            initial_trade['actions'].append(my_order)
 
             initial_trade['actions'].sort(key=lambda t: t['time'])
 
@@ -292,11 +282,19 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             gain = get_gain(initial_trade)
             initial_trade['gain'] = gain
 
-            # risk / reward ratio
-            #TODO: use constant file to set up the risk amount
-            risk = 10
+            # risk parameters
+            stop_actions = list(filter(
+                lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
+            initial_stop = 0
+            if stop_actions[0]:
+                initial_stop = stop_actions[0].get('stop_price')
+            stop_distance = abs(initial_trade.get('price') - initial_stop)
+            risk = stop_distance * initial_trade.get('qty')
             r = round(gain / risk, 2)
+
             initial_trade['r'] = r
+            initial_trade['stop_distance'] = round(stop_distance, 2)
+            initial_trade['risk'] = round(risk, 2)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)

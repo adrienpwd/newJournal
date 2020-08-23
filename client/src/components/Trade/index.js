@@ -22,14 +22,7 @@ import {
   Tag
 } from 'carbon-components-react'
 
-import {
-  Edit16,
-  Checkmark16,
-  Close16,
-  CaretSortDown16,
-  CaretSortUp16,
-  StopFilledAlt16
-} from '@carbon/icons-react'
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
 import { editTrade, uploadImages } from 'actions/trades'
 
@@ -280,9 +273,9 @@ const ReviewTrade = () => {
 
   const renderNormalView = function () {
     let gainClass
-    if (trade.r >= 2) {
+    if (trade.r >= 1) {
       gainClass = styles.positive
-    } else if (trade.r < 2 && trade.r >= 0) {
+    } else if (trade.r <= 1 && trade.r >= -1) {
       gainClass = styles.neuter
     } else {
       gainClass = styles.negative
@@ -303,18 +296,18 @@ const ReviewTrade = () => {
             tooltipPosition="bottom"
           />
         </div>
-        <h4>{trade.account}</h4>
-        <h4>Trade entry</h4>
-        <h4>{trade.time}</h4>
-        <h4>Duration</h4>
-        <h4>{trade.duration}</h4>
-        <h4 className={gainClass}>{trade.gain}</h4>
+        <h4>Account: {trade.account}</h4>
+        <h4>Trade entry: {trade.time}</h4>
+        <h4>Duration: {trade.duration}</h4>
+        <h4>
+          Gain: <span className={gainClass}>{trade.gain}</span>
+        </h4>
         <h4>R/R: {trade?.r}</h4>
-        <h4>slippage: {trade?.slippage}</h4>
-        <h4>strategy: {strategy?.label}</h4>
-        <h4>trade description:</h4>
+        <h4>Slippage: {trade?.slippage}</h4>
+        <h4>Strategy: {strategy?.label}</h4>
+        <h4>Description:</h4>
         <p>{trade?.description}</p>
-        <h4>catalysts</h4>
+        <h4>Catalysts</h4>
         {renderCatalystsTag()}
         <h4>RVOL: {trade?.rvol}</h4>
         <h4>Rating: {trade?.rating}</h4>
