@@ -1,7 +1,7 @@
 import thunkMiddleware from 'redux-thunk';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import tradeReducer from '../reducers/tradeReducer';
-// import importReducer from '../reducers/importReducer'
+import dashboardReducer from '../reducers/dashboardReducer';
 import overviewReducer from '../reducers/overviewReducer';
 
 const enhancers = [];
@@ -16,7 +16,7 @@ export default () => {
   const store = createStore(
     combineReducers({
       tradeReducer,
-      //importReducer,
+      dashboardReducer,
       overviewReducer
     }),
     {},

@@ -22,14 +22,7 @@ import {
   Tag
 } from 'carbon-components-react'
 
-import {
-  Edit16,
-  Checkmark16,
-  Close16,
-  CaretSortDown16,
-  CaretSortUp16,
-  StopFilledAlt16
-} from '@carbon/icons-react'
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
 import { editTrade, uploadImages } from 'actions/trades'
 
@@ -46,6 +39,8 @@ const ReviewTrade = () => {
   const { loaded } = data
   const trades = data.trades?.[day] || []
   const trade = trades.find((t) => t.id === tradeId)
+
+  console.log(trade)
 
   let catalystsCheckboxes = {}
   trade &&
@@ -147,19 +142,20 @@ const ReviewTrade = () => {
       let actionType
       let actionIcon
       if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
-        actionIcon = <StopFilledAlt16 />
+        //actionIcon = <StopFilledAlt16 />
         actionType = `${action.action_type} ${action.qty} at ${
           action.market_type === 'Mkt' ? action.stop_price : action.price
         }`
       } else {
-        actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
+        //actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
         actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
       }
 
+      const time = action.time.split(' ')[1]
+
       return (
         <div key={i} className={styles.tradeAreaAction}>
-          {actionIcon}
-          {actionType}
+          {time} - {actionType}
         </div>
       )
     })
@@ -277,9 +273,9 @@ const ReviewTrade = () => {
 
   const renderNormalView = function () {
     let gainClass
-    if (trade.r >= 2) {
+    if (trade.r >= 1) {
       gainClass = styles.positive
-    } else if (trade.r < 2 && trade.r >= 0) {
+    } else if (trade.r <= 1 && trade.r >= -1) {
       gainClass = styles.neuter
     } else {
       gainClass = styles.negative
@@ -300,18 +296,18 @@ const ReviewTrade = () => {
             tooltipPosition="bottom"
           />
         </div>
-        <h4>{trade.account}</h4>
-        <h4>Trade entry</h4>
-        <h4>{trade.time}</h4>
-        <h4>Duration</h4>
-        <h4>{trade.duration}</h4>
-        <h4 className={gainClass}>{trade.gain}</h4>
+        <h4>Account: {trade.account}</h4>
+        <h4>Trade entry: {trade.time}</h4>
+        <h4>Duration: {trade.duration}</h4>
+        <h4>
+          Gain: <span className={gainClass}>{trade.gain}</span>
+        </h4>
         <h4>R/R: {trade?.r}</h4>
-        <h4>slippage: {trade?.slippage}</h4>
-        <h4>strategy: {strategy?.label}</h4>
-        <h4>trade description:</h4>
+        <h4>Slippage: {trade?.slippage}</h4>
+        <h4>Strategy: {strategy?.label}</h4>
+        <h4>Description:</h4>
         <p>{trade?.description}</p>
-        <h4>catalysts</h4>
+        <h4>Catalysts</h4>
         {renderCatalystsTag()}
         <h4>RVOL: {trade?.rvol}</h4>
         <h4>Rating: {trade?.rating}</h4>

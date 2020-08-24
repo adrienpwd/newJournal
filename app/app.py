@@ -17,6 +17,8 @@ import pprint
 import shutil
 import json
 
+pp = pprint.PrettyPrinter(indent=4)
+
 application = Flask(__name__)
 application.config.from_object(Config)
 
@@ -25,6 +27,10 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
+print('THIIIIIS')
+print('mongodb://' + os.environ['MONGODB_USERNAME'] + ':' +
+      os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] +
+      ':27017/' + os.environ['MONGODB_DATABASE'])
 mongo = PyMongo(application)
 db = mongo.db
 cors = CORS()
@@ -145,7 +151,7 @@ def get_duration(entry_time, exit_time):
 def get_action_type(order, trade_type):
     action_type = ''
     if trade_type == 'B':
-        if order['type'] == 'B' and order['is_stop'] == False:
+        if order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Buy'
         elif order['type'] == 'S' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Sell'
@@ -176,19 +182,13 @@ def get_gain(trade):
     sell = 0
 
     for action in trade['actions']:
-        if action.get('action_type') == 'Buy':
+        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
             buy += action.get('init_price') * action.get('qty')
 
-        if action.get('action_type') == 'Sell':
+        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
             sell += action.get('init_price') * action.get('qty')
 
-     # Long
-    if trade.get('type') == 'B':
-        gain = sell - buy
-
-    # Short
-    if trade.get('type') == 'S':
-        gain = buy - sell
+    gain = sell - buy
 
     return round(gain, 2)
 
@@ -196,18 +196,14 @@ def get_gain(trade):
 def get_slippage(trade):
     slippage = 0
 
-    # Long
-    if trade.get('type') == 'B':
-        for action in trade['actions']:
-            if action.get('action_type') == 'Buy' or action.get('action_type') == 'Sell':
-                slippage += (action.get('price') -
-                             action.get('init_price')) * action.get('qty')
+    for action in trade['actions']:
+        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
+            slippage += abs((action.get('price') -
+                             action.get('init_price')) * action.get('qty'))
 
-    # TODO: implement this
-    # Short
-    # if trade.get('type') == 'S':
-        # if action.get('action_type') == 'Short':
-            # slippage += (action.get('init_price') - action.get('price')) * action.get('qty')
+        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
+            slippage += abs((action.get('price') -
+                             action.get('init_price')) * action.get('qty'))
 
     return round(slippage, 2)
 
@@ -281,7 +277,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
                         my_order['action_type'] = action_type
-                        initial_trade['actions'].append(my_order)
+                        if action_type:
+                            initial_trade['actions'].append(my_order)
 
             initial_trade['actions'].sort(key=lambda t: t['time'])
 
@@ -289,10 +286,19 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             gain = get_gain(initial_trade)
             initial_trade['gain'] = gain
 
-            # risk / reward ratio
-            risk = 10
+            # risk parameters
+            stop_actions = list(filter(
+                lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
+            initial_stop = 0
+            if stop_actions[0]:
+                initial_stop = stop_actions[0].get('stop_price')
+            stop_distance = abs(initial_trade.get('price') - initial_stop)
+            risk = stop_distance * initial_trade.get('qty')
             r = round(gain / risk, 2)
+
             initial_trade['r'] = r
+            initial_trade['stop_distance'] = round(stop_distance, 2)
+            initial_trade['risk'] = round(risk, 2)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
@@ -465,9 +471,10 @@ def post_trade_images():
                 saved_images = os.listdir(os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path))
                 base_index = len(saved_images)
-                image_final_name = overview_img_name + '-' + str(base_index) + '.PNG'
+                image_final_name = overview_img_name + \
+                    '-' + str(base_index) + '.PNG'
 
-                #image_final_name = overview_img_name + '.PNG'
+                # image_final_name = overview_img_name + '.PNG'
                 filename = secure_filename(image_final_name)
                 image_full_path = os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path, filename)
@@ -478,7 +485,7 @@ def post_trade_images():
                 db.overviews.update_one(
                     {'id': overview_id},
                     {"$push": {
-                        #'img': date_path + '/' + filename
+                        # 'img': date_path + '/' + filename
                         'img': filename
                     }
                     }, upsert=True
@@ -569,6 +576,14 @@ def send_image():
     imgFilename = request.args['filename']
     imgPath = request.args['path']
     return send_from_directory(IMAGES_UPLOAD_FOLDER + '/' + imgPath, imgFilename, as_attachment=True)
+
+
+@application.route('/statistics', methods=['GET'])
+def get_statistics():
+    all_time_total_by_account = db.trades.aggregate(
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$gain"}}}])
+    return_data = list(all_time_total_by_account)
+    return jsonify({'ok': True, 'all_time_total_by_account': return_data})
 
 
 if __name__ == "__main__":

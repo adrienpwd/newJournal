@@ -30,8 +30,8 @@ export default function Navbar() {
       />
       <HeaderName prefix="">My Trading journal</HeaderName>
       <HeaderNavigation className={styles.container} aria-label="My Trading Journal">
-        <Link className={styles.link} to="/">
-          Home
+        <Link className={styles.link} to="/dashboard">
+          Dashboard
         </Link>
         <Link className={styles.link} to="/trades">
           Trades
