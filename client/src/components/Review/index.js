@@ -176,9 +176,5 @@ export default function Review() {
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{display}</div>
-<<<<<<< HEAD
-  );
-=======
   )
->>>>>>> dev
 }
