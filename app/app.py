@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
 from collections import defaultdict
 from datetime import datetime
+import copy
 
 from config import Config
 
@@ -27,13 +28,11 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
-print('THIIIIIS')
-print('mongodb://' + os.environ['MONGODB_USERNAME'] + ':' +
-      os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] +
-      ':27017/' + os.environ['MONGODB_DATABASE'])
 mongo = PyMongo(application)
 db = mongo.db
 cors = CORS()
+
+pp = pprint.PrettyPrinter(indent=4)
 
 cors.init_app(application, resources={r"*": {"origins": "*"}})
 
@@ -130,18 +129,6 @@ def init_trade(row, order):
     }
 
 
-def build_order(data):
-    with open(data, 'r', encoding='utf8') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        next(csvreader, None)  # skip the headers
-        temp_orders = {}
-
-        for row in csvreader:
-            temp_orders[row[0]] = init_order(row)
-
-    return temp_orders
-
-
 def get_duration(entry_time, exit_time):
     datetime_a = datetime.strptime(entry_time, DATE_FORMAT_OUTPUT)
     datetime_b = datetime.strptime(exit_time, DATE_FORMAT_OUTPUT)
@@ -162,7 +149,6 @@ def get_action_type(order, trade_type):
         elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
             action_type = '???'
     if trade_type == 'S':
-        # TODO: implement SHORT actions
         if order['type'] == 'S' and order['is_stop'] == False:
             action_type = 'Short'
         elif order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
@@ -176,12 +162,12 @@ def get_action_type(order, trade_type):
     return action_type
 
 
-def get_gain(trade):
+def get_gain(filled_actions):
     gain = 0
     buy = 0
     sell = 0
 
-    for action in trade['actions']:
+    for action in filled_actions:
         if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
             buy += action.get('init_price') * action.get('qty')
 
@@ -253,7 +239,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
         init_size = next_size
 
-        # remove processed trade
         all_trades.pop(0)
 
         # Trade is consolidated
@@ -279,22 +264,38 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         my_order['action_type'] = action_type
                         if action_type:
                             initial_trade['actions'].append(my_order)
+                            initial_trade['actions'].sort(
+                                key=lambda action: action.get('filled_time', action['time']))
 
-            initial_trade['actions'].sort(key=lambda t: t['time'])
+            # Filter all Orders to have only those that were filled
+            filled_actions = list(filter(
+                lambda action: action.get('filled', False) == True, initial_trade.get('actions', [])))
 
             # calculate gain for this trade
-            gain = get_gain(initial_trade)
+            gain = get_gain(filled_actions)
             initial_trade['gain'] = gain
 
             # risk parameters
+            # TODO:
+            # Might need to filter actions using the trade dictionnary,
+            # if an action ID is not in the trade dict, it means it wasn't a triggered order
+            # and we need to exclude it from the calcul
+
+            # Filter Orders to have all the STOPS
+            # Find the first entry
             stop_actions = list(filter(
                 lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
             initial_stop = 0
+
             if stop_actions[0]:
                 initial_stop = stop_actions[0].get('stop_price')
+
             stop_distance = abs(initial_trade.get('price') - initial_stop)
-            risk = stop_distance * initial_trade.get('qty')
-            r = round(gain / risk, 2)
+            # risk = stop_distance * initial_trade.get('qty')
+            # r = round(gain / risk, 2)
+
+            risk = 0
+            r = 1
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
@@ -312,6 +313,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             built_trades.append(initial_trade)
 
             # continue iteration
+            # all_trades.pop(0)
             consolidate_trade(all_trades, built_trades, orders_dictionary)
 
         if next_size < 0:
@@ -394,6 +396,9 @@ def post_raw_data():
             # Find corresponding order
             order_id = row[1]
             my_order = orders_dictionary[order_id]
+            if order_id:
+                my_order['filled'] = True
+                my_order['filled_time'] = format_date(row[14])
             trade = init_trade(row, my_order)
 
             # When we create a trade we need to remember the original price
@@ -420,6 +425,8 @@ def post_raw_data():
             for ticker in trades_dictionary[user]:
                 trades_dictionary[user][ticker].sort(key=lambda t: t['time'])
 
+        trades_dictionary_copy = copy.deepcopy(trades_dictionary)
+
         # if everything was ok
         # insert in DB raw data
         # mongo.db.raw_orders.insert_many(orders_list)
@@ -432,7 +439,7 @@ def post_raw_data():
         for user in trades_dictionary:
             for trade in trades_dictionary[user]:
                 all_my_trades.extend(consolidate_trade(
-                    trades_dictionary[user][trade], [], orders_dictionary))
+                    trades_dictionary_copy[user][trade], [], orders_dictionary))
 
         # all aggregated trades
         db.trades.insert_many(all_my_trades)
