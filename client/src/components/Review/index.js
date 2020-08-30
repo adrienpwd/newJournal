@@ -5,7 +5,14 @@ import { TradeCard } from 'components/Common'
 import { Carousel } from 'react-responsive-carousel'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
-import { Button, Form, TextArea, FileUploaderButton, Loading } from 'carbon-components-react'
+import {
+  Button,
+  Form,
+  TextArea,
+  FileUploaderButton,
+  Loading,
+  NumberInput
+} from 'carbon-components-react'
 import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
 import { uploadImages } from 'actions/trades'
@@ -146,7 +153,6 @@ export default function Review() {
             name="description"
             invalidText="Invalid error message."
             labelText="Overview"
-            placeholder="Enter overview description"
             rows={4}
           />
         </Form>
@@ -165,7 +171,9 @@ export default function Review() {
           iconDescription="Edit overview"
           tooltipPosition="bottom"
         />
+        <h4>Description</h4>
         <p>{overview?.description}</p>
+        <h4>Comissions: {overview?.commissions}</h4>
         <div className={styles.tradeCards}>{renderTradesCard()}</div>
         <div>{renderImages()}</div>
       </div>

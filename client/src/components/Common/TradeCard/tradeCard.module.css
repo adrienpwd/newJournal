@@ -16,6 +16,13 @@
   font-size: 16px;
 }
 
+.tradeHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .element {
   margin: 6px 0;
 }

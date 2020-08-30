@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useRouteMatch } from 'react-router-dom'
 import { strategies } from './../../../utils'
-import { ArrowDownRight16, ArrowUpRight16 } from '@carbon/icons-react'
+import { ArrowDownRight16, ArrowUpRight16, WarningAlt16 } from '@carbon/icons-react'
 
 import styles from './tradeCard.module.css'
 
@@ -20,11 +20,15 @@ export default function TradeCard({ trade, url }) {
   }
   const strategy = strategies.find((s) => trade.strategy === s.id)
 
+  const displayWarning = isNaN(trade.net_gain)
+
   return (
     <Link to={`/review/${match.params.day}/${trade.id}`}>
       <div title={trade.ticker} className={styles.container}>
         <div className={styles.card}>
-          <h2>{trade.ticker}</h2>
+          <h2 className={styles.tradeHeader}>
+            {trade.ticker} {displayWarning && <WarningAlt16 />}
+          </h2>
           <div className={styles.element}>{trade.time}</div>
           <div className={styles.element}>{trade.account}</div>
           <div className={styles.element}>{strategy?.label}</div>

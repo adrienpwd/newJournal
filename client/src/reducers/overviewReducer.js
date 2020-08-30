@@ -1,7 +1,7 @@
 const initial_state = {
   error: null,
   overviews: {}
-};
+}
 
 const onLoadOverview = (state, { day }) => {
   return {
@@ -13,11 +13,11 @@ const onLoadOverview = (state, { day }) => {
         loaded: false
       }
     }
-  };
-};
+  }
+}
 
 const onLoadOverviewSuccess = (state, payload) => {
-  const { overview } = payload;
+  const { overview } = payload
 
   return {
     ...state,
@@ -25,32 +25,38 @@ const onLoadOverviewSuccess = (state, payload) => {
       ...state.overviews,
       [overview.id]: { loading: false, loaded: true, overview }
     }
-  };
-};
+  }
+}
 
 const onEditOverviewSuccess = (state, { overview, data }) => {
-  const updatedOverviews = state.overviews.map(o => {
-    if (o.id === overview.id) return { ...overview, ...data };
-    return o;
-  });
+  const editedOverview = {
+    ...state.overviews[overview.id],
+    overview: {
+      ...state.overviews[overview.id]?.overview,
+      ...data
+    }
+  }
 
   return {
     ...state,
-    overviews: updatedOverviews
-  };
-};
+    overviews: {
+      ...state.overviews,
+      [overview.id]: editedOverview
+    }
+  }
+}
 
 export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action;
+  const { type, payload, error } = action
 
   switch (type) {
     case 'LOAD_OVERVIEW':
-      return onLoadOverview(state, payload);
+      return onLoadOverview(state, payload)
     case 'LOAD_OVERVIEW_SUCCESS':
-      return onLoadOverviewSuccess(state, payload);
+      return onLoadOverviewSuccess(state, payload)
     case 'EDIT_OVERVIEW_SUCCESS':
-      return onEditOverviewSuccess(state, payload);
+      return onEditOverviewSuccess(state, payload)
     default:
-      return state;
+      return state
   }
-};
+}

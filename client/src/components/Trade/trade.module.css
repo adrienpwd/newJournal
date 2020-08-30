@@ -41,6 +41,10 @@
   width: 45px;
 }
 
+.tradeFilled {
+  font-weight: bold;
+}
+
 .positive {
   color: green;
 }

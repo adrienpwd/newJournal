@@ -140,22 +140,21 @@ const ReviewTrade = () => {
   const renderActions = () =>
     trade.actions.map((action, i) => {
       let actionType
-      let actionIcon
       if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
-        //actionIcon = <StopFilledAlt16 />
         actionType = `${action.action_type} ${action.qty} at ${
           action.market_type === 'Mkt' ? action.stop_price : action.price
         }`
       } else {
-        //actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
-        actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
+        actionType = `${action.action_type} ${action.qty} at ${action.init_price} (filled: ${action.price})`
       }
 
-      const time = action.time.split(' ')[1]
+      const time = (action.filled_time || action.time).split(' ')[1]
 
       return (
         <div key={i} className={styles.tradeAreaAction}>
-          {time} - {actionType}
+          <span className={action.filled ? styles.tradeFilled : ''}>
+            {time} - {actionType}
+          </span>
         </div>
       )
     })
@@ -266,6 +265,15 @@ const ReviewTrade = () => {
             max={5}
             step={1}
           />
+          <NumberInput
+            ref={register}
+            id="commissions"
+            name="commissions"
+            invalidText="Number is not valid"
+            label="Comissions"
+            min={0}
+            step={1}
+          />
         </Form>
       </>
     )
@@ -302,6 +310,15 @@ const ReviewTrade = () => {
         <h4>
           Gain: <span className={gainClass}>{trade.gain}</span>
         </h4>
+        <h4>
+          Comissions:{' '}
+          {trade.commissions
+            ? `${trade.commissions} (${Math.round(
+                Math.abs(trade.commissions / trade.gain) * 100
+              )}%)`
+            : 'n/a'}
+        </h4>
+        <h4>Net: {trade?.net_gain}</h4>
         <h4>R/R: {trade?.r}</h4>
         <h4>Slippage: {trade?.slippage}</h4>
         <h4>Strategy: {strategy?.label}</h4>

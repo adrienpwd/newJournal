@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from bson.objectid import ObjectId
 from collections import defaultdict
 from datetime import datetime
+import copy
 
 from config import Config
 
@@ -27,12 +28,11 @@ application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] 
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
-print('mongodb://' + os.environ['MONGODB_USERNAME'] + ':' +
-      os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] +
-      ':27017/' + os.environ['MONGODB_DATABASE'])
 mongo = PyMongo(application)
 db = mongo.db
 cors = CORS()
+
+pp = pprint.PrettyPrinter(indent=4)
 
 cors.init_app(application, resources={r"*": {"origins": "*"}})
 
@@ -129,18 +129,6 @@ def init_trade(row, order):
     }
 
 
-def build_order(data):
-    with open(data, 'r', encoding='utf8') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        next(csvreader, None)  # skip the headers
-        temp_orders = {}
-
-        for row in csvreader:
-            temp_orders[row[0]] = init_order(row)
-
-    return temp_orders
-
-
 def get_duration(entry_time, exit_time):
     datetime_a = datetime.strptime(entry_time, DATE_FORMAT_OUTPUT)
     datetime_b = datetime.strptime(exit_time, DATE_FORMAT_OUTPUT)
@@ -161,7 +149,6 @@ def get_action_type(order, trade_type):
         elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
             action_type = '???'
     if trade_type == 'S':
-        # TODO: implement SHORT actions
         if order['type'] == 'S' and order['is_stop'] == False:
             action_type = 'Short'
         elif order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
@@ -175,12 +162,12 @@ def get_action_type(order, trade_type):
     return action_type
 
 
-def get_gain(trade):
+def get_gain(filled_actions):
     gain = 0
     buy = 0
     sell = 0
 
-    for action in trade['actions']:
+    for action in filled_actions:
         if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
             buy += action.get('init_price') * action.get('qty')
 
@@ -222,7 +209,9 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
     init_size = initial_trade.get('qty')
 
-    entry_time = initial_trade['time']
+    order_id = initial_trade['order_id']
+    my_order = orders_dictionary[order_id]
+    entry_time = my_order['time']
     trade_entry_time = datetime.strptime(
         entry_time, '%d/%m/%Y %H:%M:%S').timestamp()
 
@@ -252,7 +241,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
         init_size = next_size
 
-        # remove processed trade
         all_trades.pop(0)
 
         # Trade is consolidated
@@ -271,26 +259,39 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
                     # DAS seems to have some issue with the timestamp, in so me cases there was
                     # an order that came before the trade by 1 sec. so I use the "- 1" to allow for 1 sec. margin error
-                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time - 1 <= order_time <= trade_exit_time:
+                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time <= order_time <= trade_exit_time:
                         # Find action type (Buy, Sell, Stop, ...)
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
                         my_order['action_type'] = action_type
                         if action_type:
                             initial_trade['actions'].append(my_order)
+                            initial_trade['actions'].sort(
+                                key=lambda action: action.get('filled_time', action['time']))
 
-            initial_trade['actions'].sort(key=lambda t: t['time'])
+            # Filter all Orders to have only those that were filled
+            filled_actions = list(filter(
+                lambda action: action.get('filled', False) == True, initial_trade.get('actions', [])))
 
             # calculate gain for this trade
-            gain = get_gain(initial_trade)
+            gain = get_gain(filled_actions)
             initial_trade['gain'] = gain
 
             # risk parameters
+            # TODO:
+            # Might need to filter actions using the trade dictionnary,
+            # if an action ID is not in the trade dict, it means it wasn't a triggered order
+            # and we need to exclude it from the calcul
+
+            # Filter Orders to have all the STOPS
+            # Find the first entry
             stop_actions = list(filter(
                 lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
             initial_stop = 0
+
             if stop_actions[0]:
                 initial_stop = stop_actions[0].get('stop_price')
+
             stop_distance = abs(initial_trade.get('price') - initial_stop)
             risk = stop_distance * initial_trade.get('qty')
             r = round(gain / risk, 2)
@@ -301,6 +302,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
+
+            initial_trade['commissions'] = 0
 
             initial_trade['img'] = []
 
@@ -393,6 +396,9 @@ def post_raw_data():
             # Find corresponding order
             order_id = row[1]
             my_order = orders_dictionary[order_id]
+            if order_id:
+                my_order['filled'] = True
+                my_order['filled_time'] = format_date(row[14])
             trade = init_trade(row, my_order)
 
             # When we create a trade we need to remember the original price
@@ -419,6 +425,8 @@ def post_raw_data():
             for ticker in trades_dictionary[user]:
                 trades_dictionary[user][ticker].sort(key=lambda t: t['time'])
 
+        trades_dictionary_copy = copy.deepcopy(trades_dictionary)
+
         # if everything was ok
         # insert in DB raw data
         # mongo.db.raw_orders.insert_many(orders_list)
@@ -431,7 +439,7 @@ def post_raw_data():
         for user in trades_dictionary:
             for trade in trades_dictionary[user]:
                 all_my_trades.extend(consolidate_trade(
-                    trades_dictionary[user][trade], [], orders_dictionary))
+                    trades_dictionary_copy[user][trade], [], orders_dictionary))
 
         # all aggregated trades
         db.trades.insert_many(all_my_trades)
@@ -540,14 +548,21 @@ def edit_trade_data():
     if request.method == 'PUT':
         trade = request.json['trade']
         details = request.json['data']
+        my_trade = db.trades.find_one({'id': trade['id']})
+        commissions = float(details.get(
+            'commissions', my_trade['commissions']))
+        gain = my_trade.get('gain', 0)
+        net_gain = gain - commissions
         db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
-                'strategy': details['strategy'],
-                'description': details['description'],
-                'catalysts': details['catalysts'],
-                'rvol': details['rvol'],
-                'rating': details['rating']
+                'strategy': details.get('strategy', my_trade['strategy']),
+                'description': details.get('description', my_trade['description']),
+                'catalysts': details.get('catalysts', my_trade['catalysts']),
+                'rvol': details.get('rvol', my_trade['rvol']),
+                'rating': details.get('rating', my_trade['rating']),
+                'commissions': commissions,
+                'net_gain': net_gain
             }
             }, upsert=False
         )
@@ -567,7 +582,8 @@ def edit_overview_data():
             }
             }, upsert=True
         )
-        return jsonify({'ok': True, 'overviewID': overview['_id']})
+        return_data = db.overviews.find_one({"id": overview['id']})
+        return jsonify({'ok': True, 'overview': return_data})
 
 
 @application.route('/importImages', methods=['GET'])
@@ -580,7 +596,7 @@ def send_image():
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
     all_time_total_by_account = db.trades.aggregate(
-        [{'$group': {'_id': "$account", 'total': {'$sum': "$gain"}}}])
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_gain"}}}])
     return_data = list(all_time_total_by_account)
     return jsonify({'ok': True, 'all_time_total_by_account': return_data})
 
