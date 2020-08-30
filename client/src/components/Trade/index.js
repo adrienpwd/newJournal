@@ -140,22 +140,21 @@ const ReviewTrade = () => {
   const renderActions = () =>
     trade.actions.map((action, i) => {
       let actionType
-      let actionIcon
       if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
-        //actionIcon = <StopFilledAlt16 />
         actionType = `${action.action_type} ${action.qty} at ${
           action.market_type === 'Mkt' ? action.stop_price : action.price
         }`
       } else {
-        //actionIcon = action.action_type === 'Buy' ? <CaretSortUp16 /> : <CaretSortDown16 />
-        actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
+        actionType = `${action.action_type} ${action.qty} at ${action.init_price} (filled: ${action.price})`
       }
 
       const time = (action.filled_time || action.time).split(' ')[1]
 
       return (
         <div key={i} className={styles.tradeAreaAction}>
-          {time} - {actionType}
+          <span className={action.filled ? styles.tradeFilled : ''}>
+            {time} - {actionType}
+          </span>
         </div>
       )
     })
