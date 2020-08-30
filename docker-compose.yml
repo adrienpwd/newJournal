@@ -19,8 +19,7 @@ services:
       MONGODB_HOSTNAME: 192.168.1.70
     volumes:
       - ./app:/var/www/
-      - /home/adrien/tradeLogs
-
+      -  /home/adrien/tradeLogs:/tradeLogs
     networks:
       - frontend
       - backend
