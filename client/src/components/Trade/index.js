@@ -151,7 +151,7 @@ const ReviewTrade = () => {
         actionType = `${action.action_type} ${action.qty} at ${action.price} (init. price: ${action.init_price})`
       }
 
-      const time = action.time.split(' ')[1]
+      const time = (action.filled_time || action.time).split(' ')[1]
 
       return (
         <div key={i} className={styles.tradeAreaAction}>

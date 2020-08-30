@@ -291,11 +291,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 initial_stop = stop_actions[0].get('stop_price')
 
             stop_distance = abs(initial_trade.get('price') - initial_stop)
-            # risk = stop_distance * initial_trade.get('qty')
-            # r = round(gain / risk, 2)
-
-            risk = 0
-            r = 1
+            risk = stop_distance * initial_trade.get('qty')
+            r = round(gain / risk, 2)
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
@@ -313,7 +310,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             built_trades.append(initial_trade)
 
             # continue iteration
-            # all_trades.pop(0)
             consolidate_trade(all_trades, built_trades, orders_dictionary)
 
         if next_size < 0:
