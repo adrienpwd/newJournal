@@ -303,6 +303,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
 
+            initial_trade['commissions'] = 0
+
             initial_trade['img'] = []
 
             # add duration of trade using first entry and last partial
@@ -546,14 +548,21 @@ def edit_trade_data():
     if request.method == 'PUT':
         trade = request.json['trade']
         details = request.json['data']
+        my_trade = db.trades.find_one({'id': trade['id']})
+        commissions = float(details.get(
+            'commissions', my_trade['commissions']))
+        gain = my_trade.get('gain', 0)
+        net_gain = gain - commissions
         db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
-                'strategy': details['strategy'],
-                'description': details['description'],
-                'catalysts': details['catalysts'],
-                'rvol': details['rvol'],
-                'rating': details['rating']
+                'strategy': details.get('strategy', my_trade['strategy']),
+                'description': details.get('description', my_trade['description']),
+                'catalysts': details.get('catalysts', my_trade['catalysts']),
+                'rvol': details.get('rvol', my_trade['rvol']),
+                'rating': details.get('rating', my_trade['rating']),
+                'commissions': commissions,
+                'net_gain': net_gain
             }
             }, upsert=False
         )
@@ -573,7 +582,8 @@ def edit_overview_data():
             }
             }, upsert=True
         )
-        return jsonify({'ok': True, 'overviewID': overview['_id']})
+        return_data = db.overviews.find_one({"id": overview['id']})
+        return jsonify({'ok': True, 'overview': return_data})
 
 
 @application.route('/importImages', methods=['GET'])
@@ -586,7 +596,7 @@ def send_image():
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
     all_time_total_by_account = db.trades.aggregate(
-        [{'$group': {'_id': "$account", 'total': {'$sum': "$gain"}}}])
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_gain"}}}])
     return_data = list(all_time_total_by_account)
     return jsonify({'ok': True, 'all_time_total_by_account': return_data})
 
