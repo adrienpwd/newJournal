@@ -209,7 +209,9 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
     init_size = initial_trade.get('qty')
 
-    entry_time = initial_trade['time']
+    order_id = initial_trade['order_id']
+    my_order = orders_dictionary[order_id]
+    entry_time = my_order['time']
     trade_entry_time = datetime.strptime(
         entry_time, '%d/%m/%Y %H:%M:%S').timestamp()
 
@@ -257,7 +259,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
                     # DAS seems to have some issue with the timestamp, in so me cases there was
                     # an order that came before the trade by 1 sec. so I use the "- 1" to allow for 1 sec. margin error
-                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time - 1 <= order_time <= trade_exit_time:
+                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time <= order_time <= trade_exit_time:
                         # Find action type (Buy, Sell, Stop, ...)
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
