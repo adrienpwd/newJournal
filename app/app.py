@@ -453,12 +453,15 @@ def post_raw_data():
             if trade.get('account') in pnl_by_accounts:
                 new_pnl = round(
                     pnl_by_accounts[trade['account']]['net'] + trade.get('gross_gain', 0), 2)
+                new_r = round(
+                    pnl_by_accounts[trade['account']]['r'] + trade.get('r', 0), 2)
                 pnl_by_accounts.update(
-                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account']}})
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
             else:
                 new_pnl = round(trade.get('gross_gain', 0), 2)
+                new_r = round(trade.get('r', 0), 2)
                 pnl_by_accounts.update(
-                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account']}})
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
 
         overview_id = all_my_trades[0].get('time')[:10]
         overview_id = overview_id.replace('/', '-')
@@ -665,7 +668,7 @@ def send_image():
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
-        [{'$group': {'_id': None, 'total': {'$sum': "$net_pnl"}}}])
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
     return_data = list(all_time_total_by_account)
     return jsonify({'ok': True, 'all_time_total_by_account': return_data})
 
