@@ -445,11 +445,20 @@ def post_raw_data():
 
         # compute total for the day
         # we find the date of the day and store the total in the `overviews` collection
-        gross_pnl = 0
-        for trade in all_my_trades:
-            gross_pnl += trade.get('gross_gain', 0)
+        # per account
+        # We also put net and gross pnl for later being able to process commissions
 
-        gross_pnl = round(gross_pnl, 2)
+        pnl_by_accounts = {}
+        for trade in all_my_trades:
+            if trade.get('account') in pnl_by_accounts:
+                new_pnl = round(
+                    pnl_by_accounts[trade['account']]['net'] + trade.get('gross_gain', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account']}})
+            else:
+                new_pnl = round(trade.get('gross_gain', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account']}})
 
         overview_id = all_my_trades[0].get('time')[:10]
         overview_id = overview_id.replace('/', '-')
@@ -457,8 +466,7 @@ def post_raw_data():
         db.overviews.insert(
             {
                 'id': overview_id,
-                'gross_pnl': gross_pnl,
-                'net_pnl': gross_pnl
+                'accounts': pnl_by_accounts
             }
         )
 
@@ -599,21 +607,33 @@ def edit_trade_data():
             overview_id = overview_id.replace('/', '-')
 
             my_overview = db.overviews.find_one({'id': overview_id})
-            my_overview_net_pnl = my_overview.get('gross_pnl')
+            my_overview_net_pnl_for_account = my_overview['accounts'][my_trade.get(
+                'account')]['gross']
 
-            corresponding_trades = db.trades.find(
-                {"time": {'$regex': my_trade.get('time')[:10]}})
+            corresponding_trades = db.trades.aggregate([
+                {
+                    '$match': {
+                        "time": {'$regex': my_trade.get('time')[:10]},
+                        "account": {'$regex': my_trade.get('account')},
+                    },
+                }
+            ])
 
             for corresponding_trade in corresponding_trades:
                 if corresponding_trade.get('commissions'):
-                    my_overview_net_pnl -= corresponding_trade.get(
+                    my_overview_net_pnl_for_account -= corresponding_trade.get(
                         'commissions')
 
-            my_overview_net_pnl = round(my_overview_net_pnl, 2)
+            my_overview_net_pnl_for_account = round(
+                my_overview_net_pnl_for_account, 2)
 
-            db.overviews.update_one({'id': overview_id}, {"$set": {'net_pnl': my_overview_net_pnl}
-                                                          }, upsert=True
-                                    )
+            my_overview['accounts'].get(my_trade.get('account')).update(
+                {"net": my_overview_net_pnl_for_account})
+
+            db.overviews.update_one(
+                {'id': overview_id},
+                {"$set": my_overview}, upsert=True
+            )
 
         return jsonify({'ok': True, 'tradeID': trade['_id']})
 

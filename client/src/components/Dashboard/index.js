@@ -18,14 +18,16 @@ export default function Dashboard() {
   const isLoaded = dashboardState?.loaded
   const allTimeGainByAccount = dashboardState?.all_time_total_by_account
 
+  console.log(allTimeGainByAccount)
+
   return isLoading && !isLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.dasboardContainer}>
       <h4>All time gain:</h4>
-      {allTimeGainByAccount.map((allTime, i) => {
+      {/* {allTimeGainByAccount.map((allTime, i) => {
         return <h4 key={i}>{allTime.total}</h4>
-      })}
+      })} */}
     </div>
   )
 }
