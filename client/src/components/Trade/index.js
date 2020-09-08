@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import axios from 'axios'
 import { loadTrades } from './../../actions/trades'
 
-import { catalysts, strategies } from './../../utils'
+import { catalysts, strategies, filterFormValues } from './../../utils'
 
 import {
   Button,
@@ -39,8 +39,6 @@ const ReviewTrade = () => {
   const { loaded } = data
   const trades = data.trades?.[day] || []
   const trade = trades.find((t) => t.id === tradeId)
-
-  console.log(trade)
 
   let catalystsCheckboxes = {}
   trade &&
@@ -102,8 +100,17 @@ const ReviewTrade = () => {
 
   const onSubmit = (data) => {
     const tradeCatalysts = catalysts.filter((c) => data[c.id] === true).map((c) => c.id)
-    data.catalysts = tradeCatalysts
-    dispatch(editTrade(trade, data))
+    const filteredFormValues = {}
+    Object.keys(data).forEach((key) => {
+      if (filterFormValues(data[key])) {
+        filteredFormValues[key] = data[key]
+      }
+    })
+    if (tradeCatalysts.length) {
+      filteredFormValues.catalysts = tradeCatalysts
+    }
+
+    dispatch(editTrade(trade, filteredFormValues))
     makeViewState()
   }
 
@@ -207,7 +214,7 @@ const ReviewTrade = () => {
         </div>
         <h4>{trade.account}</h4>
         <h4>{trade.time}</h4>
-        <h4>{trade.gain}</h4>
+        <h4>{trade.gross_gain}</h4>
         <h4>R: {trade.r}</h4>
         <h4>slippage: {trade.slippage}</h4>
 
@@ -254,6 +261,7 @@ const ReviewTrade = () => {
             invalidText="Number is not valid"
             label="Relative Volume"
             min={0}
+            value={Number(trade?.rvol)}
           />
           <NumberInput
             ref={register}
@@ -264,15 +272,17 @@ const ReviewTrade = () => {
             min={0}
             max={5}
             step={1}
+            value={Number(trade.rating)}
           />
           <NumberInput
             ref={register}
             id="commissions"
             name="commissions"
             invalidText="Number is not valid"
-            label="Comissions"
+            label="Commissions"
             min={0}
             step={1}
+            value={Number(trade?.commissions)}
           />
         </Form>
       </>
@@ -308,13 +318,13 @@ const ReviewTrade = () => {
         <h4>Trade entry: {trade.time}</h4>
         <h4>Duration: {trade.duration}</h4>
         <h4>
-          Gain: <span className={gainClass}>{trade.gain}</span>
+          Gain: <span className={gainClass}>{trade.gross_gain}</span>
         </h4>
         <h4>
-          Comissions:{' '}
+          Commissions:
           {trade.commissions
             ? `${trade.commissions} (${Math.round(
-                Math.abs(trade.commissions / trade.gain) * 100
+                Math.abs(trade.commissions / trade.gross_gain) * 100
               )}%)`
             : 'n/a'}
         </h4>

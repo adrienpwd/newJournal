@@ -24,11 +24,7 @@ export default function Dashboard() {
     <div className={styles.dasboardContainer}>
       <h4>All time gain:</h4>
       {allTimeGainByAccount.map((allTime, i) => {
-        return (
-          <h4 key={i}>
-            {allTime._id}: {allTime.total}
-          </h4>
-        )
+        return <h4 key={i}>{allTime.total}</h4>
       })}
     </div>
   )

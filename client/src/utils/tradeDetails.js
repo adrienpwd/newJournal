@@ -1,15 +1,28 @@
 export const strategies = [
   {
-    id: 'abcd-early',
-    label: 'ABCD (early)',
-    description: 'ABCD where the entry is before the breakout'
+    id: 'abcd-a',
+    label: 'ABCD (type A)',
+    description: `ABCD that looks like an ascending triangle.
+    The breakout happens after a long sideways consolidation.
+    The MAs come closer and closer to the price.`
   },
   {
-    id: 'abcd-late',
-    label: 'ABCD (late)',
-    description: 'ABCD where the entry is after the breakout'
+    id: 'abcd-b',
+    label: 'ABCD (type B)',
+    description: `ABCD where the consolidation slightly pulls back.
+    The MAs come closer and closer to the price.`
   },
-  { id: 'breakout-hod', label: 'HOD Breakout', description: 'A breakout happening at high of Day' }
+  {
+    id: 'abcd-c',
+    label: 'ABCD (type C)',
+    description: 'ABCD where the pullback is parabolic.'
+  },
+  {
+    id: 'climactic-reversal',
+    label: 'Climactic Reversal',
+    description: 'Catch a pullback to the 9EMA on the 5min chart.'
+  },
+  { id: 'extreme-reversal', label: 'Extreme Reversal', description: 'A nice V reversal' }
 ]
 
 export const catalysts = [

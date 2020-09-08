@@ -173,7 +173,8 @@ export default function Review() {
         />
         <h4>Description</h4>
         <p>{overview?.description}</p>
-        <h4>Comissions: {overview?.commissions}</h4>
+        <h4>P&L (gross): {overview?.gross_pnl}</h4>
+        <h4>P&L (net): {overview?.net_pnl}</h4>
         <div className={styles.tradeCards}>{renderTradesCard()}</div>
         <div>{renderImages()}</div>
       </div>
