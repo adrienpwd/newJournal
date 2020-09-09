@@ -315,22 +315,26 @@ const ReviewTrade = () => {
           />
         </div>
         <h4>Account: {trade.account}</h4>
+        <br />
         <h4>Trade entry: {trade.time}</h4>
         <h4>Duration: {trade.duration}</h4>
+        <br />
         <h4>
-          Gain: <span className={gainClass}>{trade.gross_gain}</span>
+          Gain: <span className={gainClass}>${trade.gross_gain}</span>
         </h4>
+        <h4>Net: ${trade?.net_gain}</h4>
         <h4>
           Commissions:
-          {trade.commissions
-            ? `${trade.commissions} (${Math.round(
-                Math.abs(trade.commissions / trade.gross_gain) * 100
-              )}%)`
-            : 'n/a'}
+          {trade.ratio_com_gain
+            ? ` $${trade.commissions} (${trade.ratio_com_gain * 100} %)`
+            : ' n/a'}
         </h4>
-        <h4>Net: {trade?.net_gain}</h4>
+        <h4>Slippage: ${trade?.slippage}</h4>
+        <br />
         <h4>R/R: {trade?.r}</h4>
-        <h4>Slippage: {trade?.slippage}</h4>
+        <h4>Stop distance: {`${trade.stop_distance} (${trade.stop_ratio * 100} %)`}</h4>
+        <h4>Risk amount: ${trade?.risk}</h4>
+        <br />
         <h4>Strategy: {strategy?.label}</h4>
         <h4>Description:</h4>
         <p>{trade?.description}</p>

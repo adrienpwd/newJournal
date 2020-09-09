@@ -279,10 +279,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             initial_trade['gross_gain'] = gross_gain
 
             # risk parameters
-            # TODO:
-            # Might need to filter actions using the trade dictionnary,
-            # if an action ID is not in the trade dict, it means it wasn't a triggered order
-            # and we need to exclude it from the calcul
 
             # Filter Orders to have all the STOPS
             # Find the first entry
@@ -294,12 +290,14 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 initial_stop = stop_actions[0].get('stop_price')
 
             stop_distance = abs(initial_trade.get('price') - initial_stop)
+            stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
             r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
             initial_trade['risk'] = round(risk, 2)
+            initial_trade['stop_ratio'] = round(stop_ratio, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
@@ -584,6 +582,7 @@ def edit_trade_data():
             commissions = float(details.get('commissions'))
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
+            ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
 
@@ -596,7 +595,8 @@ def edit_trade_data():
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
-                'net_gain': net_gain
+                'net_gain': net_gain,
+                'ratio_com_gain': ratio_gain_commissions
             }
             }, upsert=False
         )
@@ -669,8 +669,10 @@ def send_image():
 def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
         [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
-    return_data = list(all_time_total_by_account)
-    return jsonify({'ok': True, 'all_time_total_by_account': return_data})
+    return_all_time_total_by_account = list(all_time_total_by_account)
+    pnl_per_day = db.overviews.find()
+    return_pnl_per_day = list(pnl_per_day)
+    return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
 
 
 if __name__ == "__main__":
