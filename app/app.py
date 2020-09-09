@@ -279,10 +279,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             initial_trade['gross_gain'] = gross_gain
 
             # risk parameters
-            # TODO:
-            # Might need to filter actions using the trade dictionnary,
-            # if an action ID is not in the trade dict, it means it wasn't a triggered order
-            # and we need to exclude it from the calcul
 
             # Filter Orders to have all the STOPS
             # Find the first entry
@@ -294,12 +290,14 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 initial_stop = stop_actions[0].get('stop_price')
 
             stop_distance = abs(initial_trade.get('price') - initial_stop)
+            stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
             r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
             initial_trade['risk'] = round(risk, 2)
+            initial_trade['stop_ratio'] = round(stop_ratio, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
@@ -445,11 +443,23 @@ def post_raw_data():
 
         # compute total for the day
         # we find the date of the day and store the total in the `overviews` collection
-        gross_pnl = 0
-        for trade in all_my_trades:
-            gross_pnl += trade.get('gross_gain', 0)
+        # per account
+        # We also put net and gross pnl for later being able to process commissions
 
-        gross_pnl = round(gross_pnl, 2)
+        pnl_by_accounts = {}
+        for trade in all_my_trades:
+            if trade.get('account') in pnl_by_accounts:
+                new_pnl = round(
+                    pnl_by_accounts[trade['account']]['net'] + trade.get('gross_gain', 0), 2)
+                new_r = round(
+                    pnl_by_accounts[trade['account']]['r'] + trade.get('r', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
+            else:
+                new_pnl = round(trade.get('gross_gain', 0), 2)
+                new_r = round(trade.get('r', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
 
         overview_id = all_my_trades[0].get('time')[:10]
         overview_id = overview_id.replace('/', '-')
@@ -457,8 +467,7 @@ def post_raw_data():
         db.overviews.insert(
             {
                 'id': overview_id,
-                'gross_pnl': gross_pnl,
-                'net_pnl': gross_pnl
+                'accounts': pnl_by_accounts
             }
         )
 
@@ -573,6 +582,7 @@ def edit_trade_data():
             commissions = float(details.get('commissions'))
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
+            ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
 
@@ -585,7 +595,8 @@ def edit_trade_data():
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
-                'net_gain': net_gain
+                'net_gain': net_gain,
+                'ratio_com_gain': ratio_gain_commissions
             }
             }, upsert=False
         )
@@ -599,21 +610,33 @@ def edit_trade_data():
             overview_id = overview_id.replace('/', '-')
 
             my_overview = db.overviews.find_one({'id': overview_id})
-            my_overview_net_pnl = my_overview.get('gross_pnl')
+            my_overview_net_pnl_for_account = my_overview['accounts'][my_trade.get(
+                'account')]['gross']
 
-            corresponding_trades = db.trades.find(
-                {"time": {'$regex': my_trade.get('time')[:10]}})
+            corresponding_trades = db.trades.aggregate([
+                {
+                    '$match': {
+                        "time": {'$regex': my_trade.get('time')[:10]},
+                        "account": {'$regex': my_trade.get('account')},
+                    },
+                }
+            ])
 
             for corresponding_trade in corresponding_trades:
                 if corresponding_trade.get('commissions'):
-                    my_overview_net_pnl -= corresponding_trade.get(
+                    my_overview_net_pnl_for_account -= corresponding_trade.get(
                         'commissions')
 
-            my_overview_net_pnl = round(my_overview_net_pnl, 2)
+            my_overview_net_pnl_for_account = round(
+                my_overview_net_pnl_for_account, 2)
 
-            db.overviews.update_one({'id': overview_id}, {"$set": {'net_pnl': my_overview_net_pnl}
-                                                          }, upsert=True
-                                    )
+            my_overview['accounts'].get(my_trade.get('account')).update(
+                {"net": my_overview_net_pnl_for_account})
+
+            db.overviews.update_one(
+                {'id': overview_id},
+                {"$set": my_overview}, upsert=True
+            )
 
         return jsonify({'ok': True, 'tradeID': trade['_id']})
 
@@ -645,9 +668,11 @@ def send_image():
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
-        [{'$group': {'_id': None, 'total': {'$sum': "$net_pnl"}}}])
-    return_data = list(all_time_total_by_account)
-    return jsonify({'ok': True, 'all_time_total_by_account': return_data})
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
+    return_all_time_total_by_account = list(all_time_total_by_account)
+    pnl_per_day = db.overviews.find()
+    return_pnl_per_day = list(pnl_per_day)
+    return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
 
 
 if __name__ == "__main__":
