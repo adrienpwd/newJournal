@@ -20,7 +20,10 @@ export default function TradeCard({ trade, url }) {
   }
   const strategy = strategies.find((s) => trade.strategy === s.id)
 
-  const displayWarning = isNaN(trade.net_gain)
+  // Display a warning sign if the trade is missing the commissions
+  // We display the gross gain if it's missing commissions, or the net gain
+  // if we have it.
+  const displayWarning = !trade.net_gain || isNaN(trade.net_gain)
 
   return (
     <Link to={`/review/${match.params.day}/${trade.id}`}>
@@ -33,7 +36,9 @@ export default function TradeCard({ trade, url }) {
           <div className={styles.element}>{trade.account}</div>
           <div className={styles.element}>{strategy?.label}</div>
           <div className={styles.element}>{getTradeType(trade.type)}</div>
-          <div className={styles.element + ' ' + gainClass}>{trade.gain}</div>
+          <div className={styles.element + ' ' + gainClass}>
+            {displayWarning ? trade.gross_gain : trade.net_gain}
+          </div>
         </div>
       </div>
     </Link>

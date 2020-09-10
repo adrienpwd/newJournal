@@ -124,8 +124,9 @@ def init_trade(row, order):
         'strategy': '',
         'description': '',
         'catalysts': [],
-        'rvol': 0,
-        'rating': 0
+        'rvol': None,
+        'rating': None,
+        'commissions': None
     }
 
 
@@ -259,7 +260,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
                     # DAS seems to have some issue with the timestamp, in so me cases there was
                     # an order that came before the trade by 1 sec. so I use the "- 1" to allow for 1 sec. margin error
-                    if trade_entry_time <= order_time <= trade_exit_time or trade_entry_time <= order_time <= trade_exit_time:
+                    if trade_entry_time <= order_time <= trade_exit_time:
                         # Find action type (Buy, Sell, Stop, ...)
                         action_type = get_action_type(
                             my_order, initial_trade.get('type'))
@@ -274,36 +275,32 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 lambda action: action.get('filled', False) == True, initial_trade.get('actions', [])))
 
             # calculate gain for this trade
-            gain = get_gain(filled_actions)
-            initial_trade['gain'] = gain
+            gross_gain = get_gain(filled_actions)
+            initial_trade['gross_gain'] = gross_gain
 
             # risk parameters
-            # TODO:
-            # Might need to filter actions using the trade dictionnary,
-            # if an action ID is not in the trade dict, it means it wasn't a triggered order
-            # and we need to exclude it from the calcul
 
             # Filter Orders to have all the STOPS
             # Find the first entry
             stop_actions = list(filter(
                 lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
-            initial_stop = 0
+            initial_stop = None
 
-            if stop_actions[0]:
+            if len(stop_actions) > 0:
                 initial_stop = stop_actions[0].get('stop_price')
 
             stop_distance = abs(initial_trade.get('price') - initial_stop)
+            stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
-            r = round(gain / risk, 2)
+            r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
             initial_trade['risk'] = round(risk, 2)
+            initial_trade['stop_ratio'] = round(stop_ratio, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
-
-            initial_trade['commissions'] = 0
 
             initial_trade['img'] = []
 
@@ -316,19 +313,19 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             # continue iteration
             consolidate_trade(all_trades, built_trades, orders_dictionary)
 
-        if next_size < 0:
-            # Size error (hotkey mistake ?)
-            # 1) I was Long 100, then sold 150, now I'm Short 50
-            # 2) I was Short 100, then covered (bought) 150, now I'm long 50
-            # In these cases we close current trade
-            # TODO
-            # Create a new Trade dictionary with the right
-            # amount of shares to close the initial trade
-            # Use only the difference in shares size (50 in the examples)
+    if next_size < 0:
+        # Size error (hotkey mistake ?)
+        # 1) I was Long 100, then sold 150, now I'm Short 50
+        # 2) I was Short 100, then covered (bought) 150, now I'm long 50
+        # In these cases we close current trade
+        # TODO
+        # Create a new Trade dictionary with the right
+        # amount of shares to close the initial trade
+        # Use only the difference in shares size (50 in the examples)
 
-            # Then create a new Trade dictionary, with the remainming shares
-            # need to push this new entry to all_trades
-            consolidate_trade(all_trades, built_trades, orders_dictionary)
+        # Then create a new Trade dictionary, with the remainming shares
+        # need to push this new entry to all_trades
+        consolidate_trade(all_trades, built_trades, orders_dictionary)
 
 # @app.route('/trades/<string:id>')
 # def article(year, month, title):
@@ -444,6 +441,36 @@ def post_raw_data():
         # all aggregated trades
         db.trades.insert_many(all_my_trades)
 
+        # compute total for the day
+        # we find the date of the day and store the total in the `overviews` collection
+        # per account
+        # We also put net and gross pnl for later being able to process commissions
+
+        pnl_by_accounts = {}
+        for trade in all_my_trades:
+            if trade.get('account') in pnl_by_accounts:
+                new_pnl = round(
+                    pnl_by_accounts[trade['account']]['net'] + trade.get('gross_gain', 0), 2)
+                new_r = round(
+                    pnl_by_accounts[trade['account']]['r'] + trade.get('r', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
+            else:
+                new_pnl = round(trade.get('gross_gain', 0), 2)
+                new_r = round(trade.get('r', 0), 2)
+                pnl_by_accounts.update(
+                    {trade.get('account'): {'gross': new_pnl, 'net': new_pnl, 'account': trade['account'], 'r': new_r}})
+
+        overview_id = all_my_trades[0].get('time')[:10]
+        overview_id = overview_id.replace('/', '-')
+
+        db.overviews.insert(
+            {
+                'id': overview_id,
+                'accounts': pnl_by_accounts
+            }
+        )
+
         return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades, 'trades_dictionary': trades_dictionary})
 
 
@@ -549,10 +576,16 @@ def edit_trade_data():
         trade = request.json['trade']
         details = request.json['data']
         my_trade = db.trades.find_one({'id': trade['id']})
-        commissions = float(details.get(
-            'commissions', my_trade['commissions']))
-        gain = my_trade.get('gain', 0)
-        net_gain = gain - commissions
+        net_gain = None
+
+        if details.get('commissions'):
+            commissions = float(details.get('commissions'))
+            gross_gain = my_trade.get('gross_gain', 0)
+            net_gain = round(gross_gain - commissions, 2)
+            ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
+        else:
+            commissions = my_trade['commissions']
+
         db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
@@ -562,10 +595,49 @@ def edit_trade_data():
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
-                'net_gain': net_gain
+                'net_gain': net_gain,
+                'ratio_com_gain': ratio_gain_commissions
             }
             }, upsert=False
         )
+
+        corresponding_trades = []
+
+        # If we edited a trade and added the commission
+        # we need to reflect that on the daily PnL
+        if details.get('commissions'):
+            overview_id = my_trade.get('time')[:10]
+            overview_id = overview_id.replace('/', '-')
+
+            my_overview = db.overviews.find_one({'id': overview_id})
+            my_overview_net_pnl_for_account = my_overview['accounts'][my_trade.get(
+                'account')]['gross']
+
+            corresponding_trades = db.trades.aggregate([
+                {
+                    '$match': {
+                        "time": {'$regex': my_trade.get('time')[:10]},
+                        "account": {'$regex': my_trade.get('account')},
+                    },
+                }
+            ])
+
+            for corresponding_trade in corresponding_trades:
+                if corresponding_trade.get('commissions'):
+                    my_overview_net_pnl_for_account -= corresponding_trade.get(
+                        'commissions')
+
+            my_overview_net_pnl_for_account = round(
+                my_overview_net_pnl_for_account, 2)
+
+            my_overview['accounts'].get(my_trade.get('account')).update(
+                {"net": my_overview_net_pnl_for_account})
+
+            db.overviews.update_one(
+                {'id': overview_id},
+                {"$set": my_overview}, upsert=True
+            )
+
         return jsonify({'ok': True, 'tradeID': trade['_id']})
 
 
@@ -595,10 +667,12 @@ def send_image():
 
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
-    all_time_total_by_account = db.trades.aggregate(
-        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_gain"}}}])
-    return_data = list(all_time_total_by_account)
-    return jsonify({'ok': True, 'all_time_total_by_account': return_data})
+    all_time_total_by_account = db.overviews.aggregate(
+        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
+    return_all_time_total_by_account = list(all_time_total_by_account)
+    pnl_per_day = db.overviews.find()
+    return_pnl_per_day = list(pnl_per_day)
+    return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
 
 
 if __name__ == "__main__":
