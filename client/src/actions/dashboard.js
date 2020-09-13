@@ -26,3 +26,12 @@ export function getStats() {
       })
   }
 }
+
+export function setAccount(account) {
+  return (dispatch) => {
+    dispatch({
+      type: 'SET_ACCOUNT',
+      payload: account
+    })
+  }
+}

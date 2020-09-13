@@ -344,7 +344,7 @@ def list_trades():
             return_data = list(matching_trades)
             return jsonify({'ok': True, 'trades': return_data})
 
-        allTrades = db.trades.find()
+        allTrades = db.trades.aggregate([{ '$sort' : { 'timestamp' : 1 } }])
         return_data = list(allTrades)
         return jsonify({'ok': True, 'trades': return_data})
 
@@ -467,7 +467,9 @@ def post_raw_data():
         db.overviews.insert(
             {
                 'id': overview_id,
-                'accounts': pnl_by_accounts
+                'accounts': pnl_by_accounts,
+                'timestamp': trade.get('timestamp')
+
             }
         )
 
@@ -577,6 +579,7 @@ def edit_trade_data():
         details = request.json['data']
         my_trade = db.trades.find_one({'id': trade['id']})
         net_gain = None
+        ratio_gain_commissions = None
 
         if details.get('commissions'):
             commissions = float(details.get('commissions'))
@@ -670,7 +673,7 @@ def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
         [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
     return_all_time_total_by_account = list(all_time_total_by_account)
-    pnl_per_day = db.overviews.find()
+    pnl_per_day = db.overviews.aggregate([{ '$sort' : { 'timestamp' : 1 } }])
     return_pnl_per_day = list(pnl_per_day)
     return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
 
