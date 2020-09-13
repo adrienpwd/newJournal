@@ -47,9 +47,6 @@ const ReviewTrade = () => {
       catalystsCheckboxes[c] = true
     })
 
-  // TODO:
-  // the edit form doesn't re-render with the new defaultValues after editing a trade
-  // It will populate the form with the old values
   const defaultValues = {
     strategy: trade?.strategy || '',
     description: trade?.description || '',
@@ -85,8 +82,6 @@ const ReviewTrade = () => {
       })
     }
   }, [])
-
-  // let fileUploader
 
   const [isEditMode, setEditMode] = useState(false)
 
@@ -126,8 +121,6 @@ const ReviewTrade = () => {
       }
 
       dispatch(uploadImages(formData, 'trade', day))
-
-      //fileUploader.clearFiles()
     }
   }
 
@@ -188,7 +181,6 @@ const ReviewTrade = () => {
             size="small"
             labelText="Images"
             multiple
-            //ref={(node) => (fileUploader = node)}
             onChange={_handleUploadImages}
           />
           <Button
@@ -338,7 +330,7 @@ const ReviewTrade = () => {
         <h4>Strategy: {strategy?.label}</h4>
         <h4>Description:</h4>
         <p>{trade?.description}</p>
-        <h4>Catalysts</h4>
+        <h4>Catalysts:</h4>
         {renderCatalystsTag()}
         <h4>RVOL: {trade?.rvol}</h4>
         <h4>Rating: {trade?.rating}</h4>

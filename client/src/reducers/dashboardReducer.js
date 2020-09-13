@@ -1,6 +1,9 @@
+import { accounts, transformPNL } from './../utils'
+
 const initial_state = {
   loading: true,
-  loaded: false
+  loaded: false,
+  account: accounts[0].id
 }
 
 const onGetStats = (state) => {
@@ -13,9 +16,12 @@ const onGetStats = (state) => {
 }
 
 const onGetStatsSuccess = (state, payload) => {
+  const dailyPNL = payload?.pnl_per_day
+  const dailyPNLtransformed = dailyPNL ? transformPNL(dailyPNL, accounts[0].id) : []
   const newState = {
     ...state,
-    ...payload,
+    rawDailyPNL: dailyPNL,
+    dailyPNL: dailyPNLtransformed,
     loading: false,
     loaded: true
   }
@@ -34,6 +40,18 @@ const onGetStatsError = (state, error) => {
   return newState
 }
 
+const onSetAccount = (state, payload) => {
+  const dailyPNLtransformed = transformPNL(state.rawDailyPNL, payload)
+
+  const newState = {
+    ...state,
+    account: payload,
+    dailyPNL: dailyPNLtransformed
+  }
+
+  return newState
+}
+
 export default (state = initial_state, action = {}) => {
   const { type, payload, error } = action
   switch (type) {
@@ -43,6 +61,8 @@ export default (state = initial_state, action = {}) => {
       return onGetStatsSuccess(state, payload)
     case 'GET_STATS_ERROR':
       return onGetStatsError(state, error)
+    case 'SET_ACCOUNT':
+      return onSetAccount(state, payload)
     default:
       return state
   }

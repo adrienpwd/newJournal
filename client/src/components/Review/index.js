@@ -5,14 +5,7 @@ import { TradeCard } from 'components/Common'
 import { Carousel } from 'react-responsive-carousel'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
-import {
-  Button,
-  Form,
-  TextArea,
-  FileUploaderButton,
-  Loading,
-  NumberInput
-} from 'carbon-components-react'
+import { Button, Form, TextArea, FileUploaderButton, Loading } from 'carbon-components-react'
 import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
 import { uploadImages } from 'actions/trades'
