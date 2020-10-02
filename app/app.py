@@ -307,7 +307,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
             r = 0
-            if risk > 0:
+            if risk > 0 and gross_gain != 0:
                 r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
@@ -321,8 +321,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             if initial_trade['account'] == 'TRPCT0094':
                 commissions = 0.005 * nb_shares
                 initial_trade['commissions'] = 0.005 * nb_shares
-                initial_trade['ratio_com_gain'] = round(
-                    abs(commissions / gross_gain), 4)
+                if gross_gain != 0:
+                    initial_trade['ratio_com_gain'] = round(abs(commissions / gross_gain), 4)
                 initial_trade['net_gain'] = gross_gain - commissions
 
             # slippage
@@ -611,7 +611,8 @@ def edit_trade_data():
             commissions = float(details.get('commissions'))
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
-            ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
+            if gross_gain != 0:
+                ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
 
