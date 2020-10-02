@@ -74,9 +74,14 @@ def init_order(row):
     is_stop = row[10] == 'Stop'
     time = format_date(row[17])
     is_short = row[8] == 'Y'
+    qty = int(row[12])
+    account = row[2]
+    commissions = 0
+    if account == 'TRPCT0094':
+        commissions = 0.005 * qty
 
     order = {
-        'account': row[2],
+        'account': account,
         'order_id': row[0],
         'route': row[4],
         'type': row[7],
@@ -84,7 +89,8 @@ def init_order(row):
         'is_stop': is_stop,
         'market_type': row[9],
         'ticker': row[11],
-        'qty': int(row[12]),
+        'qty': qty,
+        'commissions': commissions,
         'price': float(row[14]),
         'time': time
     }
@@ -178,6 +184,14 @@ def get_gain(filled_actions):
     gain = sell - buy
 
     return round(gain, 2)
+
+
+def get_nb_shares(filled_actions):
+    nb_shares = 0
+    for action in filled_actions:
+        nb_shares += action.get('qty', 0)
+
+    return nb_shares
 
 
 def get_slippage(trade):
@@ -292,12 +306,24 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             stop_distance = abs(initial_trade.get('price') - initial_stop)
             stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
-            r = round(gross_gain / risk, 2)
+            r = 0
+            if risk > 0:
+                r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
             initial_trade['risk'] = round(risk, 2)
             initial_trade['stop_ratio'] = round(stop_ratio, 4)
+
+            nb_shares = get_nb_shares(filled_actions)
+
+            initial_trade['nb_shares'] = nb_shares
+            if initial_trade['account'] == 'TRPCT0094':
+                commissions = 0.005 * nb_shares
+                initial_trade['commissions'] = 0.005 * nb_shares
+                initial_trade['ratio_com_gain'] = round(
+                    abs(commissions / gross_gain), 4)
+                initial_trade['net_gain'] = gross_gain - commissions
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
@@ -344,7 +370,7 @@ def list_trades():
             return_data = list(matching_trades)
             return jsonify({'ok': True, 'trades': return_data})
 
-        allTrades = db.trades.aggregate([{ '$sort' : { 'timestamp' : 1 } }])
+        allTrades = db.trades.aggregate([{'$sort': {'timestamp': 1}}])
         return_data = list(allTrades)
         return jsonify({'ok': True, 'trades': return_data})
 
@@ -673,7 +699,7 @@ def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
         [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
     return_all_time_total_by_account = list(all_time_total_by_account)
-    pnl_per_day = db.overviews.aggregate([{ '$sort' : { 'timestamp' : 1 } }])
+    pnl_per_day = db.overviews.aggregate([{'$sort': {'timestamp': 1}}])
     return_pnl_per_day = list(pnl_per_day)
     return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
 
