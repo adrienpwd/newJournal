@@ -78,7 +78,7 @@ def init_order(row):
     account = row[2]
     commissions = 0
     if account == 'TRPCT0094':
-        commissions = round(0.005 * qty)
+        commissions = round(0.005 * qty, 4)
 
     order = {
         'account': account,
@@ -280,6 +280,12 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                             my_order, initial_trade.get('type'))
                         my_order['action_type'] = action_type
                         if action_type:
+                            # order_risk Note
+                            # Here it's the only place where we can fix the order_risk issue when shorting
+                            # if it's a Cover we want to remove the order_risk because there is no risk !
+                            # order_risk is only when we buy or short !
+                            if action_type == "Cover":
+                                my_order['order_risk'] = 0
                             initial_trade['actions'].append(my_order)
                             initial_trade['actions'].sort(
                                 key=lambda action: action.get('filled_time', action['time']))
@@ -410,14 +416,22 @@ def post_raw_data():
             # For each order that is not a stop we look if the next order is the stop order
             # corresponding to the buy or short order we are iterating over.
             # This allows to find the total risk of the trade and to get the R:R
-            # TODO:
-            # When shorting it adds `order_risk` at the final Cover action
-            # It should not !!!
             is_short = order['type'] == 'S' and order['short'] == True and order['is_stop'] == False
             is_long = order['type'] == 'B' and order['short'] == False and order['is_stop'] == False
-            if i < len(csv_orders_list) - 2 and (is_long or is_short):
+
+            if i < len(csv_orders_list) - 1 and (is_short or is_long):
                 stop_order = csv_orders_list[i+1]
-                if stop_order[11] == order['ticker']:
+                # There is an issue here, that I don't know how to fix:
+                # It's gonna add order_risk to a Cover order because when we parse the orders
+                # and we see a Buy order, it could be a Cover, but we don't know yet so it
+                # still process it
+                # The only fix is to remove order_risk afterward (see 'order_risk Note')
+                should_process = False
+                if is_short:
+                    should_process = order['short'] == True and order['type'] == 'S'
+                if is_long:
+                    should_process = order['type'] == 'B'
+                if stop_order[11] == order['ticker'] and should_process:
                     order['order_risk'] = round(
                         abs(order.get('price', 0) - float(stop_order[15])), 4)
 
