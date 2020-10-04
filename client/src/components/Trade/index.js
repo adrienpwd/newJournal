@@ -8,6 +8,14 @@ import { loadTrades } from './../../actions/trades'
 import { catalysts, strategies, filterFormValues } from './../../utils'
 
 import {
+  DataTable,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
   Button,
   Checkbox,
   FileUploaderButton,
@@ -137,30 +145,142 @@ const ReviewTrade = () => {
     return <Carousel autoPlay={false}>{tradeImages}</Carousel>
   }
 
-  const renderActions = () =>
-    trade.actions.map((action, i) => {
-      let actionType
-      // TODO:
-      // Change this so I can also see if the Order Buy, Sell, Short, Cover was using Limit or Market
-      if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
-        actionType = `${action.action_type} ${action.qty} at $${
-          action.market_type === 'Mkt' ? action.stop_price : action.price
-        }`
-      } else {
-        actionType = `${action.action_type} ${action.qty} at $${action.init_price} (filled: $${action.price})`
+  const getOrderType = (order) => {
+    if (order.is_stop) {
+      return 'Stop'
+    } else if (order.type === 'B') {
+      return 'Buy'
+    } else if (order.type === 'S') {
+      return 'Sell'
+    } else if (order.type === 'S' && order.short) {
+      return 'Short'
+    }
+  }
+
+  //   <TableHead>
+  //   <TableRow>
+  //     {headers.map((header) => (
+  //       <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+  //     ))}
+  //   </TableRow>
+  // </TableHead>
+
+  const renderActions = () => {
+    const headersData = [
+      {
+        key: 'time',
+        header: 'Time'
+      },
+      {
+        key: 'market_type',
+        header: 'Market'
+      },
+      {
+        key: 'type',
+        header: 'Type'
+      },
+      {
+        key: 'qty',
+        header: 'Qty'
+      },
+      {
+        key: 'init_price',
+        header: 'Price'
+      },
+      {
+        key: 'filled_price',
+        header: 'Filled'
+      },
+      {
+        key: 'avg_price',
+        header: 'Avg Price'
+      },
+      {
+        key: 'risk',
+        header: 'Risk ($)'
+      },
+      {
+        key: 'commissions',
+        header: 'Commissions ($)'
       }
+    ]
+    return (
+      <DataTable
+        rows={trade.actions}
+        headers={headersData}
+        render={({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
+          <Table {...getTableProps()} size="short" stickyHeader style={{ maxHeight: 500 }}>
+            <TableHead>
+              <TableRow>
+                {headers.map((header) => (
+                  <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {trade.actions.map((row) => {
+                const className = row.filled ? styles.filledOrder : ''
+                return (
+                  <TableRow {...getRowProps({ row })} className={className} id={row.order_id}>
+                    <TableCell id="time" key="time">
+                      {row.time}
+                    </TableCell>
+                    <TableCell id="market_type" key="market_type">
+                      {row.market_type}
+                    </TableCell>
+                    <TableCell id="type" key="type">
+                      {getOrderType(row)}
+                    </TableCell>
+                    <TableCell id="qty" key="qty">
+                      {row.qty}
+                    </TableCell>
+                    <TableCell id="price" key="price">
+                      {row.is_stop ? row.stop_price : row.init_price}
+                    </TableCell>
+                    <TableCell id="filled_price" key="filled_price">
+                      {row.is_stop ? '' : row.price}
+                    </TableCell>
+                    <TableCell id="avg_price" key="avg_price">
+                      {row.avg_price}
+                    </TableCell>
+                    <TableCell id="risk" key="risk">
+                      {row.order_risk}
+                    </TableCell>
+                    <TableCell id="commissions" key="commissions">
+                      {row.commissions}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
+      />
+    )
+    // return trade.actions.map((action, i) => {
+    //   let actionType
+    //   // TODO:
+    //   // Change this so I can also see if the Order Buy, Sell, Short, Cover was using Limit or Market
+    //   if (action.is_stop || (action.market_type === 'Lmt' && !action.init_price)) {
+    //     actionType = `${action.action_type} ${action.qty} at $${
+    //       action.market_type === 'Mkt' ? action.stop_price : action.price
+    //     }`
+    //   } else {
+    //     actionType = `${action.action_type} ${action.qty} at $${action.init_price} (filled: $${action.price})`
+    //   }
 
-      const time = (action.filled_time || action.time).split(' ')[1]
+    //   const time = (action.filled_time || action.time).split(' ')[1]
 
-      return (
-        <div key={i} className={styles.tradeAreaAction}>
-          <span className={action.filled ? styles.tradeFilled : ''}>
-            {time} - {actionType} {action.filled && `- commissions $${action.commissions}`}
-            {action.order_risk && ` - risk $${action.order_risk}`}
-          </span>
-        </div>
-      )
-    })
+    //   return (
+    //     <div key={i} className={styles.tradeAreaAction}>
+    //       <span className={action.filled ? styles.tradeFilled : ''}>
+    //         {time} - {actionType} {action.filled && `- commissions $${action.commissions}`}
+    //         {action.order_risk && ` - risk $${action.order_risk}`}
+    //       </span>
+    //     </div>
+    //   )
+    // })
+  }
 
   const renderCatalystsTag = () => {
     return trade?.catalysts

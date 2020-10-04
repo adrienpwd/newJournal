@@ -82,7 +82,7 @@ def init_order(row):
 
     order = {
         'account': account,
-        'order_id': row[0],
+        'id': row[0],
         'route': row[4],
         'type': row[7],
         'short': is_short,
@@ -335,7 +335,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 else:
                     initial_trade['ratio_com_gain'] = round(
                         abs(commissions / gross_gain), 4)
-                    initial_trade['net_gain'] = gross_gain - commissions
+                    initial_trade['net_gain'] = round(
+                        gross_gain - commissions, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(initial_trade)
