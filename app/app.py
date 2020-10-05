@@ -78,11 +78,11 @@ def init_order(row):
     account = row[2]
     commissions = 0
     if account == 'TRPCT0094':
-        commissions = 0.005 * qty
+        commissions = round(0.005 * qty, 4)
 
     order = {
         'account': account,
-        'order_id': row[0],
+        'id': row[0],
         'route': row[4],
         'type': row[7],
         'short': is_short,
@@ -156,7 +156,7 @@ def get_action_type(order, trade_type):
         elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
             action_type = '???'
     if trade_type == 'S':
-        if order['type'] == 'S' and order['is_stop'] == False:
+        if order['type'] == 'S' and order['short'] == True:
             action_type = 'Short'
         elif order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
             action_type = 'Cover'
@@ -280,6 +280,12 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                             my_order, initial_trade.get('type'))
                         my_order['action_type'] = action_type
                         if action_type:
+                            # order_risk Note
+                            # Here it's the only place where we can fix the order_risk issue when shorting
+                            # if it's a Cover we want to remove the order_risk because there is no risk !
+                            # order_risk is only when we buy or short !
+                            if action_type == "Cover":
+                                my_order['order_risk'] = 0
                             initial_trade['actions'].append(my_order)
                             initial_trade['actions'].sort(
                                 key=lambda action: action.get('filled_time', action['time']))
@@ -303,9 +309,11 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             if len(stop_actions) > 0:
                 initial_stop = stop_actions[0].get('stop_price')
 
-            stop_distance = abs(initial_trade.get('price') - initial_stop)
+            stop_distance = round(
+                abs(initial_trade.get('price') - initial_stop), 4)
             stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
+
             r = 0
             if risk > 0 and gross_gain != 0:
                 r = round(gross_gain / risk, 2)
@@ -316,8 +324,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             initial_trade['stop_ratio'] = round(stop_ratio, 4)
 
             nb_shares = get_nb_shares(filled_actions)
-
             initial_trade['nb_shares'] = nb_shares
+
             if initial_trade['account'] == 'TRPCT0094':
                 commissions = 0.005 * nb_shares
                 initial_trade['commissions'] = 0.005 * nb_shares
@@ -352,10 +360,6 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
         # Then create a new Trade dictionary, with the remainming shares
         # need to push this new entry to all_trades
         consolidate_trade(all_trades, built_trades, orders_dictionary)
-
-# @app.route('/trades/<string:id>')
-# def article(year, month, title):
-#    ...
 
 
 @application.route('/trades', methods=['GET'])
@@ -397,14 +401,37 @@ def post_raw_data():
         orders_stream = io.StringIO(
             csv_orders.stream.read().decode("UTF8"), newline=None)
         next(orders_stream, None)  # skip the headers
-        csv_orders_input = csv.reader(orders_stream)
+        csv_orders_list = list(csv.reader(orders_stream))
+        # sort orders by time
+        csv_orders_list.sort(key=lambda t: t[17])
         orders_dictionary = {}
-        orders_list = []
 
-        for row in csv_orders_input:
+        for i, row in enumerate(csv_orders_list):
             order = init_order(row)
+            stop_order = None
+            # For each order that is not a stop we look if the next order is the stop order
+            # corresponding to the buy or short order we are iterating over.
+            # This allows to find the total risk of the trade and to get the R:R
+            is_short = order['type'] == 'S' and order['short'] == True and order['is_stop'] == False
+            is_long = order['type'] == 'B' and order['short'] == False and order['is_stop'] == False
+
+            if i < len(csv_orders_list) - 1 and (is_short or is_long):
+                stop_order = csv_orders_list[i+1]
+                # There is an issue here, that I don't know how to fix:
+                # It's gonna add order_risk to a Cover order because when we parse the orders
+                # and we see a Buy order, it could be a Cover, but we don't know yet so it
+                # still process it
+                # The only fix is to remove order_risk afterward (see 'order_risk Note')
+                should_process = False
+                if is_short:
+                    should_process = order['short'] == True and order['type'] == 'S'
+                if is_long:
+                    should_process = order['type'] == 'B'
+                if stop_order[11] == order['ticker'] and should_process:
+                    order['order_risk'] = round(
+                        abs(order.get('price', 0) - float(stop_order[15])), 4)
+
             orders_dictionary[row[0]] = order
-            orders_list.append(order)
 
         # Build Trades
         csv_trades = request.files['tradesInput']
@@ -413,7 +440,6 @@ def post_raw_data():
         next(trades_stream, None)  # skip the headers
         csv_trades_input = csv.reader(trades_stream)
         trades_dictionary = {}
-        trades_list = []
 
         for row in csv_trades_input:
             # Find corresponding order
@@ -427,8 +453,6 @@ def post_raw_data():
             # When we create a trade we need to remember the original price
             # to calculate the slippage
             orders_dictionary[order_id]['init_price'] = trade['price']
-
-            trades_list.append(trade)
 
             currentTicker = row[11]
             currentUser = row[3]
@@ -449,11 +473,6 @@ def post_raw_data():
                 trades_dictionary[user][ticker].sort(key=lambda t: t['time'])
 
         trades_dictionary_copy = copy.deepcopy(trades_dictionary)
-
-        # if everything was ok
-        # insert in DB raw data
-        # mongo.db.raw_orders.insert_many(orders_list)
-        # mongo.db.raw_trades.insert_many(trades_list)
 
         # then we build aggregated trades
         all_my_trades = []
@@ -499,7 +518,7 @@ def post_raw_data():
             }
         )
 
-        return jsonify({'ok': True, 'orders': orders_list, 'trades': trades_list, 'aggregatedTrades': all_my_trades, 'trades_dictionary': trades_dictionary})
+        return jsonify({'ok': True, 'aggregatedTrades': all_my_trades})
 
 
 @application.route('/uploadImages', methods=['POST'])
