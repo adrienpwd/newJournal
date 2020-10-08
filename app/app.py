@@ -75,13 +75,10 @@ def init_order(row):
     time = format_date(row[17])
     is_short = row[8] == 'Y'
     qty = int(row[12])
-    account = row[2]
-    commissions = 0
-    if account == 'TRPCT0094':
-        commissions = round(0.005 * qty, 4)
 
     order = {
-        'account': account,
+        'category': 0,
+        'account': row[2],
         'id': row[0],
         'route': row[4],
         'type': row[7],
@@ -90,7 +87,6 @@ def init_order(row):
         'market_type': row[9],
         'ticker': row[11],
         'qty': qty,
-        'commissions': commissions,
         'price': float(row[14]),
         'time': time
     }
@@ -102,23 +98,30 @@ def init_order(row):
     return order
 
 
-def init_trade(row, order):
+def init_trade(row):
     order_id = row[1]
     price = float(row[13])
     time = format_date(row[14])
     timestamp = get_timestamp(row[14])
     is_short = row[9] == 'Y'
+    account = row[3]
+    qty = int(row[12])
+
+    commissions = 0
+    if account == 'TRPCT0094':
+        commissions = round(0.005 * qty, 4)
 
     # id that we use for a trade
     id = row[11] + "-" + str(int(timestamp))
 
     return {
+        'category': 1,
         'id': id,
-        'account': row[3],
+        'account': account,
         'trader': row[2],
         'ticker': row[11],
         'time': time,
-        'qty': int(row[12]),
+        'qty': qty,
         'market_type': row[10],
         'price': price,
         'type': row[8],
@@ -132,7 +135,7 @@ def init_trade(row, order):
         'catalysts': [],
         'rvol': None,
         'rating': None,
-        'commissions': None
+        'commissions': commissions
     }
 
 
@@ -141,45 +144,17 @@ def get_duration(entry_time, exit_time):
     datetime_b = datetime.strptime(exit_time, DATE_FORMAT_OUTPUT)
     return datetime_b - datetime_a
 
-
-def get_action_type(order, trade_type):
-    action_type = ''
-    if trade_type == 'B':
-        if order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
-            action_type = 'Buy'
-        elif order['type'] == 'S' and order['is_stop'] == False and order.get('init_price'):
-            action_type = 'Sell'
-        elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == True:
-            action_type = 'Set Limit (Long)'
-        elif order['type'] == 'S' and order['market_type'] == 'Mkt' and order['is_stop'] == True:
-            action_type = 'Set Stop (Long)'
-        elif order['type'] == 'S' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
-            action_type = '???'
-    if trade_type == 'S':
-        if order['type'] == 'S' and order['short'] == True:
-            action_type = 'Short'
-        elif order['type'] == 'B' and order['is_stop'] == False and order.get('init_price'):
-            action_type = 'Cover'
-        elif order['type'] == 'B' and order['market_type'] == 'Lmt' and order['is_stop'] == True:
-            action_type = 'Set Limit (Short)'
-        elif order['type'] == 'B' and order['market_type'] == 'Mkt' and order['is_stop'] == True:
-            action_type = 'Set Stop (Short)'
-        elif order['type'] == 'B' and order['market_type'] == 'Lmt' and order['is_stop'] == False:
-            action_type = '???'
-    return action_type
-
-
-def get_gain(filled_actions):
+def get_gain(trades):
     gain = 0
     buy = 0
     sell = 0
 
-    for action in filled_actions:
-        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
-            buy += action.get('init_price') * action.get('qty')
+    for trade in trades:
+        if trade.get('type') == 'B':
+            buy += trade.get('price') * trade.get('qty')
 
-        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
-            sell += action.get('init_price') * action.get('qty')
+        if trade.get('type') == 'S':
+            sell += trade.get('price') * trade.get('qty')
 
     gain = sell - buy
 
@@ -194,17 +169,11 @@ def get_nb_shares(filled_actions):
     return nb_shares
 
 
-def get_slippage(trade):
+def get_slippage(order_actions):
     slippage = 0
-
-    for action in trade['actions']:
-        if (action.get('action_type') == 'Buy' or action.get('action_type') == 'Cover') and action.get('init_price'):
-            slippage += abs((action.get('price') -
-                             action.get('init_price')) * action.get('qty'))
-
-        if (action.get('action_type') == 'Sell' or action.get('action_type') == 'Short') and action.get('init_price'):
-            slippage += abs((action.get('price') -
-                             action.get('init_price')) * action.get('qty'))
+    for order in order_actions:
+        if order['is_stop'] == False:
+            slippage += (order['slippage'] * order['qty'])
 
     return round(slippage, 2)
 
@@ -217,6 +186,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
     initial_trade['strategy'] = ""
     initial_trade['description'] = ""
     initial_trade['actions'] = []
+
+    my_init_trade = copy.deepcopy(initial_trade)
 
     # Remove first trade of the list, since it's the main one,
     # we don't want to have it here
@@ -257,6 +228,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
         init_size = next_size
 
         all_trades.pop(0)
+        initial_trade['actions'].append(next_trade)
 
         # Trade is consolidated
         if next_size == 0:
@@ -272,30 +244,29 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 ):
                     order_time = datetime.strptime(
                         my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
-                    # DAS seems to have some issue with the timestamp, in so me cases there was
-                    # an order that came before the trade by 1 sec. so I use the "- 1" to allow for 1 sec. margin error
                     if trade_entry_time <= order_time <= trade_exit_time:
-                        # Find action type (Buy, Sell, Stop, ...)
-                        action_type = get_action_type(
-                            my_order, initial_trade.get('type'))
-                        my_order['action_type'] = action_type
-                        if action_type:
-                            # order_risk Note
-                            # Here it's the only place where we can fix the order_risk issue when shorting
-                            # if it's a Cover we want to remove the order_risk because there is no risk !
-                            # order_risk is only when we buy or short !
-                            if action_type == "Cover":
-                                my_order['order_risk'] = 0
-                            initial_trade['actions'].append(my_order)
-                            initial_trade['actions'].sort(
-                                key=lambda action: action.get('filled_time', action['time']))
+                        initial_trade['actions'].append(my_order)
+
+            initial_trade['actions'].append(my_init_trade)
+            initial_trade['actions'].sort(
+                key=lambda action: (action['time'], action['category']))
 
             # Filter all Orders to have only those that were filled
-            filled_actions = list(filter(
-                lambda action: action.get('filled', False) == True, initial_trade.get('actions', [])))
+            trade_actions = list(filter(lambda action: action.get('category') == 1, initial_trade.get('actions', [])))
+
+            # Add slippage to each order
+            order_actions = list(filter(lambda action: action.get('category') == 0, initial_trade.get('actions', [])))
+            for trade in trade_actions:
+                my_order_id = trade['order_id']
+                for order in order_actions:
+                    if order['id'] == my_order_id:
+                        if initial_trade['type'] == 'B' :
+                            order['slippage'] = round(trade['price'] - order['price'], 2)
+                        if initial_trade['type'] == 'S':
+                            order['slippage'] = round(order['price'] - trade['price'], 2)
 
             # calculate gain for this trade
-            gross_gain = get_gain(filled_actions)
+            gross_gain = get_gain(trade_actions)
             initial_trade['gross_gain'] = gross_gain
 
             # risk parameters
@@ -303,14 +274,13 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             # Filter Orders to have all the STOPS
             # Find the first entry
             stop_actions = list(filter(
-                lambda action: action['is_stop'] == True, initial_trade.get('actions', [])))
+                lambda action: action.get('is_stop', False) == True, initial_trade.get('actions', [])))
             initial_stop = None
 
             if len(stop_actions) > 0:
                 initial_stop = stop_actions[0].get('stop_price')
 
-            stop_distance = round(
-                abs(initial_trade.get('price') - initial_stop), 4)
+            stop_distance = round(abs(initial_trade.get('price') - initial_stop), 4)
             stop_ratio = stop_distance / initial_trade.get('price')
             risk = stop_distance * initial_trade.get('qty')
 
@@ -323,18 +293,18 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             initial_trade['risk'] = round(risk, 2)
             initial_trade['stop_ratio'] = round(stop_ratio, 4)
 
-            nb_shares = get_nb_shares(filled_actions)
+            nb_shares = get_nb_shares(trade_actions)
             initial_trade['nb_shares'] = nb_shares
 
             if initial_trade['account'] == 'TRPCT0094':
                 commissions = 0.005 * nb_shares
                 initial_trade['commissions'] = 0.005 * nb_shares
-                if gross_gain != 0:
-                    initial_trade['ratio_com_gain'] = round(abs(commissions / gross_gain), 4)
+                initial_trade['ratio_com_gain'] = round(
+                    abs(commissions / gross_gain), 4)
                 initial_trade['net_gain'] = gross_gain - commissions
 
             # slippage
-            initial_trade['slippage'] = get_slippage(initial_trade)
+            initial_trade['slippage'] = get_slippage(order_actions)
 
             initial_trade['img'] = []
 
@@ -408,30 +378,31 @@ def post_raw_data():
 
         for i, row in enumerate(csv_orders_list):
             order = init_order(row)
-            stop_order = None
+            orders_dictionary[row[0]] = order
+
+            # stop_order = None
             # For each order that is not a stop we look if the next order is the stop order
             # corresponding to the buy or short order we are iterating over.
             # This allows to find the total risk of the trade and to get the R:R
-            is_short = order['type'] == 'S' and order['short'] == True and order['is_stop'] == False
-            is_long = order['type'] == 'B' and order['short'] == False and order['is_stop'] == False
+            # is_short = order['type'] == 'S' and order['short'] == True and order['is_stop'] == False
+            # is_long = order['type'] == 'B' and order['short'] == False and order['is_stop'] == False
 
-            if i < len(csv_orders_list) - 1 and (is_short or is_long):
-                stop_order = csv_orders_list[i+1]
+            # if i < len(csv_orders_list) - 1 and (is_short or is_long):
+                # stop_order = csv_orders_list[i+1]
                 # There is an issue here, that I don't know how to fix:
                 # It's gonna add order_risk to a Cover order because when we parse the orders
                 # and we see a Buy order, it could be a Cover, but we don't know yet so it
                 # still process it
                 # The only fix is to remove order_risk afterward (see 'order_risk Note')
-                should_process = False
-                if is_short:
-                    should_process = order['short'] == True and order['type'] == 'S'
-                if is_long:
-                    should_process = order['type'] == 'B'
-                if stop_order[11] == order['ticker'] and should_process:
-                    order['order_risk'] = round(
-                        abs(order.get('price', 0) - float(stop_order[15])), 4)
+                # should_process = False
+                # if is_short:
+                    # should_process = order['short'] == True and order['type'] == 'S'
+                # if is_long:
+                    # should_process = order['type'] == 'B'
+                # if stop_order[11] == order['ticker'] and should_process:
+                    # order['order_risk'] = round(
+                        # abs(order.get('price', 0) - float(stop_order[15])), 4)
 
-            orders_dictionary[row[0]] = order
 
         # Build Trades
         csv_trades = request.files['tradesInput']
@@ -443,16 +414,16 @@ def post_raw_data():
 
         for row in csv_trades_input:
             # Find corresponding order
-            order_id = row[1]
-            my_order = orders_dictionary[order_id]
-            if order_id:
-                my_order['filled'] = True
-                my_order['filled_time'] = format_date(row[14])
-            trade = init_trade(row, my_order)
+            # order_id = row[1]
+            # my_order = orders_dictionary[order_id]
+            # if order_id:
+                # my_order['filled'] = True
+                # my_order['filled_time'] = format_date(row[14])
+            trade = init_trade(row)
 
             # When we create a trade we need to remember the original price
             # to calculate the slippage
-            orders_dictionary[order_id]['init_price'] = trade['price']
+            # orders_dictionary[order_id]['price'] = trade['price']
 
             currentTicker = row[11]
             currentUser = row[3]
@@ -631,7 +602,12 @@ def edit_trade_data():
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
             if gross_gain != 0:
+<<<<<<<<< Temporary merge branch 1
                 ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
+=========
+                ratio_gain_commissions = round(
+                    abs(commissions / gross_gain), 4)
+>>>>>>>>> Temporary merge branch 2
         else:
             commissions = my_trade['commissions']
 
