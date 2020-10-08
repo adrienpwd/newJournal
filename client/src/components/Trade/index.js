@@ -168,6 +168,11 @@ const ReviewTrade = () => {
   const renderActions = () => {
     const headersData = [
       {
+        key: 'category',
+        header: 'Category'
+      },
+      ,
+      {
         key: 'time',
         header: 'Time'
       },
@@ -188,20 +193,12 @@ const ReviewTrade = () => {
         header: 'Price'
       },
       {
-        key: 'filled_price',
-        header: 'Filled'
-      },
-      {
-        key: 'avg_price',
-        header: 'Avg Price'
-      },
-      {
-        key: 'risk',
-        header: 'Risk ($)'
-      },
-      {
         key: 'commissions',
-        header: 'Commissions ($)'
+        header: 'Commissions'
+      },
+      {
+        key: 'slippage',
+        header: 'Slippage'
       }
     ]
     return (
@@ -218,10 +215,13 @@ const ReviewTrade = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {trade.actions.map((row) => {
-                const className = row.filled ? styles.filledOrder : ''
+              {trade.actions.map((row, i) => {
+                const className = row.category === 1 ? styles.tradeRow : ''
                 return (
-                  <TableRow {...getRowProps({ row })} className={className} id={row.order_id}>
+                  <TableRow {...getRowProps({ row })} className={className} id={i}>
+                    <TableCell id="category" key="category">
+                      {row.category === 0 ? 'Order' : 'Trade'}
+                    </TableCell>
                     <TableCell id="time" key="time">
                       {row.time}
                     </TableCell>
@@ -235,19 +235,13 @@ const ReviewTrade = () => {
                       {row.qty}
                     </TableCell>
                     <TableCell id="price" key="price">
-                      {row.is_stop ? row.stop_price : row.init_price}
-                    </TableCell>
-                    <TableCell id="filled_price" key="filled_price">
-                      {row.is_stop ? '' : row.price}
-                    </TableCell>
-                    <TableCell id="avg_price" key="avg_price">
-                      {row.avg_price}
-                    </TableCell>
-                    <TableCell id="risk" key="risk">
-                      {row.order_risk}
+                      {row.is_stop ? row.stop_price : row.price}
                     </TableCell>
                     <TableCell id="commissions" key="commissions">
                       {row.commissions}
+                    </TableCell>
+                    <TableCell id="slippage" key="slippage">
+                      {row.slippage}
                     </TableCell>
                   </TableRow>
                 )
