@@ -602,12 +602,8 @@ def edit_trade_data():
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
             if gross_gain != 0:
-<<<<<<<<< Temporary merge branch 1
-                ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
-=========
                 ratio_gain_commissions = round(
                     abs(commissions / gross_gain), 4)
->>>>>>>>> Temporary merge branch 2
         else:
             commissions = my_trade['commissions']
 
