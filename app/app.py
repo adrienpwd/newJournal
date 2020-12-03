@@ -602,9 +602,7 @@ def edit_trade_data():
             commissions = float(details.get('commissions'))
             gross_gain = my_trade.get('gross_gain', 0)
             net_gain = round(gross_gain - commissions, 2)
-            if gross_gain != 0:
-                ratio_gain_commissions = round(
-                    abs(commissions / gross_gain), 4)
+            ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
 
