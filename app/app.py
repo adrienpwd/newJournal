@@ -132,6 +132,7 @@ def init_trade(row):
         'timestamp': timestamp,
         'strategy': '',
         'description': '',
+        'review': '',
         'catalysts': [],
         'rvol': None,
         'rating': None,
@@ -301,7 +302,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 initial_trade['commissions'] = 0.005 * nb_shares
                 initial_trade['ratio_com_gain'] = round(
                     abs(commissions / gross_gain), 4)
-                initial_trade['net_gain'] = gross_gain - commissions
+                initial_trade['net_gain'] = round(gross_gain - commissions, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(order_actions)
@@ -610,6 +611,7 @@ def edit_trade_data():
             {"$set": {
                 'strategy': details.get('strategy', my_trade['strategy']),
                 'description': details.get('description', my_trade['description']),
+                'review': details.get('review', my_trade['review']),
                 'catalysts': details.get('catalysts', my_trade['catalysts']),
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),

@@ -1,5 +1,10 @@
 export const strategies = [
   {
+    id: 'breakout',
+    label: 'Breakout',
+    description: `A classic breakout where you look at the 60 min chart to see the range, and spot the best entry using the 1 min chart.`
+  },
+  {
     id: 'abcd-a',
     label: 'ABCD (type A)',
     description: `ABCD that looks like an ascending triangle.
@@ -22,8 +27,12 @@ export const strategies = [
     label: 'Climactic Reversal',
     description: 'Catch a pullback to the 9EMA on the 5min chart.'
   },
-  { id: 'extreme-reversal', label: 'Extreme Reversal', description: 'A nice V reversal' }
-]
+  {
+    id: 'extreme-reversal',
+    label: 'Extreme Reversal',
+    description: 'A nice V reversal'
+  }
+];
 
 export const catalysts = [
   {
@@ -38,4 +47,4 @@ export const catalysts = [
   },
   { id: 'news', label: 'News', description: '' },
   { id: 'analyst-revision', label: 'Analyst revision', description: '' }
-]
+];
