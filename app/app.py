@@ -692,9 +692,34 @@ def get_statistics():
     all_time_total_by_account = db.overviews.aggregate(
         [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
     return_all_time_total_by_account = list(all_time_total_by_account)
+
     pnl_per_day = db.overviews.aggregate([{'$sort': {'timestamp': 1}}])
     return_pnl_per_day = list(pnl_per_day)
-    return jsonify({'ok': True, 'all_time_total_by_account': return_all_time_total_by_account, 'pnl_per_day': return_pnl_per_day})
+
+    big_losers = db.trades.aggregate([{'$match': {"r": {'$lt': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    return_big_losers = list(big_losers)
+
+    losers = db.trades.aggregate([{'$match': {"r": {'$lt': 0, '$gte': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    return_losers = list(losers)
+
+    winners = db.trades.aggregate([{'$match': {"r": {'$lt': 2, '$gte': 0}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    return_winners = list(winners)
+
+    big_winners = db.trades.aggregate([{'$match': {"r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    return_big_winners = list(big_winners)
+
+    total_trades = db.trades.count()
+
+    return jsonify({
+      'ok': True,
+      'all_time_total_by_account': return_all_time_total_by_account,
+      'pnl_per_day': return_pnl_per_day,
+      'big_losers': return_big_losers,
+      'losers': return_losers,
+      'winners': return_winners,
+      'big_winners': return_big_winners,
+      'total_trades': total_trades
+      })
 
 
 if __name__ == "__main__":
