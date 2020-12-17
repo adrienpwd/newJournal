@@ -52,8 +52,10 @@ export default function Dashboard(props) {
       const rValue = v ? v : 0;
       return (
         <span>
-          {`${rValue} / ${dashboardState.totalTrades} (${
-            Math.round((rValue / dashboardState.totalTrades) * 1000) / 10
+          {`${rValue} / ${dashboardState.totalTradesByAccount?.[account]} (${
+            Math.round(
+              (rValue / dashboardState.totalTradesByAccount?.[account]) * 1000
+            ) / 10
           }%)`}
         </span>
       );

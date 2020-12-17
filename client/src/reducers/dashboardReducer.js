@@ -21,7 +21,13 @@ const onGetStatsSuccess = (state, payload) => {
     ? transformPNL(dailyPNL, accounts[0].id)
     : [];
   const rStats = transformRstats(payload);
-  const { bigLosers, bigWinners, losers, winners } = rStats;
+  const {
+    bigLosers,
+    bigWinners,
+    losers,
+    winners,
+    totalTradesByAccount
+  } = rStats;
   const newState = {
     ...state,
     rawDailyPNL: dailyPNL,
@@ -30,7 +36,7 @@ const onGetStatsSuccess = (state, payload) => {
     bigWinners,
     losers,
     winners,
-    totalTrades: payload.total_trades,
+    totalTradesByAccount,
     loading: false,
     loaded: true
   };
