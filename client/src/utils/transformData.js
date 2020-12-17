@@ -31,6 +31,7 @@ export const transformRstats = payload => {
   const bigWinners = {};
   const losers = {};
   const winners = {};
+  const totalTradesByAccount = {};
 
   const makeRbyAccount = (input, target) => {
     input.forEach(account => {
@@ -42,11 +43,13 @@ export const transformRstats = payload => {
   makeRbyAccount(payload.big_winners, bigWinners);
   makeRbyAccount(payload.losers, losers);
   makeRbyAccount(payload.winners, winners);
+  makeRbyAccount(payload.total_trades_by_account, totalTradesByAccount);
 
   return {
     bigLosers,
     bigWinners,
     losers,
-    winners
+    winners,
+    totalTradesByAccount
   };
 };

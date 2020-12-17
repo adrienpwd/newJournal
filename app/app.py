@@ -708,7 +708,8 @@ def get_statistics():
     big_winners = db.trades.aggregate([{'$match': {"r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
     return_big_winners = list(big_winners)
 
-    total_trades = db.trades.count()
+    total_trades = db.trades.aggregate([{ '$group': { '_id': '$account', 'count': { '$sum': 1 } } }] )
+    return_total_trades = list(total_trades)
 
     return jsonify({
       'ok': True,
@@ -718,7 +719,7 @@ def get_statistics():
       'losers': return_losers,
       'winners': return_winners,
       'big_winners': return_big_winners,
-      'total_trades': total_trades
+      'total_trades_by_account': return_total_trades
       })
 
 
