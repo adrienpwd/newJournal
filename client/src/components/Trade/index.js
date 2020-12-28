@@ -117,17 +117,18 @@ const ReviewTrade = () => {
 
   const onSubmit = data => {
     const filteredFormValues = {};
-    console.log('Form Data');
-    console.log(data);
+    const tradeCatalysts = catalysts
+      .filter(c => data[c.id] === true)
+      .map(c => c.id);
     Object.keys(data).forEach(key => {
       filteredFormValues[key] = data[key];
     });
     if (data.strategy.length) {
       filteredFormValues.strategy = data.strategy;
     }
-    // if (tradeCatalysts.length) {
-    //   filteredFormValues.catalysts = tradeCatalysts;
-    // }
+    if (tradeCatalysts.length) {
+      filteredFormValues.catalysts = tradeCatalysts;
+    }
     if (tradeFormValue) {
       filteredFormValues.description = tradeFormValue;
     }
@@ -256,17 +257,13 @@ const ReviewTrade = () => {
   };
 
   const renderCatalystsTag = () => {
-    const catalystsTags = [];
-    catalysts.forEach(c => {
-      if (trade[c.id]) {
-        catalystsTags.push(
-          <Tag key={c.id} type="red" title={c.label}>
-            {c.label}
+    return trade?.catalysts
+      ? trade?.catalysts.map(c => (
+          <Tag key={c} type="red" title={c}>
+            {c}
           </Tag>
-        );
-      }
-    });
-    return catalystsTags;
+        ))
+      : false;
   };
 
   const renderEditView = function () {
@@ -300,7 +297,7 @@ const ReviewTrade = () => {
                 id={c.id}
                 name={c.id}
                 key={c.id}
-                defaultChecked={trade[c.id]}
+                defaultChecked={trade.catalysts.includes(c.id)}
               />
             );
           })}

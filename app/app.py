@@ -611,11 +611,8 @@ def edit_trade_data():
         else:
             strategy_value = my_trade['strategy']
 
-        print('TRADE')
-        pp.pprint(my_trade)
-
-        print('DETAILS')
-        pp.pprint(details)
+        print('CATALYSTS DETAILS')
+        pp.pprint(details.get('catalysts'))
 
         db.trades.update_one(
             {'id': trade['id']},
@@ -623,7 +620,7 @@ def edit_trade_data():
                 'strategy': strategy_value,
                 'description': details.get('description', my_trade['description']),
                 'review': details.get('review', my_trade['review']),
-                'catalysts': details.get('catalysts', my_trade['catalysts']),
+                'catalysts': details.get('catalysts'),
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
