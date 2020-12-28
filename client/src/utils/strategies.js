@@ -1,56 +1,68 @@
-import React from 'react';
-
 export const strategies = [
+  // Not Defined
+  {
+    id: 'not-defined',
+    type: '',
+    label: 'Not Defined',
+    description: '',
+    indicators: [],
+    confirmations: [],
+    adds: [],
+    stopLoss: [],
+    targets: [],
+    rules: [],
+    screenshot: []
+  },
   // Breakouts
   {
     id: 'wedge',
-    type: 'Breakout',
+    type: 'breakout',
     label: 'Wedge',
     description: 'Trade the breakout of a Wedge pattern.',
     indicators: ['test 1', 'test2'],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
   {
     id: 'triangle',
-    type: 'Breakout',
+    type: 'breakout',
     label: 'Triangle',
     description: 'Trade the breakout of a Triangle pattern.',
     indicators: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
   {
     id: '3-bars-play',
-    type: 'Breakout',
+    type: 'breakout',
     label: '3 Bars Play',
     description: 'A scalp trade.',
     indicators: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
   {
     id: 'orb',
-    type: 'Breakout',
+    type: 'breakout',
     label: 'ORB',
     description: 'Opening Range Breakout.',
     indicators: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [
       'You must wait to see the power of the other group first (Hammer if you are long)'
     ],
@@ -58,20 +70,20 @@ export const strategies = [
   },
   {
     id: 'consolidation',
-    type: 'Breakout',
+    type: 'breakout',
     label: 'Consolidation Breakout',
     description: 'Trade the breakout of a Consolidation.',
     indicators: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
   {
     id: 'range',
-    type: 'Breakout',
+    type: 'breakout',
     label: 'Range Breakout',
     description: 'Trade the breakout of a 60min Range.',
     indicators: {
@@ -95,7 +107,7 @@ export const strategies = [
       2: 'Entry before the breakout: below the middle of the range',
       3: 'Entry after the break: below top of the range'
     },
-    target: {
+    targets: {
       1: '50% at 3R',
       2: 'Next level of resitance/support',
       3: 'Whole $',
@@ -104,7 +116,7 @@ export const strategies = [
     rules: {
       1: 'There must be maximum 1 wick against your direction',
       2: 'There must be at least 4 candles in the range',
-      3: 'Once the breakout happen you must move the stop to the middle of the range',
+      3: 'Once the breakout happened you must move the stop to the middle of the range',
       4: 'If entering at the open, you must wait to see the power of the other group first (Hammer if you are long)',
       5: 'You must wait 3R to take the first partial (50%)',
       6: 'If a fake breakout happens in the opposite direction, you can re-enter'
@@ -122,7 +134,7 @@ export const strategies = [
     confirmations: [],
     adds: ['No add in this setup'],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -135,7 +147,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -148,7 +160,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -165,7 +177,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -179,7 +191,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -192,7 +204,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   },
@@ -205,7 +217,7 @@ export const strategies = [
     confirmations: [],
     adds: [],
     stopLoss: [],
-    target: [],
+    targets: [],
     rules: [],
     screenshot: []
   }

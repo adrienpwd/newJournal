@@ -605,11 +605,22 @@ def edit_trade_data():
             ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
+        
+        if len(details.get('strategy', '')) > 0:
+            strategy_value = details.get('strategy')
+        else:
+            strategy_value = my_trade['strategy']
+
+        print('TRADE')
+        pp.pprint(my_trade)
+
+        print('DETAILS')
+        pp.pprint(details)
 
         db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
-                'strategy': details.get('strategy', my_trade['strategy']),
+                'strategy': strategy_value,
                 'description': details.get('description', my_trade['description']),
                 'review': details.get('review', my_trade['review']),
                 'catalysts': details.get('catalysts', my_trade['catalysts']),
@@ -626,7 +637,7 @@ def edit_trade_data():
 
         # If we edited a trade and added the commission
         # we need to reflect that on the daily PnL
-        if details.get('commissions'):
+        if details.get('commissions') != my_trade.get('commissions'):
             overview_id = my_trade.get('time')[:10]
             overview_id = overview_id.replace('/', '-')
 

@@ -54,34 +54,23 @@ const ReviewTrade = () => {
 
   const data = useSelector(state => state.tradeReducer);
   const { loaded } = data;
+
   const trades = data.trades?.[day] || [];
-  const trade = trades.find(t => t.id === tradeId);
+  const trade = trades.find(t => t.id === tradeId) || {};
   const strategy = getStrategie(trade?.strategy);
 
-  let catalystsCheckboxes = {};
-  trade &&
-    trade.catalysts &&
-    trade.catalysts.map(c => {
-      catalystsCheckboxes[c] = true;
-    });
-
-  const defaultValues = {
-    strategy: trade?.strategy || '',
-    description: trade?.description || '',
-    ...catalystsCheckboxes
-  };
-  const { register, handleSubmit, reset } = useForm({ defaultValues });
+  const { register, handleSubmit, reset } = useForm();
+  const [images, setImages] = useState([]);
+  const [tradeFormValue, setTradeFormValue] = useState('');
+  const [reviewFormValue, setReviewFormValue] = useState('');
+  const [rating, setRating] = useState(trade.rating);
+  const [isEditMode, setEditMode] = useState(false);
 
   useEffect(() => {
     if (!loaded) {
       dispatch(loadTrades());
     }
   }, [reset]);
-
-  const [images, setImages] = useState([]);
-  const [tradeFormValue, setTradeFormValue] = useState('');
-  const [reviewFormValue, setReviewFormValue] = useState('');
-  const [rating, setRating] = useState(0);
 
   useEffect(() => {
     if (trade?.img) {
@@ -104,7 +93,9 @@ const ReviewTrade = () => {
     }
   }, []);
 
-  const [isEditMode, setEditMode] = useState(false);
+  if (!loaded) {
+    return 'Loading ...';
+  }
 
   function makeEditState() {
     setEditMode(true);
@@ -125,18 +116,18 @@ const ReviewTrade = () => {
   }
 
   const onSubmit = data => {
-    const tradeCatalysts = catalysts
-      .filter(c => data[c.id] === true)
-      .map(c => c.id);
     const filteredFormValues = {};
+    console.log('Form Data');
+    console.log(data);
     Object.keys(data).forEach(key => {
-      if (filterFormValues(data[key])) {
-        filteredFormValues[key] = data[key];
-      }
+      filteredFormValues[key] = data[key];
     });
-    if (tradeCatalysts.length) {
-      filteredFormValues.catalysts = tradeCatalysts;
+    if (data.strategy.length) {
+      filteredFormValues.strategy = data.strategy;
     }
+    // if (tradeCatalysts.length) {
+    //   filteredFormValues.catalysts = tradeCatalysts;
+    // }
     if (tradeFormValue) {
       filteredFormValues.description = tradeFormValue;
     }
@@ -265,88 +256,84 @@ const ReviewTrade = () => {
   };
 
   const renderCatalystsTag = () => {
-    return trade?.catalysts
-      ? trade?.catalysts.map(c => (
-          <Tag key={c} type="red" title={c}>
-            {c}
+    const catalystsTags = [];
+    catalysts.forEach(c => {
+      if (trade[c.id]) {
+        catalystsTags.push(
+          <Tag key={c.id} type="red" title={c.label}>
+            {c.label}
           </Tag>
-        ))
-      : false;
+        );
+      }
+    });
+    return catalystsTags;
   };
 
   const renderEditView = function () {
     return (
-      <>
-        <div className={styles.tradeHeader}>
-          <h2>{trade.ticker}</h2>
-        </div>
-        <h4>{trade.account}</h4>
-        <h4>{trade.time}</h4>
-        <h4>{trade.gross_gain}</h4>
-        <h4>R: {trade.r}</h4>
-        <h4>slippage: {trade.slippage}</h4>
-
-        <Form>
-          <Select
-            ref={register}
-            id="strategy"
-            name="strategy"
-            invalidText="This is an invalid error message."
-            labelText="Strategy"
-          >
-            {strategies.map(s => (
-              <SelectItem text={s.label} value={s.id} key={s.id} />
-            ))}
-          </Select>
-          Description:
-          <ReactQuill
-            theme="snow"
-            value={tradeFormValue}
-            onChange={setTradeFormValue}
-            defaultValue={trade?.description}
-          />
-          <FormGroup legendText="Catalysts">
-            {catalysts.map(c => {
-              return (
-                <Checkbox
-                  ref={register}
-                  labelText={c.label}
-                  id={c.id}
-                  name={c.id}
-                  key={c.id}
-                  //defaultChecked={trade.catalysts.includes(c.id)}
-                />
-              );
-            })}
-          </FormGroup>
-          <NumberInput
-            ref={register}
-            id="rvol"
-            name="rvol"
-            invalidText="Number is not valid"
-            label="Relative Volume"
-            min={0}
-            value={Number(trade?.rvol)}
-          />
-          <ReactStars
-            count={5}
-            onChange={onRatingChange}
-            size={24}
-            color2={'#ffd700'}
-            value={Number(trade.rating)}
-          />
-          <NumberInput
-            ref={register}
-            id="commissions"
-            name="commissions"
-            invalidText="Number is not valid"
-            label="Commissions"
-            min={0}
-            step={1}
-            value={Number(trade?.commissions)}
-          />
-        </Form>
-      </>
+      <Form>
+        <Select
+          ref={register}
+          id="strategy"
+          name="strategy"
+          labelText="Strategy"
+          defaultValue={trade.strategy}
+          invalidText="A valid value is required"
+        >
+          {strategies.map(s => {
+            return <SelectItem text={s.label} value={s.id} key={s.id} />;
+          })}
+        </Select>
+        Description:
+        <ReactQuill
+          theme="snow"
+          value={tradeFormValue}
+          onChange={setTradeFormValue}
+          value={tradeFormValue || trade?.description}
+        />
+        <FormGroup legendText="Catalysts">
+          {catalysts.map(c => {
+            return (
+              <Checkbox
+                ref={register}
+                labelText={c.label}
+                id={c.id}
+                name={c.id}
+                key={c.id}
+                defaultChecked={trade[c.id]}
+              />
+            );
+          })}
+        </FormGroup>
+        <NumberInput
+          ref={register}
+          id="rvol"
+          name="rvol"
+          invalidText="Number is not valid"
+          label="Relative Volume"
+          min={0}
+          value={Number(trade?.rvol)}
+        />
+        <NumberInput
+          ref={register}
+          id="commissions"
+          name="commissions"
+          invalidText="Number is not valid"
+          label="Commissions"
+          min={0}
+          step={1}
+          value={Number(trade?.commissions)}
+        />
+        Rating:
+        <ReactStars
+          count={5}
+          onChange={onRatingChange}
+          size={24}
+          color2={'#ffd700'}
+          half={false}
+          value={Number(trade?.rating)}
+        />
+      </Form>
     );
   };
 
@@ -405,7 +392,6 @@ const ReviewTrade = () => {
         <ReactStars
           edit={false}
           count={5}
-          onChange={onRatingChange}
           size={24}
           color2={'#ffd700'}
           value={Number(trade.rating)}
@@ -487,12 +473,17 @@ const ReviewTrade = () => {
                 defaultValue={trade?.review}
               />
             ) : (
-              <>
-                <p>Did you respect all the rules and criterias ?</p>
-                <Strategy strategyId={trade?.strategy} />
-                <div dangerouslySetInnerHTML={createMarkup('review')} />
-              </>
+              <div dangerouslySetInnerHTML={createMarkup('review')} />
             )}
+            <>
+              <p>Did you respect all the rules and criterias ?</p>
+              <Strategy
+                strategyId={trade?.strategy}
+                isEditMode={isEditMode}
+                trade={trade}
+                register={register}
+              />
+            </>
           </Tab>
         </Tabs>
       </div>
