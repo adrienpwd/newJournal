@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Header,
   HeaderMenuButton,
@@ -9,15 +9,15 @@ import {
   SkipToContent,
   SideNav,
   SideNavItems
-} from 'carbon-components-react/lib/components/UIShell'
+} from 'carbon-components-react/lib/components/UIShell';
 
-import styles from './nav.module.css'
+import styles from './nav.module.css';
 
 export default function Navbar() {
-  const [isSideNavExpanded, setSideNavExpanded] = useState(false)
+  const [isSideNavExpanded, setSideNavExpanded] = useState(false);
 
   function updateMenuState() {
-    setSideNavExpanded(!isSideNavExpanded)
+    setSideNavExpanded(!isSideNavExpanded);
   }
 
   return (
@@ -29,26 +29,37 @@ export default function Navbar() {
         isActive={isSideNavExpanded}
       />
       <HeaderName prefix="">My Trading journal</HeaderName>
-      <HeaderNavigation className={styles.container} aria-label="My Trading Journal">
+      <HeaderNavigation
+        className={styles.container}
+        aria-label="My Trading Journal"
+      >
         <Link className={styles.link} to="/dashboard">
           Dashboard
         </Link>
         <Link className={styles.link} to="/trades">
           Trades
         </Link>
+        <Link className={styles.link} to="/tradebook">
+          Tradebook
+        </Link>
         <Link className={styles.link} to="/import">
           Import
         </Link>
       </HeaderNavigation>
-      <SideNav aria-label="Side navigation" expanded={isSideNavExpanded} isPersistent={false}>
+      <SideNav
+        aria-label="Side navigation"
+        expanded={isSideNavExpanded}
+        isPersistent={false}
+      >
         <SideNavItems>
           <HeaderSideNavItems>
             <Link to="/">Home</Link>
             <Link to="/trades">Trades</Link>
+            <Link to="/tradebook">Tradebook</Link>
             <Link to="/import">Import</Link>
           </HeaderSideNavItems>
         </SideNavItems>
       </SideNav>
     </Header>
-  )
+  );
 }

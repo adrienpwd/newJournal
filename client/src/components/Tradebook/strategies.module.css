@@ -1,0 +1,15 @@
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+.strategiesList {
+  width: 150px;
+}
+
+.strategieContainer {
+  width: 100%;
+}
+
+.rule {
+}

@@ -1,9 +1,10 @@
 import createTradeId from './createTradeId';
-import { catalysts, strategies } from './tradeDetails';
+import { catalysts, strategies, getStrategie } from './strategies';
 import { getDayOfWeek, getMonth } from './date';
 import filterFormValues from './filterFormValues';
 import { transformPNL, transformRstats } from './transformData';
 import accounts from './accounts';
+import { headersData } from './headersData';
 
 export {
   accounts,
@@ -14,5 +15,7 @@ export {
   getMonth,
   filterFormValues,
   transformPNL,
-  transformRstats
+  transformRstats,
+  headersData,
+  getStrategie
 };

@@ -17,20 +17,30 @@ import ReactQuill from 'react-quill';
 
 import 'react-quill/dist/quill.snow.css';
 
-import { uploadImages } from 'actions/trades';
+import { loadTrades, uploadImages } from 'actions/trades';
 import { editOverview, loadOverview } from 'actions/overviews';
 
 import styles from './review.module.css';
 
 export default function Review() {
   const dispatch = useDispatch();
-  const myTrades = useSelector(state => state.tradeReducer)?.trades;
+
+  const data = useSelector(state => state.tradeReducer);
+
+  const { loaded, trades } = data;
+
   const { day } = useParams();
 
   const [formValue, setFormValue] = useState('');
 
   useEffect(() => {
     dispatch(loadOverview(day));
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) {
+      dispatch(loadTrades());
+    }
   }, []);
 
   const overviewState = useSelector(state => state.overviewReducer)?.overviews[
@@ -40,7 +50,7 @@ export default function Review() {
   const isLoaded = overviewState?.loaded;
   const overview = overviewState?.overview || {};
 
-  const tradesReview = myTrades[day];
+  const tradesReview = trades?.[day] ? trades[day] : [];
 
   const [isEditMode, setEditMode] = useState(false);
 

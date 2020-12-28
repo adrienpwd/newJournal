@@ -47,3 +47,7 @@ a {
 .neuter {
   color: orange;
 }
+
+.strategyMissing {
+  color: grey;
+}

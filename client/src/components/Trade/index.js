@@ -6,8 +6,15 @@ import axios from 'axios';
 import { loadTrades } from './../../actions/trades';
 import ReactQuill from 'react-quill';
 import ReactStars from 'react-stars';
+import Strategy from './../Tradebook/strategy';
 
-import { catalysts, strategies, filterFormValues } from './../../utils';
+import {
+  catalysts,
+  strategies,
+  filterFormValues,
+  headersData,
+  getStrategie
+} from './../../utils';
 
 import {
   DataTable,
@@ -49,6 +56,7 @@ const ReviewTrade = () => {
   const { loaded } = data;
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId);
+  const strategy = getStrategie(trade?.strategy);
 
   let catalystsCheckboxes = {};
   trade &&
@@ -187,41 +195,6 @@ const ReviewTrade = () => {
   };
 
   const renderActions = () => {
-    const headersData = [
-      {
-        key: 'category',
-        header: 'Category'
-      },
-      ,
-      {
-        key: 'time',
-        header: 'Time'
-      },
-      {
-        key: 'market_type',
-        header: 'Market'
-      },
-      {
-        key: 'type',
-        header: 'Type'
-      },
-      {
-        key: 'qty',
-        header: 'Qty'
-      },
-      {
-        key: 'init_price',
-        header: 'Price'
-      },
-      {
-        key: 'commissions',
-        header: 'Commissions'
-      },
-      {
-        key: 'slippage',
-        header: 'Slippage'
-      }
-    ];
     return (
       <DataTable
         rows={trade.actions}
@@ -325,6 +298,7 @@ const ReviewTrade = () => {
               <SelectItem text={s.label} value={s.id} key={s.id} />
             ))}
           </Select>
+          Description:
           <ReactQuill
             theme="snow"
             value={tradeFormValue}
@@ -385,7 +359,6 @@ const ReviewTrade = () => {
     } else {
       gainClass = styles.negative;
     }
-    const strategy = strategies.find(s => s.id === trade.strategy);
     return (
       <>
         <div className={styles.tradeHeader}>
@@ -514,7 +487,11 @@ const ReviewTrade = () => {
                 defaultValue={trade?.review}
               />
             ) : (
-              <div dangerouslySetInnerHTML={createMarkup('review')} />
+              <>
+                <p>Did you respect all the rules and criterias ?</p>
+                <Strategy strategyId={trade?.strategy} />
+                <div dangerouslySetInnerHTML={createMarkup('review')} />
+              </>
             )}
           </Tab>
         </Tabs>
