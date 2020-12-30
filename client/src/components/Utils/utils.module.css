@@ -1,0 +1,17 @@
+.rTool {
+  display: flex;
+  flex-direction: row;
+  width: 600px;
+}
+
+.config {
+  display: flex;
+  width: 600px;
+  margin-bottom: 16px;
+}
+
+.sliderContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 0 16px;
+}

@@ -3,6 +3,8 @@ import Strategies from './strategies';
 import { getStrategie } from '../../utils';
 import { Checkbox, Form, FormGroup } from 'carbon-components-react';
 
+import { Checkmark16, Close16 } from '@carbon/icons-react';
+
 import styles from './strategies.module.css';
 
 export default function Strategy(props) {
@@ -11,6 +13,7 @@ export default function Strategy(props) {
 
   const renderStrategyItem = item => {
     return Object.keys(myStrategy?.[item]).map((itemKey, i) => {
+      const isChecked = trade?.rulesRespected.includes(`${item}-${i}`);
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
           <Checkbox
@@ -19,8 +22,8 @@ export default function Strategy(props) {
             id={`${item}-${i}`}
             name={`${item}-${i}`}
             key={`${item}-${i}`}
-            defaultChecked={trade[`${item}-${i}`]}
-            disabled={!isEditMode}
+            defaultChecked={isChecked}
+            disabled={!isEditMode && trade}
           />
         </div>
       );
@@ -34,23 +37,22 @@ export default function Strategy(props) {
       <br />
       <Form>
         <FormGroup legendText="">
-          <h4>Indicators</h4>
-          {renderStrategyItem('indicators')}
-          <br />
-          <h4>Confirmations</h4>
-          {renderStrategyItem('confirmations')}
-          <br />
-          <h4>Stop Loss</h4>
-          {renderStrategyItem('stopLoss')}
-          <br />
-          <h4>Target</h4>
-          {renderStrategyItem('targets')}
-          <br />
-          <h4>Adds</h4>
-          {renderStrategyItem('adds')}
-          <br />
-          <h4>Rules</h4>
-          {renderStrategyItem('rules')}
+          <FormGroup legendText="Indicators">
+            {renderStrategyItem('indicators')}
+          </FormGroup>
+          <FormGroup legendText="Confirmations">
+            {renderStrategyItem('confirmations')}
+          </FormGroup>
+          <FormGroup legendText="Stop Loss">
+            {renderStrategyItem('stopLoss')}
+          </FormGroup>
+          <FormGroup legendText="Targets">
+            {renderStrategyItem('targets')}
+          </FormGroup>
+          <FormGroup legendText="Adds">{renderStrategyItem('adds')}</FormGroup>
+          <FormGroup legendText="Rules">
+            {renderStrategyItem('rules')}
+          </FormGroup>
         </FormGroup>
       </Form>
       <br />

@@ -18,34 +18,37 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 import { loadTrades, uploadImages } from 'actions/trades';
-import { editOverview, loadOverview } from 'actions/overviews';
+import { editOverview, loadOverviews } from 'actions/overviews';
 
 import styles from './review.module.css';
 
 export default function Review() {
   const dispatch = useDispatch();
 
-  const data = useSelector(state => state.tradeReducer);
+  const tradeReducer = useSelector(state => state.tradeReducer);
+  const overviewReducer = useSelector(state => state.overviewReducer);
 
-  const { loaded, trades } = data;
+  const { trades } = tradeReducer;
+  const { overviews } = overviewReducer;
 
   const { day } = useParams();
 
+  const overviewState = overviews[day];
+
   const [formValue, setFormValue] = useState('');
 
-  useEffect(() => {
-    dispatch(loadOverview(day));
-  }, []);
+  const dayTarget = new Date(day);
+  const dayStartTimestamp = dayTarget.getTime();
+  const dayStartUnixTime = Math.floor(dayStartTimestamp / 1000);
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
 
   useEffect(() => {
-    if (!loaded) {
-      dispatch(loadTrades());
+    if (!overviewState) {
+      dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime));
+      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
   }, []);
 
-  const overviewState = useSelector(state => state.overviewReducer)?.overviews[
-    day
-  ];
   const isLoading = overviewState?.loading;
   const isLoaded = overviewState?.loaded;
   const overview = overviewState?.overview || {};
@@ -189,16 +192,19 @@ export default function Review() {
   } else {
     display = (
       <div>
-        <Button
-          className={styles.editButton}
-          kind="tertiary"
-          size="small"
-          onClick={makeEditState}
-          hasIconOnly
-          renderIcon={Edit16}
-          iconDescription="Edit overview"
-          tooltipPosition="bottom"
-        />
+        <h4>
+          {new Date(day).toDateString()}
+          <Button
+            className={styles.editButton}
+            kind="tertiary"
+            size="small"
+            onClick={makeEditState}
+            hasIconOnly
+            renderIcon={Edit16}
+            iconDescription="Edit overview"
+            tooltipPosition="bottom"
+          />
+        </h4>
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}

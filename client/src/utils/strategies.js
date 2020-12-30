@@ -69,27 +69,16 @@ export const strategies = [
     screenshot: []
   },
   {
-    id: 'consolidation',
-    type: 'breakout',
-    label: 'Consolidation Breakout',
-    description: 'Trade the breakout of a Consolidation.',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
     id: 'range',
     type: 'breakout',
     label: 'Range Breakout',
-    description: 'Trade the breakout of a 60min Range.',
+    description:
+      'Stock moves above or below a trading range after a clean consolidation. Usually moves away from support/resistance. It is always in the same direction of the existing move or trend.',
     indicators: {
-      1: 'Gap on the Daily',
-      2: 'On the 60 min chart the stock clearly trade in a Range',
-      3: 'There is a nice void before the next level of resistance (long), or before the next level of support (short)'
+      1: 'On the 60 min chart the stock clearly trade in a Range',
+      2: 'The stock is coming into the breakout area after a pullback of maximum 50% of the range',
+      3: 'There is a nice void before the next level of resistance (long), or before the next level of support (short)',
+      4: 'The stock is not extended'
     },
     confirmations: {
       1: 'Volume comes in at the breakout area',

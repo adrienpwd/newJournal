@@ -1,4 +1,4 @@
-export const headersData = [
+export const actionsHeadersData = [
   {
     key: 'category',
     header: 'Category'
@@ -31,5 +31,20 @@ export const headersData = [
   {
     key: 'slippage',
     header: 'Slippage'
+  }
+];
+
+export const rHeadersData = [
+  {
+    key: 'r',
+    header: 'R'
+  },
+  {
+    key: 'target',
+    header: 'Target'
+  },
+  {
+    key: 'move',
+    header: 'Move'
   }
 ];

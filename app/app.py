@@ -134,6 +134,7 @@ def init_trade(row):
         'description': '',
         'review': '',
         'catalysts': [],
+        'rulesRespected': [],
         'rvol': None,
         'rating': None,
         'commissions': commissions
@@ -200,7 +201,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
     my_order = orders_dictionary[order_id]
     entry_time = my_order['time']
     trade_entry_time = datetime.strptime(
-        entry_time, '%d/%m/%Y %H:%M:%S').timestamp()
+        entry_time, DATE_FORMAT_OUTPUT).timestamp()
 
     while init_size >= 0:
         if len(all_trades) == 0:
@@ -235,7 +236,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
         if next_size == 0:
             exit_time = next_trade.get('time')
             trade_exit_time = datetime.strptime(
-                exit_time, '%d/%m/%Y %H:%M:%S').timestamp()
+                exit_time, DATE_FORMAT_OUTPUT).timestamp()
 
             for order in orders_dictionary:
                 my_order = orders_dictionary[order]
@@ -244,7 +245,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         'ticker') and initial_trade.get('account') == my_order.get('account')
                 ):
                     order_time = datetime.strptime(
-                        my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
+                        my_order.get('time'), DATE_FORMAT_OUTPUT).timestamp()
                     if trade_entry_time <= order_time <= trade_exit_time:
                         initial_trade['actions'].append(my_order)
 
@@ -340,8 +341,7 @@ def list_trades():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_trades = db.trades.find(
-                {"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            matching_trades = db.trades.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
             return_data = list(matching_trades)
             return jsonify({'ok': True, 'trades': return_data})
 
@@ -350,17 +350,16 @@ def list_trades():
         return jsonify({'ok': True, 'trades': return_data})
 
 
-@application.route('/overview', methods=['GET'])
+@application.route('/overviews', methods=['GET'])
 def get_overview():
     ''' route to get an overview '''
     if request.method == 'GET':
         if request.args:
-            day = request.args['day']
-            overview = db.overviews.find_one({"id": day})
-            if overview:
-                return jsonify({'ok': True, 'overview': overview})
-        # If no overview exists we return an Object with the requested id (to store in redux)
-        return jsonify({'ok': True, 'overview': {"id": day}})
+            startTimestamp = int(request.args['start'])
+            endTimestamp = int(request.args['end'])
+            matching_overviews = db.overviews.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            return_data = list(matching_overviews)
+            return jsonify({'ok': True, 'overviews': return_data})
 
 
 @application.route('/importTrades', methods=['GET', 'POST'])
@@ -621,6 +620,7 @@ def edit_trade_data():
                 'description': details.get('description', my_trade['description']),
                 'review': details.get('review', my_trade['review']),
                 'catalysts': details.get('catalysts'),
+                'rulesRespected': details.get('rulesRespected'),
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,

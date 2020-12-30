@@ -8,15 +8,16 @@
   width: 80px;
 }
 
-.tradeContainer {
+.overviewsContainer {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
 }
 
-.tradesList {
+.overviewsList {
   display: flex;
   flex-direction: column;
+  margin: 8px 0;
 }
 
 .tradeLink {

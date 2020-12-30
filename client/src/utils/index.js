@@ -4,7 +4,8 @@ import { getDayOfWeek, getMonth } from './date';
 import filterFormValues from './filterFormValues';
 import { transformPNL, transformRstats } from './transformData';
 import accounts from './accounts';
-import { headersData } from './headersData';
+import { actionsHeadersData, rHeadersData } from './headersData';
+import { rulesItems } from './rules';
 
 export {
   accounts,
@@ -16,6 +17,8 @@ export {
   filterFormValues,
   transformPNL,
   transformRstats,
-  headersData,
-  getStrategie
+  actionsHeadersData,
+  getStrategie,
+  rulesItems,
+  rHeadersData
 };

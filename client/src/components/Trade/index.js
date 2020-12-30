@@ -10,9 +10,10 @@ import Strategy from './../Tradebook/strategy';
 
 import {
   catalysts,
+  rulesItems,
   strategies,
   filterFormValues,
-  headersData,
+  actionsHeadersData,
   getStrategie
 } from './../../utils';
 
@@ -30,6 +31,7 @@ import {
   FileUploaderButton,
   Form,
   FormGroup,
+  Loading,
   Select,
   SelectItem,
   NumberInput,
@@ -53,7 +55,6 @@ const ReviewTrade = () => {
   const { tradeId, day } = useParams();
 
   const data = useSelector(state => state.tradeReducer);
-  const { loaded } = data;
 
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId) || {};
@@ -67,8 +68,12 @@ const ReviewTrade = () => {
   const [isEditMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    if (!loaded) {
-      dispatch(loadTrades());
+    const dayTarget = new Date(day);
+    const dayStartTimestamp = dayTarget.getTime();
+    const dayStartUnixTime = Math.floor(dayStartTimestamp / 1000);
+    const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+    if (!trade?.id) {
+      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
   }, [reset]);
 
@@ -93,8 +98,8 @@ const ReviewTrade = () => {
     }
   }, []);
 
-  if (!loaded) {
-    return 'Loading ...';
+  if (!trade) {
+    return <Loading description="Loading trade" withOverlay={false} />;
   }
 
   function makeEditState() {
@@ -123,11 +128,22 @@ const ReviewTrade = () => {
     Object.keys(data).forEach(key => {
       filteredFormValues[key] = data[key];
     });
+    const rulesRespected = [];
+    Object.keys(data).forEach(key => {
+      const test = key.split('-')[0];
+      if (rulesItems.includes(test) && data[key]) {
+        rulesRespected.push(key);
+      }
+    });
+
     if (data.strategy.length) {
       filteredFormValues.strategy = data.strategy;
     }
     if (tradeCatalysts.length) {
       filteredFormValues.catalysts = tradeCatalysts;
+    }
+    if (rulesRespected.length) {
+      filteredFormValues.rulesRespected = rulesRespected;
     }
     if (tradeFormValue) {
       filteredFormValues.description = tradeFormValue;
@@ -190,7 +206,7 @@ const ReviewTrade = () => {
     return (
       <DataTable
         rows={trade.actions}
-        headers={headersData}
+        headers={actionsHeadersData}
         render={({
           rows,
           headers,
@@ -297,7 +313,7 @@ const ReviewTrade = () => {
                 id={c.id}
                 name={c.id}
                 key={c.id}
-                defaultChecked={trade.catalysts.includes(c.id)}
+                defaultChecked={trade?.catalysts.includes(c.id)}
               />
             );
           })}

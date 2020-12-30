@@ -36,11 +36,14 @@ export default function Navbar() {
         <Link className={styles.link} to="/dashboard">
           Dashboard
         </Link>
-        <Link className={styles.link} to="/trades">
-          Trades
+        <Link className={styles.link} to="/overviews">
+          Overviews
         </Link>
         <Link className={styles.link} to="/tradebook">
           Tradebook
+        </Link>
+        <Link className={styles.link} to="/utils">
+          Utils
         </Link>
         <Link className={styles.link} to="/import">
           Import
@@ -54,8 +57,9 @@ export default function Navbar() {
         <SideNavItems>
           <HeaderSideNavItems>
             <Link to="/">Home</Link>
-            <Link to="/trades">Trades</Link>
+            <Link to="/overviews">Overviews</Link>
             <Link to="/tradebook">Tradebook</Link>
+            <Link to="/utils">Utils</Link>
             <Link to="/import">Import</Link>
           </HeaderSideNavItems>
         </SideNavItems>

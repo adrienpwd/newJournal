@@ -2,7 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Navbar } from 'components/Common';
-import { Dashboard, Import, Review, Trades, Trade, Tradebook } from './../';
+import {
+  Dashboard,
+  Import,
+  Review,
+  Overviews,
+  Trade,
+  Tradebook,
+  Utils
+} from './../';
 
 import styles from './app.module.css';
 
@@ -13,8 +21,8 @@ export default function App() {
         <Navbar />
         <div className={styles.container}>
           <Switch>
-            <Route path="/trades">
-              <Trades />
+            <Route path="/overviews">
+              <Overviews />
             </Route>
             <Route path="/import">
               <Import />
@@ -30,6 +38,9 @@ export default function App() {
             </Route>
             <Route path="/tradebook">
               <Tradebook />
+            </Route>
+            <Route path="/utils">
+              <Utils />
             </Route>
           </Switch>
         </div>

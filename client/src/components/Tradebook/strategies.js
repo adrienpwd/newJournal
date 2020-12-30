@@ -17,41 +17,80 @@ export default function Strategies() {
       <div className={styles.strategiesList}>
         <UnorderedList>
           <h4>Breakouts</h4>
-          <ListItem onClick={() => onStrategieClick('consolidation')}>
-            Consolidation
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('range')}
+          >
+            Range
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('range')}>Range</ListItem>
-          <ListItem onClick={() => onStrategieClick('wedge')}>Wedge</ListItem>
-          <ListItem onClick={() => onStrategieClick('triangle')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('wedge')}
+          >
+            Wedge
+          </ListItem>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('triangle')}
+          >
             Triangle
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('3-bars-play')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('3-bars-play')}
+          >
             3 Bars play
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('orb')}>ORB</ListItem>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('orb')}
+          >
+            ORB
+          </ListItem>
           <br />
           <h4>Reversals</h4>
-          <ListItem onClick={() => onStrategieClick('climactic-reversal')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('climactic-reversal')}
+          >
             Climactic Reversal
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('extreme-reversal')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('extreme-reversal')}
+          >
             Extreme Reversal
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('mountain-pass')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('mountain-pass')}
+          >
             Mountain Pass
           </ListItem>
           <br />
           <h4>Trends</h4>
-          <ListItem onClick={() => onStrategieClick('abcd-1')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('abcd-1')}
+          >
             ABCD type 1
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('abcd-2')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('abcd-2')}
+          >
             ABCD type 2
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('abcd-3')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('abcd-3')}
+          >
             ABCD type 3
           </ListItem>
-          <ListItem onClick={() => onStrategieClick('trendline-break')}>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('trendline-break')}
+          >
             Trend Line Break
           </ListItem>
         </UnorderedList>

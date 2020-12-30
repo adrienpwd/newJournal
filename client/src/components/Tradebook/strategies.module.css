@@ -11,5 +11,10 @@
   width: 100%;
 }
 
-.rule {
+.strategyLink {
+  cursor: pointer;
+}
+
+.strategyLink:hover {
+  font-weight: bold;
 }
