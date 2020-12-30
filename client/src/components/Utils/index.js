@@ -116,7 +116,8 @@ export default function Utils() {
   };
 
   return (
-    <>
+    <div className={styles.rToolContainer}>
+      <div className={styles.rToolTitle}>R calculator</div>
       <div>
         <div className={styles.config}>
           <NumberInput
@@ -163,8 +164,8 @@ export default function Utils() {
             onChange={handleEntryChange}
           />
         </div>
-        {renderRtable()}
+        <div className={styles.rTable}>{renderRtable()}</div>
       </div>
-    </>
+    </div>
   );
 }
