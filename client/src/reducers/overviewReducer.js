@@ -13,30 +13,26 @@ const onLoadOverviews = (state, { start, end }) => {
 
 const onLoadOverviewSuccess = (state, payload) => {
   const { overviews } = payload;
+  const overviewObject = {};
+  for (let i = 0; i < overviews.length; i++) {
+    overviewObject[overviews[i].id] = overviews[i];
+  }
   return {
     loading: false,
     loaded: true,
     overviews: {
       ...state.overviews,
-      ...overviews
+      ...overviewObject
     }
   };
 };
 
-const onEditOverviewSuccess = (state, { overview, data }) => {
-  const editedOverview = {
-    ...state.overviews[overview.id],
-    overview: {
-      ...state.overviews[overview.id]?.overview,
-      ...data
-    }
-  };
-
+const onEditOverviewSuccess = (state, { overview }) => {
   return {
     ...state,
     overviews: {
       ...state.overviews,
-      [overview.id]: editedOverview
+      [overview.id]: { ...state.overviews[overview.id], ...overview }
     }
   };
 };

@@ -94,7 +94,6 @@ export default function Overviews() {
   };
 
   const renderDay = function (dayString) {
-    console.log(dayString);
     const dayArr = dayString.split('-');
     const year = dayArr[2];
     const month = dayArr[0] - 1;

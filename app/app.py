@@ -480,13 +480,14 @@ def post_raw_data():
         overview_id = all_my_trades[0].get('time')[:10]
         overview_id = overview_id.replace('/', '-')
 
-        db.overviews.insert(
-            {
-                'id': overview_id,
+        db.overviews.update_one(
+            {'id': overview_id},
+            {"$set": {
+              'id': overview_id,
                 'accounts': pnl_by_accounts,
                 'timestamp': trade.get('timestamp')
-
             }
+            }, upsert=True
         )
 
         return jsonify({'ok': True, 'aggregatedTrades': all_my_trades})
@@ -669,6 +670,26 @@ def edit_trade_data():
 
         return jsonify({'ok': True, 'tradeID': trade['_id']})
 
+@application.route('/editSeed', methods=['GET', 'PUT'])
+def edit_seed_data():
+    ''' route to edit a seed '''
+    if request.method == 'PUT':
+        details = request.json['data']
+        seed = request.json['seed']
+        seed_id = seed.get('id', details['id'])
+        db.seeds.update_one(
+            {'id': seed_id},
+            {"$set": {
+              'description': details['description'],
+              'isLong': details['isLong'],
+              'price': details['price'],
+              'stock': details['stock'],
+              'strategy': details['strategy']
+            }
+            }, upsert=True
+        )
+        return_data = db.seeds.find_one({"id": seed_id})
+        return jsonify({'ok': True, 'seed': return_data})
 
 @application.route('/editOverview', methods=['GET', 'PUT'])
 def edit_overview_data():
@@ -676,14 +697,16 @@ def edit_overview_data():
     if request.method == 'PUT':
         overview = request.json['overview']
         details = request.json['data']
+        overview_id = overview.get('id', details['id'])
         db.overviews.update_one(
-            {'id': overview['id']},
+            {'id': overview_id},
             {"$set": {
-                'description': details['description']
+                'description': details['description'],
+                'timestamp': details.get('timestamp')
             }
             }, upsert=True
         )
-        return_data = db.overviews.find_one({"id": overview['id']})
+        return_data = db.overviews.find_one({"id": overview_id})
         return jsonify({'ok': True, 'overview': return_data})
 
 

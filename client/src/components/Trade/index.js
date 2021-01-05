@@ -37,7 +37,6 @@ import {
   NumberInput,
   Tabs,
   Tab,
-  TextArea,
   Tag
 } from 'carbon-components-react';
 

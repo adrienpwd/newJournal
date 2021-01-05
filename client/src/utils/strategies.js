@@ -19,7 +19,7 @@ export const strategies = [
     type: 'breakout',
     label: 'Wedge',
     description: 'Trade the breakout of a Wedge pattern.',
-    indicators: ['test 1', 'test2'],
+    indicators: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
@@ -75,16 +75,24 @@ export const strategies = [
     description:
       'Stock moves above or below a trading range after a clean consolidation. Usually moves away from support/resistance. It is always in the same direction of the existing move or trend.',
     indicators: {
-      1: 'On the 60 min chart the stock clearly trade in a Range',
-      2: 'The stock is coming into the breakout area after a pullback of maximum 50% of the range',
-      3: 'There is a nice void before the next level of resistance (long), or before the next level of support (short)',
-      4: 'The stock is not extended'
+      1: 'Is the stock nice on the daily chart (Gap, ABCD, ...)?',
+      2: 'Is the stock trading in a clean and tight range, without wicks',
+      3: 'Is the stock in near HOD or LOD',
+      4: 'Is the stock strong or weak relatively to the market',
+      5: 'Is there one or more shakeout bars ?',
+      6: 'Is the stock liquid enough ? (RVOL)',
+      7: 'Is the spread okay ?',
+      6: 'Is the stock coming into the breakout area after a pullback of maximum 50% of the range',
+      7: 'Is there a nice void before the next level of resistance (long), or support (short)',
+      8: 'Is the stock NOT extended',
+      9: 'Is the stock at or near whole or 1/2 $ ?',
+      10: 'Is there large volume at or near whole or 1/2 $ ?'
     },
     confirmations: {
       1: 'Volume comes in at the breakout area',
       2: 'Big Asks at the breakout area (long), or big Bids (short)',
       3: 'Times and Sales accelerates at the breakout area',
-      4: 'There is more volume at the bottom of the range (long), or at the top of the range (short)'
+      4: 'There is more volume at the bottom of the range (buying pressure), or at the top of the range (selling pressure)'
     },
     adds: {
       1: 'At the breakout area if you entered in the range, and if it does not increase your risk',

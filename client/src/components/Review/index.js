@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { TradeCard } from 'components/Common';
+import Seed from './../Seed';
 import { Carousel } from 'react-responsive-carousel';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
   Button,
   Form,
-  TextArea,
   FileUploaderButton,
   Loading
 } from 'carbon-components-react';
@@ -28,32 +28,49 @@ export default function Review() {
   const tradeReducer = useSelector(state => state.tradeReducer);
   const overviewReducer = useSelector(state => state.overviewReducer);
 
-  const { trades } = tradeReducer;
-  const { overviews } = overviewReducer;
-
   const { day } = useParams();
+
+  const { trades } = tradeReducer;
+  const tradesReview = trades?.[day];
+
+  const { overviews } = overviewReducer;
 
   const overviewState = overviews[day];
 
   const [formValue, setFormValue] = useState('');
 
-  const dayTarget = new Date(day);
+  const yearMonthdate = day.split('-');
+
+  // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
+  // When we create an Overview we initialize its time to 00:00
+  const dayTarget = new Date(
+    Number(yearMonthdate[2]),
+    Number(yearMonthdate[0] - 1),
+    Number(yearMonthdate[1]),
+    0,
+    0,
+    0,
+    0
+  );
+
   const dayStartTimestamp = dayTarget.getTime();
-  const dayStartUnixTime = Math.floor(dayStartTimestamp / 1000);
+  const dayStartUnixTime = dayStartTimestamp / 1000;
   const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
 
   useEffect(() => {
     if (!overviewState) {
       dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!tradesReview) {
       dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
   }, []);
 
   const isLoading = overviewState?.loading;
   const isLoaded = overviewState?.loaded;
-  const overview = overviewState?.overview || {};
-
-  const tradesReview = trades?.[day] ? trades[day] : [];
 
   const [isEditMode, setEditMode] = useState(false);
 
@@ -62,8 +79,8 @@ export default function Review() {
   const [images, setImages] = useState([]);
 
   useEffect(() => {
-    if (overview?.img) {
-      overview.img.forEach(i => {
+    if (overviewState?.img) {
+      overviewState.img.forEach(i => {
         const imgArr = i.split('-');
         const path = `${imgArr[2]}/${imgArr[1]}/${imgArr[0]}`;
         const filename = i;
@@ -91,7 +108,14 @@ export default function Review() {
   }
 
   const onSubmit = () => {
-    dispatch(editOverview(overview, { description: formValue }));
+    const currentOverview = overviewState || {};
+    dispatch(
+      editOverview(currentOverview, {
+        description: formValue,
+        id: day,
+        timestamp: dayStartUnixTime
+      })
+    );
     makeViewState();
   };
 
@@ -113,7 +137,7 @@ export default function Review() {
   };
 
   function createMarkup() {
-    return { __html: overview?.description };
+    return { __html: overviewState?.description };
   }
 
   const renderImages = function () {
@@ -129,9 +153,9 @@ export default function Review() {
   };
 
   const renderPnLbyAccount = () => {
-    if (overview?.accounts && Object.keys(overview?.accounts)) {
-      return Object.keys(overview?.accounts).map((key, i) => {
-        const account = overview.accounts[key];
+    if (overviewState?.accounts && Object.keys(overviewState?.accounts)) {
+      return Object.keys(overviewState?.accounts).map((key, i) => {
+        const account = overviewState.accounts[key];
         return (
           <h4 key={i}>
             {account.account}: Gross: {account.gross} Net {account.net}
@@ -141,8 +165,13 @@ export default function Review() {
     }
   };
 
-  const renderTradesCard = () =>
-    tradesReview.map(trade => <TradeCard key={trade.id} trade={trade} />);
+  const renderTradesCard = () => {
+    if (tradesReview) {
+      return tradesReview.map(trade => (
+        <TradeCard key={trade.id} trade={trade} />
+      ));
+    }
+  };
 
   let display;
 
@@ -185,7 +214,7 @@ export default function Review() {
           theme="snow"
           value={formValue}
           onChange={setFormValue}
-          defaultValue={overview?.description}
+          defaultValue={overviewState?.description}
         />
       </div>
     );
@@ -193,7 +222,7 @@ export default function Review() {
     display = (
       <div>
         <h4>
-          {new Date(day).toDateString()}
+          {dayTarget.toDateString()}
           <Button
             className={styles.editButton}
             kind="tertiary"
@@ -208,6 +237,7 @@ export default function Review() {
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
+        <Seed overviewId={day} />
         <div className={styles.tradeCards}>{renderTradesCard()}</div>
         <div>{renderImages()}</div>
       </div>

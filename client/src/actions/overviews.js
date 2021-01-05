@@ -30,6 +30,8 @@ export function loadOverviews(start, end) {
 }
 
 export function editOverview(overview, data) {
+  console.log('overview', overview);
+  console.log('data', data);
   return dispatch => {
     dispatch({
       type: 'EDIT_OVERVIEW'
@@ -47,7 +49,7 @@ export function editOverview(overview, data) {
         if (res.ok === true) {
           dispatch({
             type: 'EDIT_OVERVIEW_SUCCESS',
-            payload: { overview, data }
+            payload: { overview: data }
           });
         }
       })

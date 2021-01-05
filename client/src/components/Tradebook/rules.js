@@ -22,7 +22,18 @@ export default function Rules() {
         </ListItem>
         <ListItem>
           <h4>RVOL</h4>
-          <p>Any stock must have minimum 100% RVOL so I can trade it.</p>
+          <p>
+            Any stock I want to trade must have minimum 100% RVOL so I can trade
+            it.
+          </p>
+        </ListItem>
+        <ListItem>
+          <h4>Void</h4>
+          <p>
+            Any stock I want to trade must have a Void.
+            <br />I cannot trade into Resistance (Long) or Support (short)
+            unless the R:R is reachable before
+          </p>
         </ListItem>
         <ListItem>
           <h4>Timeframes</h4>
