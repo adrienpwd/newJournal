@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { strategies } from '../../utils';
+import { useDrop } from 'react-dnd';
 import { Link, useRouteMatch } from 'react-router-dom';
 import {
   ArrowDownRight32,
@@ -40,19 +41,33 @@ export default props => {
     );
   }
 
+  const [{ canDrop, isOver }, drop] = useDrop({
+    accept: 'Box',
+    drop: () => ({ name: seed.id }),
+    collect: monitor => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop()
+    })
+  });
+  const isActive = canDrop && isOver;
+  let backgroundColor = '#f5f5f6';
+  if (isActive) {
+    backgroundColor = '#dcdcdd';
+  }
+
   return (
-    <Link to={`/review/${match.params.day}/${seed.id}`}>
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <h2 className={styles.tradeHeader}>
+    <div className={styles.container} ref={drop} style={{ backgroundColor }}>
+      <div className={styles.card}>
+        <Link to={`/review/${match.params.day}/${seed.id}`}>
+          <h2 className={styles.seedHeader}>
             {seed.ticker}
             <div className={styles.element}>{getTradeType(seed.isLong)}</div>
           </h2>
-          <div>Time: {seed.time}</div>
-          <div className={styles.element}>{renderStrategy()}</div>
-          <div>Price: {`$${seed.price}`}</div>
-        </div>
+        </Link>
+        <div>Time: {seed.time}</div>
+        <div className={styles.element}>{renderStrategy()}</div>
+        <div>Price: {`$${seed.price}`}</div>
       </div>
-    </Link>
+    </div>
   );
 };

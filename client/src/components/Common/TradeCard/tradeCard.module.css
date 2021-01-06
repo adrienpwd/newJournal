@@ -3,7 +3,7 @@
   border-top: solid 15px #4caf50;
   margin: 6px;
   padding: 8px;
-  cursor: pointer;
+  cursor: move;
   display: flex;
   justify-content: center;
   flex-direction: row;
@@ -21,6 +21,11 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  cursor: pointer;
+}
+.tradeHeader:hover {
+  color: #4caf50;
+  cursor: pointer;
 }
 
 .element {

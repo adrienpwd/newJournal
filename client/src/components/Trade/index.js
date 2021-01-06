@@ -76,11 +76,13 @@ const ReviewTrade = () => {
 
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId) || {};
-  const strategy = getStrategie(trade?.strategy);
 
   const seedReducer = useSelector(state => state.seedReducer);
   const { seeds } = seedReducer;
   const overviewSeeds = seeds[day];
+  const mySeed = overviewSeeds?.find(s => s.linked_trades?.includes(tradeId));
+
+  const strategy = getStrategie(mySeed?.strategy || trade?.strategy);
 
   const { register, handleSubmit, reset } = useForm();
   const [images, setImages] = useState([]);
@@ -126,8 +128,6 @@ const ReviewTrade = () => {
     }
   }, []);
 
-  console.log(trade);
-
   if (!trade) {
     return <Loading description="Loading trade" withOverlay={false} />;
   }
@@ -166,16 +166,16 @@ const ReviewTrade = () => {
       }
     });
 
-    if (data.seed.length) {
+    if (data.seed?.length) {
       filteredFormValues.seed = data.seed;
     }
-    if (data.strategy.length) {
+    if (data.strategy?.length) {
       filteredFormValues.strategy = data.strategy;
     }
-    if (tradeCatalysts.length) {
+    if (tradeCatalysts?.length) {
       filteredFormValues.catalysts = tradeCatalysts;
     }
-    if (rulesRespected.length) {
+    if (rulesRespected?.length) {
       filteredFormValues.rulesRespected = rulesRespected;
     }
     if (tradeFormValue) {
@@ -316,37 +316,22 @@ const ReviewTrade = () => {
   };
 
   const renderEditView = function () {
-    const seedsSelect = [
-      {
-        id: 'unlink'
-      },
-      ...overviewSeeds
-    ];
     return (
       <Form>
-        <Select
-          ref={register}
-          id="seed"
-          name="seed"
-          labelText="Seed"
-          invalidText="A valid value is required"
-        >
-          {seedsSelect.map(s => {
-            return <SelectItem text={s.id} value={s.id} key={s.id} />;
-          })}
-        </Select>
-        <Select
-          ref={register}
-          id="strategy"
-          name="strategy"
-          labelText="Strategy"
-          defaultValue={trade.strategy}
-          invalidText="A valid value is required"
-        >
-          {strategies.map(s => {
-            return <SelectItem text={s.label} value={s.id} key={s.id} />;
-          })}
-        </Select>
+        {!mySeed && (
+          <Select
+            ref={register}
+            id="strategy"
+            name="strategy"
+            labelText="Strategy"
+            defaultValue={trade.strategy}
+            invalidText="A valid value is required"
+          >
+            {strategies.map(s => {
+              return <SelectItem text={s.label} value={s.id} key={s.id} />;
+            })}
+          </Select>
+        )}
         Description:
         <ReactQuill
           theme="snow"

@@ -6,7 +6,6 @@
   width: 180px;
   height: 180px;
   text-decoration: none;
-  cursor: pointer;
 }
 
 .containerUnlinked {
@@ -27,11 +26,15 @@
   fill: grey;
 }
 
-.tradeHeader {
+.seedHeader {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+.seedHeader:hover {
+  color: #a1887f;
+  cursor: pointer;
 }
 
 .element {

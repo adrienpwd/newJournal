@@ -13,7 +13,6 @@ import { useForm } from 'react-hook-form';
 import ReactQuill from 'react-quill';
 import { strategies } from '../../utils';
 import { editSeed } from 'actions/seeds';
-import { v4 as uuidv4 } from 'uuid';
 
 import { Checkmark16, Edit16, Close16 } from '@carbon/icons-react';
 
@@ -47,10 +46,11 @@ export default function EditSeed(props) {
         : `0${currentTime.getMinutes()}`;
     const seedDate = new Date(overviewId);
     const timestamp = (seedDate - (seedDate % 1000)) / 1000;
+    const time = `${seedHours}:${seedMinutes}`;
 
     const seedData = {
-      id: `${overviewId}-${ticker}-${strategy}-${uuidv4()}`,
-      time: `${seedHours}:${seedMinutes}`,
+      id: `${overviewId}-${ticker}-${strategy}-${time}`,
+      time,
       isLong: tradeLong,
       timestamp,
       description: formValue,

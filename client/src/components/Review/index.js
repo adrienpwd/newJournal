@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TradeCard } from 'components/Common';
 import EditSeed from '../EditSeed';
 import SeedCard from '../SeedCard';
@@ -192,9 +194,9 @@ export default function Review() {
 
   const renderCards = () => {
     const linkedTrades = (overviewSeeds || []).map(seed => {
-      const linkedTrades = (seed?.linked_trades || []).map(t => {
-        const trade = tradesReview.find(trade => trade.id === t);
-        return <TradeCard key={trade.id} trade={trade} />;
+      const linkedTrades = (seed?.linked_trades || []).map((t, i) => {
+        const trade = tradesReview?.find(trade => trade.id === t);
+        return <TradeCard key={i} trade={trade} seed={seed} />;
       });
       return (
         <div className={styles.seedAndTrades} key={seed.id}>
@@ -282,7 +284,11 @@ export default function Review() {
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
-        <div className={styles.cardsContainer}>{renderCards()}</div>
+        {tradesReview?.length > 0 && (
+          <DndProvider backend={HTML5Backend}>
+            <div className={styles.cardsContainer}>{renderCards()}</div>
+          </DndProvider>
+        )}
         <div>{renderImages()}</div>
       </div>
     );

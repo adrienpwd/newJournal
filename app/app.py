@@ -620,13 +620,6 @@ def edit_trade_data():
             strategy_value = details.get('strategy')
         else:
             strategy_value = my_trade['strategy']
-        
-        if len(details.get('seed', '')) > 0:
-          db.seeds.update_one(
-            {'id': details.get('seed')},
-            {"$push": {'linked_trades': trade['id']}},
-            upsert=True
-          )
 
         db.trades.update_one(
             {'id': trade['id']},
@@ -641,7 +634,7 @@ def edit_trade_data():
                 'commissions': commissions,
                 'net_gain': net_gain,
                 'ratio_com_gain': ratio_gain_commissions
-            }
+              }
             }, upsert=False
         )
 
