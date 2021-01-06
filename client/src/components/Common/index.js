@@ -1,4 +1,5 @@
-import Navbar from './Navbar'
-import TradeCard from './TradeCard'
+import Navbar from './Navbar';
+import TradeCard from './TradeCard';
+import TradeOrSeed from './TradeOrSeed';
 
-export { Navbar, TradeCard }
+export { Navbar, TradeCard, TradeOrSeed };

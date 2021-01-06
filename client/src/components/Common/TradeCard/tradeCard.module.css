@@ -1,6 +1,6 @@
 .container {
-  background-color: #e0e0e0;
-  box-shadow: 4px 4px 4px 0px rgba(0, 0, 0, 0.3);
+  background-color: #f5f5f6;
+  border-top: solid 15px #65ba69;
   margin: 6px;
   padding: 8px;
   cursor: pointer;
@@ -27,25 +27,21 @@
   margin: 6px 0;
 }
 
-h2 {
-  color: #0f62fe;
-}
-
 a {
   text-decoration: none;
   color: #000;
 }
 
 .positive {
-  color: green;
+  color: #32893d;
 }
 
 .negative {
-  color: red;
+  color: #a30000;
 }
 
 .neuter {
-  color: orange;
+  color: black;
 }
 
 .strategyMissing {

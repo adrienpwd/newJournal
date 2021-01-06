@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@carbon/pictograms-react": "^11.0.0",
     "@nivo/line": "^0.62.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
@@ -25,7 +26,8 @@
     "react-scripts": "3.3.0",
     "react-stars": "^2.2.5",
     "redux": "^4.0.4",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "start": "react-scripts start",

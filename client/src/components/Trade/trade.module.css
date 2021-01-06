@@ -47,15 +47,15 @@
 }
 
 .positive {
-  color: green;
+  color: #00600f;
 }
 
 .negative {
-  color: red;
+  color: #a30000;
 }
 
 .neuter {
-  color: orange;
+  color: black;
 }
 
 .tradeRow {

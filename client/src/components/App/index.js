@@ -1,16 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-import { Navbar } from 'components/Common';
-import {
-  Dashboard,
-  Import,
-  Review,
-  Overviews,
-  Trade,
-  Tradebook,
-  Utils
-} from './../';
+import { Navbar, TradeOrSeed } from 'components/Common';
+import { Dashboard, Import, Review, Overviews, Tradebook, Utils } from './../';
 
 import styles from './app.module.css';
 
@@ -28,7 +20,7 @@ export default function App() {
               <Import />
             </Route>
             <Route path="/review/:day/:tradeId">
-              <Trade />
+              <TradeOrSeed />
             </Route>
             <Route path="/review/:day">
               <Review />

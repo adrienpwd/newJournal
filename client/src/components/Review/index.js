@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { TradeCard } from 'components/Common';
-import Seed from './../Seed';
+import EditSeed from '../EditSeed';
+import SeedCard from '../SeedCard';
 import { Carousel } from 'react-responsive-carousel';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
@@ -19,6 +20,7 @@ import 'react-quill/dist/quill.snow.css';
 
 import { loadTrades, uploadImages } from 'actions/trades';
 import { editOverview, loadOverviews } from 'actions/overviews';
+import { loadSeeds } from 'actions/seeds';
 
 import styles from './review.module.css';
 
@@ -27,6 +29,7 @@ export default function Review() {
 
   const tradeReducer = useSelector(state => state.tradeReducer);
   const overviewReducer = useSelector(state => state.overviewReducer);
+  const seedReducer = useSelector(state => state.seedReducer);
 
   const { day } = useParams();
 
@@ -34,6 +37,9 @@ export default function Review() {
   const tradesReview = trades?.[day];
 
   const { overviews } = overviewReducer;
+
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
 
   const overviewState = overviews[day];
 
@@ -69,14 +75,25 @@ export default function Review() {
     }
   }, []);
 
-  const isLoading = overviewState?.loading;
-  const isLoaded = overviewState?.loaded;
+  useEffect(() => {
+    if (!overviewSeeds) {
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, []);
+
+  const isOverviewLoading = overviewState?.loading;
+  const isOverviewLoaded = overviewState?.loaded;
+
+  const isSeedLoading = seedReducer?.loading;
+  const isSeedLoaded = seedReducer?.loaded;
 
   const [isEditMode, setEditMode] = useState(false);
 
   const { register, handleSubmit } = useForm();
 
   const [images, setImages] = useState([]);
+
+  const [isSeedEditMode, setSeedEditMode] = useState(false);
 
   useEffect(() => {
     if (overviewState?.img) {
@@ -97,7 +114,7 @@ export default function Review() {
         });
       });
     }
-  }, [isLoading]);
+  }, [isOverviewLoading]);
 
   function makeEditState() {
     setEditMode(true);
@@ -106,6 +123,14 @@ export default function Review() {
   function makeViewState() {
     setEditMode(false);
   }
+
+  const makeSeedEditState = () => {
+    setSeedEditMode(true);
+  };
+
+  const makeSeedViewState = () => {
+    setSeedEditMode(false);
+  };
 
   const onSubmit = () => {
     const currentOverview = overviewState || {};
@@ -173,6 +198,12 @@ export default function Review() {
     }
   };
 
+  const renderSeeds = () => {
+    return (overviewSeeds || []).map(seed => {
+      return <SeedCard key={seed.id} seed={seed} />;
+    });
+  };
+
   let display;
 
   if (isEditMode) {
@@ -233,18 +264,19 @@ export default function Review() {
             iconDescription="Edit overview"
             tooltipPosition="bottom"
           />
+          <EditSeed overviewId={day} />
         </h4>
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
-        <Seed overviewId={day} />
-        <div className={styles.tradeCards}>{renderTradesCard()}</div>
+        <div className={styles.tradeAndSeedContainer}>{renderSeeds()}</div>
+        <div className={styles.tradeAndSeedContainer}>{renderTradesCard()}</div>
         <div>{renderImages()}</div>
       </div>
     );
   }
 
-  return isLoading && !isLoaded ? (
+  return isOverviewLoading && !isOverviewLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{display}</div>

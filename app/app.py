@@ -352,7 +352,7 @@ def list_trades():
 
 @application.route('/overviews', methods=['GET'])
 def get_overview():
-    ''' route to get an overview '''
+    ''' route to get one or more overview(s) '''
     if request.method == 'GET':
         if request.args:
             startTimestamp = int(request.args['start'])
@@ -361,6 +361,16 @@ def get_overview():
             return_data = list(matching_overviews)
             return jsonify({'ok': True, 'overviews': return_data})
 
+@application.route('/seeds', methods=['GET'])
+def get_seeds():
+    ''' route to get seeds for an Overview '''
+    if request.method == 'GET':
+        if request.args:
+            startTimestamp = int(request.args['start'])
+            endTimestamp = int(request.args['end'])
+            matching_seeds = db.seeds.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            return_data = list(matching_seeds)
+            return jsonify({'ok': True, 'seeds': return_data})
 
 @application.route('/importTrades', methods=['GET', 'POST'])
 def post_raw_data():
@@ -610,9 +620,13 @@ def edit_trade_data():
             strategy_value = details.get('strategy')
         else:
             strategy_value = my_trade['strategy']
-
-        print('CATALYSTS DETAILS')
-        pp.pprint(details.get('catalysts'))
+        
+        if len(details.get('seed', '')) > 0:
+          db.seeds.update_one(
+            {'id': details.get('seed')},
+            {"$push": {'linked_trades': trade['id']}},
+            upsert=True
+          )
 
         db.trades.update_one(
             {'id': trade['id']},
@@ -621,7 +635,7 @@ def edit_trade_data():
                 'description': details.get('description', my_trade['description']),
                 'review': details.get('review', my_trade['review']),
                 'catalysts': details.get('catalysts'),
-                'rulesRespected': details.get('rulesRespected'),
+                'rulesRespected': details.get('rulesRespected', []),
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
@@ -683,8 +697,10 @@ def edit_seed_data():
               'description': details['description'],
               'isLong': details['isLong'],
               'price': details['price'],
-              'stock': details['stock'],
-              'strategy': details['strategy']
+              'ticker': details['ticker'],
+              'strategy': details['strategy'],
+              'timestamp': details['timestamp'],
+              'time': details['time']
             }
             }, upsert=True
         )

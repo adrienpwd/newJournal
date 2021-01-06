@@ -2,18 +2,18 @@ import React from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { strategies } from './../../../utils';
 import {
-  ArrowDownRight16,
-  ArrowUpRight16,
+  ArrowDownRight32,
+  ArrowUpRight32,
   WarningAlt16
 } from '@carbon/icons-react';
 
 import styles from './tradeCard.module.css';
 
 export default function TradeCard({ trade, url }) {
-  let match = useRouteMatch();
+  const match = useRouteMatch();
 
   const getTradeType = type =>
-    type === 'B' ? <ArrowUpRight16 /> : <ArrowDownRight16 />;
+    type === 'B' ? <ArrowUpRight32 /> : <ArrowDownRight32 />;
 
   let gainClass;
   if (trade.r >= 1) {

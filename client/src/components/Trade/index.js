@@ -43,6 +43,7 @@ import {
 import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
 
 import { editTrade, uploadImages } from 'actions/trades';
+import { loadSeeds } from 'actions/seeds';
 
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { Carousel } from 'react-responsive-carousel';
@@ -53,11 +54,33 @@ const ReviewTrade = () => {
   const dispatch = useDispatch();
   const { tradeId, day } = useParams();
 
+  const yearMonthdate = day.split('-');
+
+  // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
+  // When we create an Overview we initialize its time to 00:00
+  const dayTarget = new Date(
+    Number(yearMonthdate[2]),
+    Number(yearMonthdate[0] - 1),
+    Number(yearMonthdate[1]),
+    0,
+    0,
+    0,
+    0
+  );
+
+  const dayStartTimestamp = dayTarget.getTime();
+  const dayStartUnixTime = dayStartTimestamp / 1000;
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+
   const data = useSelector(state => state.tradeReducer);
 
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId) || {};
   const strategy = getStrategie(trade?.strategy);
+
+  const seedReducer = useSelector(state => state.seedReducer);
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
 
   const { register, handleSubmit, reset } = useForm();
   const [images, setImages] = useState([]);
@@ -97,6 +120,14 @@ const ReviewTrade = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!overviewSeeds) {
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, []);
+
+  console.log(trade);
+
   if (!trade) {
     return <Loading description="Loading trade" withOverlay={false} />;
   }
@@ -135,6 +166,9 @@ const ReviewTrade = () => {
       }
     });
 
+    if (data.seed.length) {
+      filteredFormValues.seed = data.seed;
+    }
     if (data.strategy.length) {
       filteredFormValues.strategy = data.strategy;
     }
@@ -282,8 +316,25 @@ const ReviewTrade = () => {
   };
 
   const renderEditView = function () {
+    const seedsSelect = [
+      {
+        id: 'unlink'
+      },
+      ...overviewSeeds
+    ];
     return (
       <Form>
+        <Select
+          ref={register}
+          id="seed"
+          name="seed"
+          labelText="Seed"
+          invalidText="A valid value is required"
+        >
+          {seedsSelect.map(s => {
+            return <SelectItem text={s.id} value={s.id} key={s.id} />;
+          })}
+        </Select>
         <Select
           ref={register}
           id="strategy"
@@ -312,7 +363,7 @@ const ReviewTrade = () => {
                 id={c.id}
                 name={c.id}
                 key={c.id}
-                defaultChecked={trade?.catalysts.includes(c.id)}
+                defaultChecked={trade?.catalysts?.includes(c.id)}
               />
             );
           })}

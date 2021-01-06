@@ -1,0 +1,10 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.seedButton {
+  color: #00600f;
+  border: solid 1px #00600f;
+}

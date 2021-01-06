@@ -13,7 +13,7 @@ export default function Strategy(props) {
 
   const renderStrategyItem = item => {
     return Object.keys(myStrategy?.[item]).map((itemKey, i) => {
-      const isChecked = trade?.rulesRespected.includes(`${item}-${i}`);
+      const isChecked = trade?.rulesRespected?.includes(`${item}-${i}`);
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
           <Checkbox
@@ -23,14 +23,14 @@ export default function Strategy(props) {
             name={`${item}-${i}`}
             key={`${item}-${i}`}
             defaultChecked={isChecked}
-            disabled={!isEditMode && trade}
+            disabled={Boolean(!isEditMode && trade)}
           />
         </div>
       );
     });
   };
 
-  return myStrategy ? (
+  return strategyId ? (
     <div className={styles.strategieContainer}>
       <h4>{myStrategy.label}</h4>
       <p>{myStrategy.description}</p>
