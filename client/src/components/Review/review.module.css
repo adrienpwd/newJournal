@@ -2,17 +2,17 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  overflow: auto;
 }
 
-.tradeAndSeedContainer {
+.cardsContainer {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
 }
 
 .editContainer {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
 }
 
 .buttonsRow {
@@ -22,4 +22,9 @@
 
 .editButton {
   margin-left: 16px;
+}
+
+.seedAndTrades {
+  display: flex;
+  flex-direction: column-reverse;
 }

@@ -9,7 +9,7 @@ import {
 
 import styles from './tradeCard.module.css';
 
-export default function TradeCard({ trade, url }) {
+export default function TradeCard({ unlinked, trade, url }) {
   const match = useRouteMatch();
 
   const getTradeType = type =>

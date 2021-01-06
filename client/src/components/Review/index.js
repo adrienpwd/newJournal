@@ -190,18 +190,31 @@ export default function Review() {
     }
   };
 
-  const renderTradesCard = () => {
+  const renderCards = () => {
+    const linkedTrades = (overviewSeeds || []).map(seed => {
+      const linkedTrades = (seed?.linked_trades || []).map(t => {
+        const trade = tradesReview.find(trade => trade.id === t);
+        return <TradeCard key={trade.id} trade={trade} />;
+      });
+      return (
+        <div className={styles.seedAndTrades} key={seed.id}>
+          <SeedCard seed={seed} />
+          {linkedTrades}
+        </div>
+      );
+    });
+
+    let unlinkedTrades = [];
     if (tradesReview) {
-      return tradesReview.map(trade => (
-        <TradeCard key={trade.id} trade={trade} />
+      unlinkedTrades = tradesReview.map((trade, i) => (
+        <div className={styles.seedAndTrades} key={i}>
+          <SeedCard unlinked seed={{}} />
+          <TradeCard key={trade.id} trade={trade} unlinked />
+        </div>
       ));
     }
-  };
 
-  const renderSeeds = () => {
-    return (overviewSeeds || []).map(seed => {
-      return <SeedCard key={seed.id} seed={seed} />;
-    });
+    return [linkedTrades, unlinkedTrades];
   };
 
   let display;
@@ -269,8 +282,7 @@ export default function Review() {
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
-        <div className={styles.tradeAndSeedContainer}>{renderSeeds()}</div>
-        <div className={styles.tradeAndSeedContainer}>{renderTradesCard()}</div>
+        <div className={styles.cardsContainer}>{renderCards()}</div>
         <div>{renderImages()}</div>
       </div>
     );
