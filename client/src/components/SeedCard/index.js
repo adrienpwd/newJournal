@@ -32,42 +32,53 @@ export default props => {
     return { __html: seed?.description };
   }
 
-  if (unlinked) {
-    return (
-      <div className={styles.containerUnlinked}>
-        <WarningAlt32 className={styles.unlinkedIcon} />
-        Unlinked
-      </div>
-    );
-  }
+  const renderSeedCard = () => {
+    if (unlinked) {
+      return (
+        <div className={styles.containerUnlinked}>
+          <WarningAlt32 className={styles.unlinkedIcon} />
+          <span>Unlinked</span>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <Link to={`/review/${match.params.day}/${seed.id}`}>
+            <h2 className={styles.seedHeader}>
+              {seed.ticker}
+              <div className={styles.element}>{getTradeType(seed.isLong)}</div>
+            </h2>
+          </Link>
+          <div>Time: {seed.time}</div>
+          <div className={styles.element}>{renderStrategy()}</div>
+          <div>Price: {`$${seed.price}`}</div>
+        </div>
+      );
+    }
+  };
 
   const [{ canDrop, isOver }, drop] = useDrop({
     accept: 'Box',
-    drop: () => ({ name: seed.id }),
+    drop: () => ({ name: seed?.id || 'unlink' }),
     collect: monitor => ({
       isOver: monitor.isOver(),
       canDrop: monitor.canDrop()
     })
   });
   const isActive = canDrop && isOver;
+  const borderColor = unlinked ? '#d7ccc8' : '#a1887f';
   let backgroundColor = '#f5f5f6';
   if (isActive) {
     backgroundColor = '#dcdcdd';
   }
 
   return (
-    <div className={styles.container} ref={drop} style={{ backgroundColor }}>
-      <div className={styles.card}>
-        <Link to={`/review/${match.params.day}/${seed.id}`}>
-          <h2 className={styles.seedHeader}>
-            {seed.ticker}
-            <div className={styles.element}>{getTradeType(seed.isLong)}</div>
-          </h2>
-        </Link>
-        <div>Time: {seed.time}</div>
-        <div className={styles.element}>{renderStrategy()}</div>
-        <div>Price: {`$${seed.price}`}</div>
-      </div>
+    <div
+      ref={drop}
+      style={{ backgroundColor, borderColor }}
+      className={styles.container}
+    >
+      <div className={styles.card}>{renderSeedCard()}</div>
     </div>
   );
 };

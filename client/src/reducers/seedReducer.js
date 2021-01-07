@@ -41,8 +41,13 @@ const onLoadSeedsSuccess = (state, payload) => {
 const onEditSeedSuccess = (state, { seed }) => {
   const formattedDay = seed.id.substring(0, 10).replace(/\//g, '-');
   let updatedSeeds;
+  console.log(state.seeds[formattedDay]);
   if (state.seeds[formattedDay]) {
-    updatedSeeds = [...state.seeds[formattedDay], seed];
+    updatedSeeds = state.seeds[formattedDay].map(s => {
+      if (s.id === seed.id) return seed;
+      return s;
+    });
+    console.log(updatedSeeds);
   } else {
     updatedSeeds = [seed];
   }

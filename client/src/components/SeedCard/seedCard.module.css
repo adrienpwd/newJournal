@@ -1,6 +1,6 @@
 .container {
   background-color: #f5f5f6;
-  border-top: solid 15px #a1887f;
+  border-top: solid 15px;
   margin: 6px;
   padding: 8px;
   width: 180px;
@@ -9,17 +9,11 @@
 }
 
 .containerUnlinked {
-  background-color: #f5f5f6;
-  border-top: solid 15px #d7ccc8;
-  margin: 6px;
-  padding: 8px;
-  width: 180px;
-  height: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: grey;
+  height: 120px;
 }
 
 .unlinkedIcon {

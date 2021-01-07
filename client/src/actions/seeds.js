@@ -60,3 +60,39 @@ export function editSeed(seed, data) {
       });
   };
 }
+
+export function editTradeLink(currentSeedId, newSeedId, tradeId) {
+  return dispatch => {
+    dispatch({
+      type: 'EDIT_TRADE_LINK'
+    });
+
+    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/editTradeLink`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        currentSeedId,
+        newSeedId,
+        tradeId
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(results => results.json())
+      .then(res => {
+        if (res.ok === true) {
+          dispatch({
+            type: 'EDIT_SEED_SUCCESS',
+            payload: { seed: res.seed }
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        dispatch({
+          type: 'EDIT_TRADE_LINK_ERROR',
+          error
+        });
+      });
+  };
+}

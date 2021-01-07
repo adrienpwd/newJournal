@@ -700,6 +700,50 @@ def edit_seed_data():
         return_data = db.seeds.find_one({"id": seed_id})
         return jsonify({'ok': True, 'seed': return_data})
 
+@application.route('/editTradeLink', methods=['GET', 'PUT'])
+def edit_trade_link():
+    ''' route to edit a trade <-> seed link '''
+    if request.method == 'PUT':
+      current_seed_id = request.json['currentSeedId']
+      new_seed_id = request.json['newSeedId']
+      trade_id = request.json['tradeId']
+
+      linked_trades = []
+      my_seed = {}
+
+      # Unlinking a trade
+      if new_seed_id == "unlink" and len(current_seed_id) > 0:
+        my_seed = db.seeds.find_one({'id': current_seed_id})
+        linked_trades = my_seed.get('linked_trades', [])
+        try:
+          linked_trades.remove(trade_id)
+        except:
+          print('Tried to Unlink a Trade that was not linked')
+
+      # Linking a unlinked trade
+      elif current_seed_id == "" and new_seed_id:
+        my_seed = db.seeds.find_one({'id': new_seed_id})
+        linked_trades = my_seed.get('linked_trades', [])
+        linked_trades.append(trade_id)
+      
+      # changing link of a linked trade
+      # need to unlink first
+      else:
+        print('...')
+
+      if my_seed:
+        db.seeds.update_one(
+          {'id': my_seed['id']},
+          {"$set": {
+            'linked_trades': linked_trades
+            }
+          }, upsert=True
+        )
+        return_data = db.seeds.find_one({"id": my_seed['id']})
+        return jsonify({'ok': True, 'seed': return_data})
+      else:
+        return jsonify({'ok': False})
+
 @application.route('/editOverview', methods=['GET', 'PUT'])
 def edit_overview_data():
     ''' route to edit an overview '''

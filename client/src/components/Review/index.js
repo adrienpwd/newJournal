@@ -193,9 +193,11 @@ export default function Review() {
   };
 
   const renderCards = () => {
+    const linkedTradeIds = [];
     const linkedTrades = (overviewSeeds || []).map(seed => {
       const linkedTrades = (seed?.linked_trades || []).map((t, i) => {
         const trade = tradesReview?.find(trade => trade.id === t);
+        linkedTradeIds.push(trade.id);
         return <TradeCard key={i} trade={trade} seed={seed} />;
       });
       return (
@@ -208,12 +210,28 @@ export default function Review() {
 
     let unlinkedTrades = [];
     if (tradesReview) {
-      unlinkedTrades = tradesReview.map((trade, i) => (
-        <div className={styles.seedAndTrades} key={i}>
+      unlinkedTrades = tradesReview
+        .filter(t => {
+          return !linkedTradeIds.includes(t.id);
+        })
+        .map((trade, i) => {
+          return (
+            <div className={styles.seedAndTrades} key={i}>
+              <SeedCard unlinked seed={{}} />
+              <TradeCard key={trade.id} trade={trade} unlinked />
+            </div>
+          );
+        });
+    }
+
+    // When there is no unlinked trades there is no way to unlink
+    // linked trade, so we push a Unlink seedcard
+    if (unlinkedTrades.length === 0) {
+      unlinkedTrades.push(
+        <div className={styles.seedAndTrades}>
           <SeedCard unlinked seed={{}} />
-          <TradeCard key={trade.id} trade={trade} unlinked />
         </div>
-      ));
+      );
     }
 
     return [linkedTrades, unlinkedTrades];

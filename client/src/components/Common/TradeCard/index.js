@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useRouteMatch } from 'react-router-dom';
 import { useDrag } from 'react-dnd';
+import { useDispatch } from 'react-redux';
 import { strategies } from './../../../utils';
+import { editTradeLink } from 'actions/seeds';
 import {
   ArrowDownRight32,
   ArrowUpRight32,
@@ -12,6 +14,7 @@ import styles from './tradeCard.module.css';
 
 export default function TradeCard({ unlinked, trade, url, seed }) {
   const match = useRouteMatch();
+  const dispatch = useDispatch();
 
   const getTradeType = type =>
     type === 'B' ? <ArrowUpRight32 /> : <ArrowDownRight32 />;
@@ -47,10 +50,8 @@ export default function TradeCard({ unlinked, trade, url, seed }) {
     end: (item, monitor) => {
       const dropResult = monitor.getDropResult();
       if (item && dropResult) {
-        // TODO:
-        // Fire edit seed action and link this trade to this seed
-        // Need to verify that trade isn't already linked !!!
-        alert(`You dropped ${item.name} into ${dropResult.name}!`);
+        const currentSeedId = seed?.id || '';
+        dispatch(editTradeLink(currentSeedId, dropResult.name, item.name));
       }
     },
     collect: monitor => ({
