@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TradeCard } from 'components/Common';
-import EditSeed from '../EditSeed';
 import SeedCard from '../SeedCard';
 import { Carousel } from 'react-responsive-carousel';
 import { useForm } from 'react-hook-form';
@@ -15,18 +14,27 @@ import {
   FileUploaderButton,
   Loading
 } from 'carbon-components-react';
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
+import { Link, useRouteMatch } from 'react-router-dom';
+import {
+  Edit16,
+  Checkmark16,
+  Close16,
+  Sprout16,
+  TrashCan16
+} from '@carbon/icons-react';
 import ReactQuill from 'react-quill';
 
 import 'react-quill/dist/quill.snow.css';
 
-import { loadTrades, uploadImages } from 'actions/trades';
+import { loadTrades, uploadImages, deleteImage } from 'actions/trades';
 import { editOverview, loadOverviews } from 'actions/overviews';
 import { loadSeeds } from 'actions/seeds';
 
 import styles from './review.module.css';
 
 export default function Review() {
+  const match = useRouteMatch();
+  const history = useHistory();
   const dispatch = useDispatch();
 
   const tradeReducer = useSelector(state => state.tradeReducer);
@@ -101,7 +109,7 @@ export default function Review() {
     if (overviewState?.img) {
       overviewState.img.forEach(i => {
         const imgArr = i.split('-');
-        const path = `${imgArr[2]}/${imgArr[1]}/${imgArr[0]}`;
+        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`;
         const filename = i;
         axios({
           method: 'get',
@@ -116,7 +124,7 @@ export default function Review() {
         });
       });
     }
-  }, [isOverviewLoading]);
+  }, [overviewState]);
 
   function makeEditState() {
     setEditMode(true);
@@ -132,6 +140,10 @@ export default function Review() {
 
   const makeSeedViewState = () => {
     setSeedEditMode(false);
+  };
+
+  const handleCreateSeed = () => {
+    history.push(`/review/${match.params.day}/create-new-seed`);
   };
 
   const onSubmit = () => {
@@ -161,6 +173,10 @@ export default function Review() {
 
       //fileUploader.clearFiles()
     }
+  };
+
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('overview', overviewState.id, img));
   };
 
   function createMarkup() {
@@ -195,15 +211,17 @@ export default function Review() {
   const renderCards = () => {
     const linkedTradeIds = [];
     const linkedTrades = (overviewSeeds || []).map(seed => {
-      const linkedTrades = (seed?.linked_trades || []).map((t, i) => {
+      const myTrades = (seed?.linked_trades || []).map((t, i) => {
         const trade = tradesReview?.find(trade => trade.id === t);
         linkedTradeIds.push(trade.id);
-        return <TradeCard key={i} trade={trade} seed={seed} />;
+        return (
+          <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
+        );
       });
       return (
-        <div className={styles.seedAndTrades} key={seed.id}>
+        <div className={styles.seedAndTrades} key={`${seed.id}-linked`}>
           <SeedCard seed={seed} />
-          {linkedTrades}
+          {myTrades}
         </div>
       );
     });
@@ -216,9 +234,9 @@ export default function Review() {
         })
         .map((trade, i) => {
           return (
-            <div className={styles.seedAndTrades} key={i}>
+            <div className={styles.seedAndTrades} key={`${trade.id}-unlinked`}>
               <SeedCard unlinked seed={{}} />
-              <TradeCard key={trade.id} trade={trade} unlinked />
+              <TradeCard trade={trade} unlinked />
             </div>
           );
         });
@@ -235,6 +253,26 @@ export default function Review() {
     }
 
     return [linkedTrades, unlinkedTrades];
+  };
+
+  const renderImgList = () => {
+    return overviewState?.img?.map(img => {
+      return (
+        <div key={img} className={styles.imgEdit}>
+          <div>{img}</div>
+          <Button
+            className={styles.deleteImgButton}
+            kind="secondary"
+            size="small"
+            onClick={() => handleDeleteScreenshot(img)}
+            hasIconOnly
+            renderIcon={TrashCan16}
+            iconDescription="Delete"
+            tooltipPosition="left"
+          />
+        </div>
+      );
+    });
   };
 
   let display;
@@ -274,12 +312,18 @@ export default function Review() {
             tooltipPosition="bottom"
           />
         </div>
-        <ReactQuill
-          theme="snow"
-          value={formValue}
-          onChange={setFormValue}
-          defaultValue={overviewState?.description}
-        />
+        <div>
+          <ReactQuill
+            theme="snow"
+            value={formValue}
+            onChange={setFormValue}
+            defaultValue={overviewState?.description}
+          />
+        </div>
+        <div>
+          <span>Screenshots:</span>
+          {renderImgList()}
+        </div>
       </div>
     );
   } else {
@@ -297,7 +341,16 @@ export default function Review() {
             iconDescription="Edit overview"
             tooltipPosition="bottom"
           />
-          <EditSeed overviewId={day} />
+          <Button
+            className={styles.createSeed}
+            kind="primary"
+            size="small"
+            onClick={handleCreateSeed}
+            hasIconOnly
+            renderIcon={Sprout16}
+            iconDescription="Plant Seed"
+            tooltipPosition="bottom"
+          />
         </h4>
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />

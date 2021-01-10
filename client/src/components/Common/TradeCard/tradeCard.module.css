@@ -52,3 +52,11 @@ a {
 .strategyMissing {
   color: grey;
 }
+
+.arrowLong {
+  fill: green;
+}
+
+.arrowShort {
+  fill: red;
+}

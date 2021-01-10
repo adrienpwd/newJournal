@@ -3,10 +3,18 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
-import { loadTrades } from './../../actions/trades';
 import ReactQuill from 'react-quill';
 import ReactStars from 'react-stars';
 import Strategy from './../Tradebook/strategy';
+import { Edit16, Checkmark16, Close16, TrashCan16 } from '@carbon/icons-react';
+import {
+  loadTrades,
+  editTrade,
+  uploadImages,
+  deleteImage
+} from 'actions/trades';
+import { loadSeeds } from 'actions/seeds';
+import { Carousel } from 'react-responsive-carousel';
 
 import {
   catalysts,
@@ -40,15 +48,8 @@ import {
   Tag
 } from 'carbon-components-react';
 
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
-
-import { editTrade, uploadImages } from 'actions/trades';
-import { loadSeeds } from 'actions/seeds';
-
-import 'react-responsive-carousel/lib/styles/carousel.min.css';
-import { Carousel } from 'react-responsive-carousel';
-
 import styles from './trade.module.css';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 const ReviewTrade = () => {
   const dispatch = useDispatch();
@@ -104,14 +105,18 @@ const ReviewTrade = () => {
   useEffect(() => {
     if (trade?.img) {
       trade.img.forEach(i => {
-        const imgArr = i.split('/');
-        const path = `${imgArr[0]}/${imgArr[1]}/${imgArr[2]}`;
-        const filename = imgArr[3];
+        console.log(i);
+        const imgArr = i.split('-');
+        const date = new Date(Number(imgArr[1] + '000'));
+        const myDay =
+          date.getDay().length === 2 ? date.getDate() : `0${date.getDate()}`;
+        const path = `${date.getFullYear()}/${date.getMonth() + 1}/${myDay}`;
+
         axios({
           method: 'get',
           url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
           params: {
-            filename,
+            filename: i,
             path
           },
           responseType: 'blob'
@@ -120,7 +125,7 @@ const ReviewTrade = () => {
         });
       });
     }
-  }, []);
+  }, [trade]);
 
   useEffect(() => {
     if (!overviewSeeds) {
@@ -149,6 +154,11 @@ const ReviewTrade = () => {
       return { __html: trade?.review };
     }
   }
+
+  const handleDeleteScreenshot = img => {
+    console.log(img);
+    dispatch(deleteImage('trade', trade.id, img));
+  };
 
   const onSubmit = data => {
     const filteredFormValues = {};
@@ -209,6 +219,26 @@ const ReviewTrade = () => {
 
       dispatch(uploadImages(formData, 'trade', day));
     }
+  };
+
+  const renderImgList = () => {
+    return trade?.img?.map(img => {
+      return (
+        <div key={img} className={styles.imgEdit}>
+          <div>{img}</div>
+          <Button
+            className={styles.deleteImgButton}
+            kind="secondary"
+            size="small"
+            onClick={() => handleDeleteScreenshot(img)}
+            hasIconOnly
+            renderIcon={TrashCan16}
+            iconDescription="Delete"
+            tooltipPosition="left"
+          />
+        </div>
+      );
+    });
   };
 
   const renderImages = function () {
@@ -317,71 +347,77 @@ const ReviewTrade = () => {
 
   const renderEditView = function () {
     return (
-      <Form>
-        {!mySeed && (
-          <Select
-            ref={register}
-            id="strategy"
-            name="strategy"
-            labelText="Strategy"
-            defaultValue={trade.strategy}
-            invalidText="A valid value is required"
-          >
-            {strategies.map(s => {
-              return <SelectItem text={s.label} value={s.id} key={s.id} />;
+      <>
+        <Form>
+          {!mySeed && (
+            <Select
+              ref={register}
+              id="strategy"
+              name="strategy"
+              labelText="Strategy"
+              defaultValue={trade.strategy}
+              invalidText="A valid value is required"
+            >
+              {strategies.map(s => {
+                return <SelectItem text={s.label} value={s.id} key={s.id} />;
+              })}
+            </Select>
+          )}
+          Description:
+          <ReactQuill
+            theme="snow"
+            value={tradeFormValue}
+            onChange={setTradeFormValue}
+            value={tradeFormValue || trade?.description}
+          />
+          <FormGroup legendText="Catalysts">
+            {catalysts.map(c => {
+              return (
+                <Checkbox
+                  ref={register}
+                  labelText={c.label}
+                  id={c.id}
+                  name={c.id}
+                  key={c.id}
+                  defaultChecked={trade?.catalysts?.includes(c.id)}
+                />
+              );
             })}
-          </Select>
-        )}
-        Description:
-        <ReactQuill
-          theme="snow"
-          value={tradeFormValue}
-          onChange={setTradeFormValue}
-          value={tradeFormValue || trade?.description}
-        />
-        <FormGroup legendText="Catalysts">
-          {catalysts.map(c => {
-            return (
-              <Checkbox
-                ref={register}
-                labelText={c.label}
-                id={c.id}
-                name={c.id}
-                key={c.id}
-                defaultChecked={trade?.catalysts?.includes(c.id)}
-              />
-            );
-          })}
-        </FormGroup>
-        <NumberInput
-          ref={register}
-          id="rvol"
-          name="rvol"
-          invalidText="Number is not valid"
-          label="Relative Volume"
-          min={0}
-          value={Number(trade?.rvol)}
-        />
-        <NumberInput
-          ref={register}
-          id="commissions"
-          name="commissions"
-          invalidText="Number is not valid"
-          label="Commissions"
-          min={0}
-          step={1}
-          value={Number(trade?.commissions)}
-        />
-        Rating:
-        <ReactStars
-          count={5}
-          onChange={onRatingChange}
-          size={24}
-          color2={'#ffd700'}
-          half={false}
-          value={Number(trade?.rating)}
-        />
-      </Form>
+          </FormGroup>
+          <NumberInput
+            ref={register}
+            id="rvol"
+            name="rvol"
+            invalidText="Number is not valid"
+            label="Relative Volume"
+            min={0}
+            value={Number(trade?.rvol)}
+          />
+          <NumberInput
+            ref={register}
+            id="commissions"
+            name="commissions"
+            invalidText="Number is not valid"
+            label="Commissions"
+            min={0}
+            step={1}
+            value={Number(trade?.commissions)}
+          />
+          Rating:
+          <ReactStars
+            count={5}
+            onChange={onRatingChange}
+            size={24}
+            color2={'#ffd700'}
+            half={false}
+            value={Number(trade?.rating)}
+          />
+        </Form>
+        <div>
+          <span>Screenshots:</span>
+          {renderImgList()}
+        </div>
+      </>
     );
   };
 

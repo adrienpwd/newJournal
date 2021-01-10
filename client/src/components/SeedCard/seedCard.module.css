@@ -38,3 +38,11 @@
 .card {
   font-size: 16px;
 }
+
+.arrowLong {
+  fill: green;
+}
+
+.arrowShort {
+  fill: red;
+}

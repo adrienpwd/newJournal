@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   Button,
+  FileUploaderButton,
   Form,
   NumberInput,
   Select,
@@ -12,27 +13,36 @@ import {
 import { useForm } from 'react-hook-form';
 import ReactQuill from 'react-quill';
 import { strategies } from '../../utils';
-import { editSeed } from 'actions/seeds';
+import { editSeed, deleteSeed } from 'actions/seeds';
+import { uploadImages, deleteImage } from 'actions/trades';
+import { useHistory } from 'react-router-dom';
 
-import { Checkmark16, Edit16, Close16 } from '@carbon/icons-react';
+import { Checkmark16, Edit16, Close16, TrashCan16 } from '@carbon/icons-react';
 
 import styles from './editSeed.module.css';
 
 export default function EditSeed(props) {
   const dispatch = useDispatch();
+  const history = useHistory();
 
-  const [isEditMode, setEditMode] = useState(false);
   const [tradeLong, setTradeLong] = useState(true);
   const [formValue, setFormValue] = useState('');
 
-  const { overviewId } = props;
+  const { overviewId, onClose, seed } = props;
 
-  const makeEditState = () => {
-    setEditMode(true);
-  };
+  const seedId = seed?.id;
 
   const makeViewState = () => {
-    setEditMode(false);
+    if (!seed?.id) {
+      history.push(`/review/${overviewId}`);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleDeleteSeed = () => {
+    dispatch(deleteSeed(seedId));
+    history.push(`/review/${overviewId}`);
   };
 
   const onSubmit = data => {
@@ -46,10 +56,10 @@ export default function EditSeed(props) {
         : `0${currentTime.getMinutes()}`;
     const seedDate = new Date(overviewId);
     const timestamp = (seedDate - (seedDate % 1000)) / 1000;
-    const time = `${seedHours}:${seedMinutes}`;
+    const time = `${seedHours}${seedMinutes}`;
 
     const seedData = {
-      id: `${overviewId}-${ticker}-${strategy}-${time}`,
+      id: seed?.id || `${overviewId}-${ticker}-${strategy}-${timestamp}`,
       time,
       isLong: tradeLong,
       timestamp,
@@ -65,92 +75,147 @@ export default function EditSeed(props) {
     setTradeLong(e);
   };
 
-  const { register, handleSubmit, reset } = useForm();
+  const _handleUploadImages = e => {
+    const formData = new FormData();
 
-  // TODO:
-  // Need to be able to Edit the Seeds that were already created
-  // Need to be able to delete a Seed
+    const files = e.target.files;
 
-  if (isEditMode) {
-    return (
-      <div>
-        <div className={styles.headerContainer}>
-          <h4>Seed</h4>
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const imageName = `${seed?.id}_${i}`;
+        formData.append(imageName, files[i], imageName);
+      }
+
+      dispatch(uploadImages(formData, 'seed', overviewId, seed.id));
+    }
+  };
+
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('seed', seed.id, img));
+  };
+
+  const renderImgList = () => {
+    return seed?.img?.map(img => {
+      return (
+        <div key={img} className={styles.imgEdit}>
+          <div>{img}</div>
           <Button
-            className={styles.editButton}
-            kind="primary"
+            className={styles.deleteImgButton}
+            kind="secondary"
             size="small"
-            onClick={handleSubmit(onSubmit)}
+            onClick={() => handleDeleteScreenshot(img)}
             hasIconOnly
-            renderIcon={Checkmark16}
-            iconDescription="Validate seed details"
-            tooltipPosition="bottom"
-          />
-          <Button
-            className={styles.editButton}
-            kind="danger"
-            size="small"
-            onClick={makeViewState}
-            hasIconOnly
-            renderIcon={Close16}
-            iconDescription="Cancel"
-            tooltipPosition="bottom"
+            renderIcon={TrashCan16}
+            iconDescription="Delete"
+            tooltipPosition="left"
           />
         </div>
-        <ReactQuill theme="snow" value={formValue} onChange={setFormValue} />
-        <Form>
-          <TextInput
-            ref={register}
-            id="ticker"
-            name="ticker"
-            invalidText="A valid value is required"
-            labelText="Ticker"
-            placeholder="Enter Ticker"
-          />
-          <Toggle
-            ref={register}
-            id="side"
-            name="side"
-            aria-label="trade side"
-            defaultToggled
-            id="side-toggle"
-            labelText="Long"
-            onToggle={handleSideChange}
-          />
-          <Select
-            ref={register}
-            id="strategy"
-            name="strategy"
-            labelText="Strategy"
-            invalidText="A valid value is required"
-          >
-            {strategies.map(s => {
-              return <SelectItem text={s.label} value={s.id} key={s.id} />;
-            })}
-          </Select>
-          <NumberInput
-            ref={register}
-            id="price"
-            name="price"
-            invalidText="Number is not valid"
-            label="Price"
-            min={0}
-            step={1}
-          />
-        </Form>
+      );
+    });
+  };
+
+  const defaultValues = {
+    price: seed?.price
+  };
+
+  const { register, handleSubmit, reset } = useForm({ defaultValues });
+
+  return (
+    <div>
+      <div className={styles.headerContainer}>
+        <h4>Create New Seed</h4>
+        <Button
+          className={styles.editButton}
+          kind="danger"
+          size="small"
+          onClick={handleDeleteSeed}
+          hasIconOnly
+          renderIcon={TrashCan16}
+          iconDescription="Delete"
+          tooltipPosition="bottom"
+        />
+        <FileUploaderButton
+          className={styles.uploadButton}
+          buttonKind="tertiary"
+          accept={['.jpg', '.png']}
+          size="small"
+          labelText="Images"
+          multiple
+          onChange={_handleUploadImages}
+        />
+        <Button
+          className={styles.editButton}
+          kind="primary"
+          size="small"
+          onClick={handleSubmit(onSubmit)}
+          hasIconOnly
+          renderIcon={Checkmark16}
+          iconDescription="Validate seed details"
+          tooltipPosition="bottom"
+        />
+        <Button
+          className={styles.editButton}
+          kind="danger"
+          size="small"
+          onClick={makeViewState}
+          hasIconOnly
+          renderIcon={Close16}
+          iconDescription="Cancel"
+          tooltipPosition="bottom"
+        />
       </div>
-    );
-  } else {
-    return (
-      <Button
-        className={styles.seedButton}
-        kind="tertiary"
-        size="small"
-        onClick={makeEditState}
-        tooltipPosition="bottom"
-      >
-        Plant Seed
-      </Button>
-    );
-  }
+      <ReactQuill
+        theme="snow"
+        value={formValue}
+        onChange={setFormValue}
+        defaultValue={seed?.description}
+      />
+      <Form>
+        <TextInput
+          ref={register}
+          id="ticker"
+          name="ticker"
+          invalidText="A valid value is required"
+          labelText="Ticker"
+          placeholder="Enter Ticker"
+          defaultValue={seed?.ticker}
+        />
+        <Toggle
+          ref={register}
+          id="side"
+          name="side"
+          aria-label="trade side"
+          defaultToggled
+          id="side-toggle"
+          labelText="Long"
+          onToggle={handleSideChange}
+        />
+        <Select
+          ref={register}
+          id="strategy"
+          name="strategy"
+          labelText="Strategy"
+          invalidText="A valid value is required"
+          defaultValue={seed?.strategy}
+        >
+          {strategies.map(s => {
+            return <SelectItem text={s.label} value={s.id} key={s.id} />;
+          })}
+        </Select>
+        <NumberInput
+          ref={register}
+          id="price"
+          name="price"
+          invalidText="Number is not valid"
+          label="Price"
+          min={0}
+          step={1}
+        />
+      </Form>
+      <div>
+        <span>Screenshots:</span>
+        {renderImgList()}
+      </div>
+    </div>
+  );
 }

@@ -61,6 +61,38 @@ export function editSeed(seed, data) {
   };
 }
 
+export function deleteSeed(seedId) {
+  return dispatch => {
+    dispatch({
+      type: 'DELETE_SEED'
+    });
+
+    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/deleteSeed`, {
+      method: 'PUT',
+      body: JSON.stringify({ seedId }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(results => results.json())
+      .then(res => {
+        if (res.ok === true) {
+          dispatch({
+            type: 'DELETE_SEED_SUCCESS',
+            payload: { seedId }
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        dispatch({
+          type: 'DELETE_SEED_ERROR',
+          error
+        });
+      });
+  };
+}
+
 export function editTradeLink(currentSeedId, newSeedId, tradeId) {
   return dispatch => {
     dispatch({

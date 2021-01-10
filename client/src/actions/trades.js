@@ -66,7 +66,7 @@ export function importFiles(files) {
   };
 }
 
-export function uploadImages(images, type, day) {
+export function uploadImages(images, type, day, id) {
   return dispatch => {
     dispatch({
       type: 'IMPORT_IMAGES'
@@ -75,7 +75,7 @@ export function uploadImages(images, type, day) {
     const formattedDay = encodeURIComponent(day);
 
     fetch(
-      `${process.env.REACT_APP_USERS_SERVICE_URL}/uploadImages?type=${type}&day=${formattedDay}`,
+      `${process.env.REACT_APP_USERS_SERVICE_URL}/uploadImages?type=${type}&day=${formattedDay}&id=${id}`,
       {
         method: 'POST',
         body: images
@@ -94,6 +94,37 @@ export function uploadImages(images, type, day) {
         console.log(error);
         dispatch({
           type: 'UPLOAD_IMAGES_ERROR',
+          error
+        });
+      });
+  };
+}
+
+export function deleteImage(type, id, imgId) {
+  return dispatch => {
+    dispatch({
+      type: 'DELETE_IMAGE'
+    });
+
+    fetch(`${process.env.REACT_APP_USERS_SERVICE_URL}/deleteImage`, {
+      method: 'PUT',
+      body: JSON.stringify({ type, id, imgId }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(results => results.json())
+      .then(res => {
+        if (res.ok === true) {
+          dispatch({
+            type: 'DELETE_IMAGE_SUCCESS',
+            payload: { type, id, imgId }
+          });
+        }
+      })
+      .catch(error => {
+        dispatch({
+          type: 'DELETE_IMAGE_ERROR',
           error
         });
       });

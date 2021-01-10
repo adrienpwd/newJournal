@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadSeeds } from 'actions/seeds';
-import { Loading } from 'carbon-components-react';
+import { Button, Loading } from 'carbon-components-react';
+import EditSeed from './../EditSeed';
 import { strategies } from '../../utils';
+import { Carousel } from 'react-responsive-carousel';
+
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
 
 import styles from './seed.module.css';
 
 export default props => {
   const { tradeId, day } = useParams();
 
+  function makeEditState() {
+    setEditMode(true);
+  }
+
+  function makeViewState() {
+    setEditMode(false);
+  }
+
+  const [isEditMode, setEditMode] = useState(false);
+  const [images, setImages] = useState([]);
+
   const seedReducer = useSelector(state => state.seedReducer);
-  const { seeds, isLoading, isLoaded } = seedReducer;
+  const { seeds, loading, loaded } = seedReducer;
   const overviewSeeds = seeds[day];
 
   const dispatch = useDispatch();
@@ -39,11 +55,39 @@ export default props => {
     }
   }, []);
 
-  const seed = overviewSeeds?.length
-    ? overviewSeeds.find(s => s.id === tradeId)
-    : {};
+  let seed;
+  if (tradeId === 'create-new-seed') {
+    seed = {};
+  } else {
+    seed = overviewSeeds?.length
+      ? overviewSeeds.find(s => s.id === tradeId)
+      : {};
+  }
 
-  const strategy = strategies.find(s => seed.strategy === s.id);
+  useEffect(() => {
+    if (seed?.img) {
+      seed.img.forEach(i => {
+        const imgArr = i.split('-');
+        const imgIndex = i.split('_')[1];
+        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`;
+        const filename = `${seed.id}_${imgIndex}`;
+
+        axios({
+          method: 'get',
+          url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
+          params: {
+            filename,
+            path
+          },
+          responseType: 'blob'
+        }).then(response => {
+          setImages(images => images.concat(response.data));
+        });
+      });
+    }
+  }, [loading, loaded, seed]);
+
+  const strategy = strategies.find(s => seed?.strategy === s.id);
 
   function createMarkup() {
     return { __html: seed?.description };
@@ -58,22 +102,70 @@ export default props => {
     );
   };
 
-  const getTradeType = isLong => (isLong ? 'Long' : 'Short');
+  const getTradeType = isLong => {
+    if (isLong === true) {
+      return 'Long';
+    } else if (isLong === false) {
+      return 'Short';
+    } else {
+      return '';
+    }
+  };
+
+  const handleCloseSeed = () => {
+    makeViewState();
+  };
+
+  const renderImages = function () {
+    const seedImages = images.map((img, i) => {
+      return (
+        <div key={i}>
+          <img src={URL.createObjectURL(img)} />
+        </div>
+      );
+    });
+
+    return <Carousel autoPlay={false}>{seedImages}</Carousel>;
+  };
 
   const renderSeed = () => {
     return (
-      <div className={styles.container}>
-        <h2 className={styles.tradeHeader}>{seed.ticker}</h2>
-        <div className={styles.element}>Side: {getTradeType(seed.isLong)}</div>
-        <div>Time: {seed.time}</div>
-        <div className={styles.element}>{renderStrategy()}</div>
-        <div>Price: {`$${seed.price}`}</div>
-        <div dangerouslySetInnerHTML={createMarkup()} />
-      </div>
+      <>
+        {isEditMode || tradeId === 'create-new-seed' ? (
+          <EditSeed overviewId={day} onClose={handleCloseSeed} seed={seed} />
+        ) : (
+          <>
+            <Button
+              className={styles.editButton}
+              kind="primary"
+              size="small"
+              onClick={makeEditState}
+              hasIconOnly
+              renderIcon={Edit16}
+              iconDescription="Edit"
+              tooltipPosition="bottom"
+            />
+            <div className={styles.container}>
+              <h2 className={styles.tradeHeader}>{seed?.ticker}</h2>
+              <div className={styles.element}>
+                Side: {getTradeType(seed?.isLong)}
+              </div>
+              <div>Time: {seed?.time}</div>
+              <div className={styles.element}>{renderStrategy()}</div>
+              <div>Price: {`$${seed?.price}`}</div>
+              <div>Description:</div>
+              <div dangerouslySetInnerHTML={createMarkup()} />
+            </div>
+            <div className={styles.imagesArea}>
+              <div>{renderImages()}</div>
+            </div>
+          </>
+        )}
+      </>
     );
   };
 
-  return isLoading && !isLoaded ? (
+  return !loaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{renderSeed()}</div>

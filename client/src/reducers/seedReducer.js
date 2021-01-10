@@ -41,7 +41,6 @@ const onLoadSeedsSuccess = (state, payload) => {
 const onEditSeedSuccess = (state, { seed }) => {
   const formattedDay = seed.id.substring(0, 10).replace(/\//g, '-');
   let updatedSeeds;
-  console.log(state.seeds[formattedDay]);
   if (state.seeds[formattedDay]) {
     updatedSeeds = state.seeds[formattedDay].map(s => {
       if (s.id === seed.id) return seed;
@@ -61,6 +60,24 @@ const onEditSeedSuccess = (state, { seed }) => {
   };
 };
 
+const onDeleteSeedSuccess = (state, { seedId }) => {
+  const formattedDay = seedId.substring(0, 10).replace(/\//g, '-');
+  let updatedSeeds;
+  if (state.seeds[formattedDay]) {
+    updatedSeeds = [...state.seeds[formattedDay]];
+    const seedIndex = updatedSeeds.findIndex(s => s.id === seedId);
+    updatedSeeds.splice(seedIndex, 1);
+  }
+
+  return {
+    ...state,
+    seeds: {
+      ...state.seeds,
+      [formattedDay]: updatedSeeds
+    }
+  };
+};
+
 export default (state = initial_state, action = {}) => {
   const { type, payload, error } = action;
 
@@ -69,6 +86,8 @@ export default (state = initial_state, action = {}) => {
       return onLoadSeedsSuccess(state, payload);
     case 'EDIT_SEED_SUCCESS':
       return onEditSeedSuccess(state, payload);
+    case 'DELETE_SEED_SUCCESS':
+      return onDeleteSeedSuccess(state, payload);
     default:
       return state;
   }

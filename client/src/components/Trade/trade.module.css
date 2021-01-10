@@ -61,3 +61,16 @@
 .tradeRow {
   font-weight: bold;
 }
+
+.imgEdit {
+  align-items: center;
+  display: flex;
+}
+
+.deleteImgButton {
+  background-color: transparent;
+  color: black;
+}
+.deleteImgButton:hover {
+  background-color: #da1e28;
+}
