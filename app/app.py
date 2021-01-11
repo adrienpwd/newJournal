@@ -732,7 +732,8 @@ def edit_seed_data():
               'ticker': details['ticker'],
               'strategy': details['strategy'],
               'timestamp': details['timestamp'],
-              'time': details['time']
+              'time': details['time'],
+              'rulesRespected': details.get('rulesRespected', [])
             }
             }, upsert=True
         )

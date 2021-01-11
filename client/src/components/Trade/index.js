@@ -78,6 +78,8 @@ const ReviewTrade = () => {
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId) || {};
 
+  console.log(trade);
+
   const seedReducer = useSelector(state => state.seedReducer);
   const { seeds } = seedReducer;
   const overviewSeeds = seeds[day];
@@ -156,7 +158,6 @@ const ReviewTrade = () => {
   }
 
   const handleDeleteScreenshot = img => {
-    console.log(img);
     dispatch(deleteImage('trade', trade.id, img));
   };
 
@@ -168,13 +169,15 @@ const ReviewTrade = () => {
     Object.keys(data).forEach(key => {
       filteredFormValues[key] = data[key];
     });
-    const rulesRespected = [];
+    const rulesRespected = {};
     Object.keys(data).forEach(key => {
       const test = key.split('-')[0];
-      if (rulesItems.includes(test) && data[key]) {
-        rulesRespected.push(key);
+      if (rulesItems.includes(test)) {
+        rulesRespected[key] = data[key];
       }
     });
+
+    console.log(rulesRespected);
 
     if (data.seed?.length) {
       filteredFormValues.seed = data.seed;
@@ -185,7 +188,7 @@ const ReviewTrade = () => {
     if (tradeCatalysts?.length) {
       filteredFormValues.catalysts = tradeCatalysts;
     }
-    if (rulesRespected?.length) {
+    if (Object.keys(rulesRespected)?.length) {
       filteredFormValues.rulesRespected = rulesRespected;
     }
     if (tradeFormValue) {
@@ -355,7 +358,7 @@ const ReviewTrade = () => {
               id="strategy"
               name="strategy"
               labelText="Strategy"
-              defaultValue={trade.strategy}
+              defaultValue={trade?.strategy}
               invalidText="A valid value is required"
             >
               {strategies.map(s => {
@@ -562,9 +565,11 @@ const ReviewTrade = () => {
             <>
               <p>Did you respect all the rules and criterias ?</p>
               <Strategy
-                strategyId={trade?.strategy}
+                type="trade"
+                strategyId={strategy?.id}
                 isEditMode={isEditMode}
-                trade={trade}
+                tradeRulesRespected={trade?.rulesRespected}
+                seedRulesRespected={mySeed?.rulesRespected}
                 register={register}
               />
             </>

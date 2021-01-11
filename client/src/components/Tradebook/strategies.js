@@ -95,7 +95,12 @@ export default function Strategies() {
           </ListItem>
         </UnorderedList>
       </div>
-      <Strategy strategyId={strategyId} />
+      <Strategy
+        type="trade"
+        strategyId={strategyId}
+        seedRulesRespected={[]}
+        tradeRulesRespected={[]}
+      />
     </div>
   );
 }

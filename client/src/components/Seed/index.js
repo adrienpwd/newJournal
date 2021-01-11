@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loadSeeds } from 'actions/seeds';
 import { Button, Loading } from 'carbon-components-react';
 import EditSeed from './../EditSeed';
+import Strategy from './../Tradebook/strategy';
 import { strategies } from '../../utils';
 import { Carousel } from 'react-responsive-carousel';
 
@@ -102,6 +103,22 @@ export default props => {
     );
   };
 
+  const renderStrategyRules = () => {
+    const rulesRespected = seed?.rulesRespected || [];
+    return (
+      <>
+        <p>Did you respect all the rules and criterias ?</p>
+        <Strategy
+          type="seed"
+          strategyId={seed?.strategy}
+          isEditMode={false}
+          seedRulesRespected={rulesRespected}
+          tradeRulesRespected={[]}
+        />
+      </>
+    );
+  };
+
   const getTradeType = isLong => {
     if (isLong === true) {
       return 'Long';
@@ -146,19 +163,20 @@ export default props => {
               tooltipPosition="bottom"
             />
             <div className={styles.container}>
-              <h2 className={styles.tradeHeader}>{seed?.ticker}</h2>
+              <h2 className={styles.seedHeader}>{seed?.ticker}</h2>
               <div className={styles.element}>
                 Side: {getTradeType(seed?.isLong)}
               </div>
               <div>Time: {seed?.time}</div>
               <div className={styles.element}>{renderStrategy()}</div>
               <div>Price: {`$${seed?.price}`}</div>
-              <div>Description:</div>
+              <div className={styles.element}>Description:</div>
               <div dangerouslySetInnerHTML={createMarkup()} />
             </div>
             <div className={styles.imagesArea}>
               <div>{renderImages()}</div>
             </div>
+            {renderStrategyRules()}
           </>
         )}
       </>

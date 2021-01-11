@@ -13,6 +13,7 @@ import {
 import { useForm } from 'react-hook-form';
 import ReactQuill from 'react-quill';
 import { strategies } from '../../utils';
+import Strategy from './../Tradebook/strategy';
 import { editSeed, deleteSeed } from 'actions/seeds';
 import { uploadImages, deleteImage } from 'actions/trades';
 import { useHistory } from 'react-router-dom';
@@ -58,12 +59,23 @@ export default function EditSeed(props) {
     const timestamp = (seedDate - (seedDate % 1000)) / 1000;
     const time = `${seedHours}${seedMinutes}`;
 
+    const rulesItems = ['indicators', 'confirmations', 'rules'];
+
+    const rulesRespected = {};
+    Object.keys(data).forEach(key => {
+      const test = key.split('-')[0];
+      if (rulesItems.includes(test)) {
+        rulesRespected[key] = data[key];
+      }
+    });
+
     const seedData = {
       id: seed?.id || `${overviewId}-${ticker}-${strategy}-${timestamp}`,
       time,
       isLong: tradeLong,
       timestamp,
       description: formValue,
+      rulesRespected,
       ...data
     };
 
@@ -114,6 +126,23 @@ export default function EditSeed(props) {
     });
   };
 
+  const renderStrategyRules = () => {
+    const rulesRespected = seed?.rulesRespected || [];
+    return (
+      <>
+        <p>Did you respect all the rules and criterias ?</p>
+        <Strategy
+          type="seed"
+          strategyId={seed?.strategy}
+          isEditMode={false}
+          seedRulesRespected={rulesRespected}
+          tradeRulesRespected={[]}
+          register={register}
+        />
+      </>
+    );
+  };
+
   const defaultValues = {
     price: seed?.price
   };
@@ -123,7 +152,6 @@ export default function EditSeed(props) {
   return (
     <div>
       <div className={styles.headerContainer}>
-        <h4>Create New Seed</h4>
         <Button
           className={styles.editButton}
           kind="danger"
@@ -212,6 +240,8 @@ export default function EditSeed(props) {
           step={1}
         />
       </Form>
+      {renderStrategyRules()}
+
       <div>
         <span>Screenshots:</span>
         {renderImgList()}
