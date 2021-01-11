@@ -3,11 +3,27 @@ import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
-import { loadTrades } from './../../actions/trades';
 import ReactQuill from 'react-quill';
 import ReactStars from 'react-stars';
+import Strategy from './../Tradebook/strategy';
+import { Edit16, Checkmark16, Close16, TrashCan16 } from '@carbon/icons-react';
+import {
+  loadTrades,
+  editTrade,
+  uploadImages,
+  deleteImage
+} from 'actions/trades';
+import { loadSeeds } from 'actions/seeds';
+import { Carousel } from 'react-responsive-carousel';
 
-import { catalysts, strategies, filterFormValues } from './../../utils';
+import {
+  catalysts,
+  rulesItems,
+  strategies,
+  filterFormValues,
+  actionsHeadersData,
+  getStrategie
+} from './../../utils';
 
 import {
   DataTable,
@@ -23,69 +39,86 @@ import {
   FileUploaderButton,
   Form,
   FormGroup,
+  Loading,
   Select,
   SelectItem,
   NumberInput,
   Tabs,
   Tab,
-  TextArea,
   Tag
 } from 'carbon-components-react';
 
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
-
-import { editTrade, uploadImages } from 'actions/trades';
-
-import 'react-responsive-carousel/lib/styles/carousel.min.css';
-import { Carousel } from 'react-responsive-carousel';
-
 import styles from './trade.module.css';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 const ReviewTrade = () => {
   const dispatch = useDispatch();
   const { tradeId, day } = useParams();
 
+  const yearMonthdate = day.split('-');
+
+  // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
+  // When we create an Overview we initialize its time to 00:00
+  const dayTarget = new Date(
+    Number(yearMonthdate[2]),
+    Number(yearMonthdate[0] - 1),
+    Number(yearMonthdate[1]),
+    0,
+    0,
+    0,
+    0
+  );
+
+  const dayStartTimestamp = dayTarget.getTime();
+  const dayStartUnixTime = dayStartTimestamp / 1000;
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+
   const data = useSelector(state => state.tradeReducer);
-  const { loaded } = data;
+
   const trades = data.trades?.[day] || [];
-  const trade = trades.find(t => t.id === tradeId);
+  const trade = trades.find(t => t.id === tradeId) || {};
 
-  let catalystsCheckboxes = {};
-  trade &&
-    trade.catalysts &&
-    trade.catalysts.map(c => {
-      catalystsCheckboxes[c] = true;
-    });
+  console.log(trade);
 
-  const defaultValues = {
-    strategy: trade?.strategy || '',
-    description: trade?.description || '',
-    ...catalystsCheckboxes
-  };
-  const { register, handleSubmit, reset } = useForm({ defaultValues });
+  const seedReducer = useSelector(state => state.seedReducer);
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
+  const mySeed = overviewSeeds?.find(s => s.linked_trades?.includes(tradeId));
 
-  useEffect(() => {
-    if (!loaded) {
-      dispatch(loadTrades());
-    }
-  }, [reset]);
+  const strategy = getStrategie(mySeed?.strategy || trade?.strategy);
 
+  const { register, handleSubmit, reset } = useForm();
   const [images, setImages] = useState([]);
   const [tradeFormValue, setTradeFormValue] = useState('');
   const [reviewFormValue, setReviewFormValue] = useState('');
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(trade.rating);
+  const [isEditMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    const dayTarget = new Date(day);
+    const dayStartTimestamp = dayTarget.getTime();
+    const dayStartUnixTime = Math.floor(dayStartTimestamp / 1000);
+    const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+    if (!trade?.id) {
+      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, [reset]);
 
   useEffect(() => {
     if (trade?.img) {
       trade.img.forEach(i => {
-        const imgArr = i.split('/');
-        const path = `${imgArr[0]}/${imgArr[1]}/${imgArr[2]}`;
-        const filename = imgArr[3];
+        console.log(i);
+        const imgArr = i.split('-');
+        const date = new Date(Number(imgArr[1] + '000'));
+        const myDay =
+          date.getDay().length === 2 ? date.getDate() : `0${date.getDate()}`;
+        const path = `${date.getFullYear()}/${date.getMonth() + 1}/${myDay}`;
+
         axios({
           method: 'get',
           url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
           params: {
-            filename,
+            filename: i,
             path
           },
           responseType: 'blob'
@@ -94,9 +127,17 @@ const ReviewTrade = () => {
         });
       });
     }
+  }, [trade]);
+
+  useEffect(() => {
+    if (!overviewSeeds) {
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
+    }
   }, []);
 
-  const [isEditMode, setEditMode] = useState(false);
+  if (!trade) {
+    return <Loading description="Loading trade" withOverlay={false} />;
+  }
 
   function makeEditState() {
     setEditMode(true);
@@ -116,18 +157,39 @@ const ReviewTrade = () => {
     }
   }
 
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('trade', trade.id, img));
+  };
+
   const onSubmit = data => {
+    const filteredFormValues = {};
     const tradeCatalysts = catalysts
       .filter(c => data[c.id] === true)
       .map(c => c.id);
-    const filteredFormValues = {};
     Object.keys(data).forEach(key => {
-      if (filterFormValues(data[key])) {
-        filteredFormValues[key] = data[key];
+      filteredFormValues[key] = data[key];
+    });
+    const rulesRespected = {};
+    Object.keys(data).forEach(key => {
+      const test = key.split('-')[0];
+      if (rulesItems.includes(test)) {
+        rulesRespected[key] = data[key];
       }
     });
-    if (tradeCatalysts.length) {
+
+    console.log(rulesRespected);
+
+    if (data.seed?.length) {
+      filteredFormValues.seed = data.seed;
+    }
+    if (data.strategy?.length) {
+      filteredFormValues.strategy = data.strategy;
+    }
+    if (tradeCatalysts?.length) {
       filteredFormValues.catalysts = tradeCatalysts;
+    }
+    if (Object.keys(rulesRespected)?.length) {
+      filteredFormValues.rulesRespected = rulesRespected;
     }
     if (tradeFormValue) {
       filteredFormValues.description = tradeFormValue;
@@ -162,6 +224,26 @@ const ReviewTrade = () => {
     }
   };
 
+  const renderImgList = () => {
+    return trade?.img?.map(img => {
+      return (
+        <div key={img} className={styles.imgEdit}>
+          <div>{img}</div>
+          <Button
+            className={styles.deleteImgButton}
+            kind="secondary"
+            size="small"
+            onClick={() => handleDeleteScreenshot(img)}
+            hasIconOnly
+            renderIcon={TrashCan16}
+            iconDescription="Delete"
+            tooltipPosition="left"
+          />
+        </div>
+      );
+    });
+  };
+
   const renderImages = function () {
     const tradeImages = images.map((img, i) => {
       return (
@@ -187,45 +269,10 @@ const ReviewTrade = () => {
   };
 
   const renderActions = () => {
-    const headersData = [
-      {
-        key: 'category',
-        header: 'Category'
-      },
-      ,
-      {
-        key: 'time',
-        header: 'Time'
-      },
-      {
-        key: 'market_type',
-        header: 'Market'
-      },
-      {
-        key: 'type',
-        header: 'Type'
-      },
-      {
-        key: 'qty',
-        header: 'Qty'
-      },
-      {
-        key: 'init_price',
-        header: 'Price'
-      },
-      {
-        key: 'commissions',
-        header: 'Commissions'
-      },
-      {
-        key: 'slippage',
-        header: 'Slippage'
-      }
-    ];
     return (
       <DataTable
         rows={trade.actions}
-        headers={headersData}
+        headers={actionsHeadersData}
         render={({
           rows,
           headers,
@@ -304,32 +351,27 @@ const ReviewTrade = () => {
   const renderEditView = function () {
     return (
       <>
-        <div className={styles.tradeHeader}>
-          <h2>{trade.ticker}</h2>
-        </div>
-        <h4>{trade.account}</h4>
-        <h4>{trade.time}</h4>
-        <h4>{trade.gross_gain}</h4>
-        <h4>R: {trade.r}</h4>
-        <h4>slippage: {trade.slippage}</h4>
-
         <Form>
-          <Select
-            ref={register}
-            id="strategy"
-            name="strategy"
-            invalidText="This is an invalid error message."
-            labelText="Strategy"
-          >
-            {strategies.map(s => (
-              <SelectItem text={s.label} value={s.id} key={s.id} />
-            ))}
-          </Select>
+          {!mySeed && (
+            <Select
+              ref={register}
+              id="strategy"
+              name="strategy"
+              labelText="Strategy"
+              defaultValue={trade?.strategy}
+              invalidText="A valid value is required"
+            >
+              {strategies.map(s => {
+                return <SelectItem text={s.label} value={s.id} key={s.id} />;
+              })}
+            </Select>
+          )}
+          Description:
           <ReactQuill
             theme="snow"
             value={tradeFormValue}
             onChange={setTradeFormValue}
-            defaultValue={trade?.description}
+            value={tradeFormValue || trade?.description}
           />
           <FormGroup legendText="Catalysts">
             {catalysts.map(c => {
@@ -340,7 +382,7 @@ const ReviewTrade = () => {
                   id={c.id}
                   name={c.id}
                   key={c.id}
-                  //defaultChecked={trade.catalysts.includes(c.id)}
+                  defaultChecked={trade?.catalysts?.includes(c.id)}
                 />
               );
             })}
@@ -354,13 +396,6 @@ const ReviewTrade = () => {
             min={0}
             value={Number(trade?.rvol)}
           />
-          <ReactStars
-            count={5}
-            onChange={onRatingChange}
-            size={24}
-            color2={'#ffd700'}
-            value={Number(trade.rating)}
-          />
           <NumberInput
             ref={register}
             id="commissions"
@@ -371,7 +406,20 @@ const ReviewTrade = () => {
             step={1}
             value={Number(trade?.commissions)}
           />
+          Rating:
+          <ReactStars
+            count={5}
+            onChange={onRatingChange}
+            size={24}
+            color2={'#ffd700'}
+            half={false}
+            value={Number(trade?.rating)}
+          />
         </Form>
+        <div>
+          <span>Screenshots:</span>
+          {renderImgList()}
+        </div>
       </>
     );
   };
@@ -385,7 +433,6 @@ const ReviewTrade = () => {
     } else {
       gainClass = styles.negative;
     }
-    const strategy = strategies.find(s => s.id === trade.strategy);
     return (
       <>
         <div className={styles.tradeHeader}>
@@ -432,7 +479,6 @@ const ReviewTrade = () => {
         <ReactStars
           edit={false}
           count={5}
-          onChange={onRatingChange}
           size={24}
           color2={'#ffd700'}
           value={Number(trade.rating)}
@@ -516,6 +562,17 @@ const ReviewTrade = () => {
             ) : (
               <div dangerouslySetInnerHTML={createMarkup('review')} />
             )}
+            <>
+              <p>Did you respect all the rules and criterias ?</p>
+              <Strategy
+                type="trade"
+                strategyId={strategy?.id}
+                isEditMode={isEditMode}
+                tradeRulesRespected={trade?.rulesRespected}
+                seedRulesRespected={mySeed?.rulesRespected}
+                register={register}
+              />
+            </>
           </Tab>
         </Tabs>
       </div>

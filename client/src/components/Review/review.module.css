@@ -1,13 +1,12 @@
 .reviewContainer {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
 }
 
-.tradeCards {
+.cardsContainer {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
 }
 
 .editContainer {
@@ -22,4 +21,30 @@
 
 .editButton {
   margin-left: 16px;
+}
+
+.createSeed {
+  margin-left: 16px;
+  background-color: #a1887f;
+}
+.createSeed:hover {
+  background-color: #4caf50;
+}
+
+.seedAndTrades {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.imgEdit {
+  align-items: center;
+  display: flex;
+}
+
+.deleteImgButton {
+  background-color: transparent;
+  color: black;
+}
+.deleteImgButton:hover {
+  background-color: #da1e28;
 }

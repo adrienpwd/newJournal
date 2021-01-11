@@ -9,6 +9,6 @@ class Config(object):
     IMAGES_UPLOAD_FOLDER = '/tradeLogs'
     # Date format for DAS Trader csv files
     DATE_FORMAT_INPUT = '%m/%d/%y %H:%M:%S'
-    DATE_FORMAT_OUTPUT = '%d/%m/%Y %H:%M:%S'
-    # Structure for creating folders from date (20198/12/11 => 2019 > 12 > 11)
+    DATE_FORMAT_OUTPUT = '%m/%d/%Y %H:%M:%S'
+    # Structure for creating folders from date (2019/12/11 => 2019 > 12 > 11)
     FOLDER_DATE_STRUCTURE = '%Y%m%d'

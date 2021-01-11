@@ -1,10 +1,10 @@
-import React from 'react'
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-import { Navbar } from 'components/Common'
-import { Dashboard, Import, Review, Trades, Trade } from './../'
+import { Navbar, TradeOrSeed } from 'components/Common';
+import { Dashboard, Import, Review, Overviews, Tradebook, Utils } from './../';
 
-import styles from './app.module.css'
+import styles from './app.module.css';
 
 export default function App() {
   return (
@@ -13,14 +13,14 @@ export default function App() {
         <Navbar />
         <div className={styles.container}>
           <Switch>
-            <Route path="/trades">
-              <Trades />
+            <Route path="/overviews">
+              <Overviews />
             </Route>
             <Route path="/import">
               <Import />
             </Route>
             <Route path="/review/:day/:tradeId">
-              <Trade />
+              <TradeOrSeed />
             </Route>
             <Route path="/review/:day">
               <Review />
@@ -28,9 +28,15 @@ export default function App() {
             <Route path="/dashboard">
               <Dashboard />
             </Route>
+            <Route path="/tradebook">
+              <Tradebook />
+            </Route>
+            <Route path="/utils">
+              <Utils />
+            </Route>
           </Switch>
         </div>
       </>
     </Router>
-  )
+  );
 }

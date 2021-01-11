@@ -1,46 +1,101 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TradeCard } from 'components/Common';
+import SeedCard from '../SeedCard';
 import { Carousel } from 'react-responsive-carousel';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {
   Button,
   Form,
-  TextArea,
   FileUploaderButton,
   Loading
 } from 'carbon-components-react';
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
+import { Link, useRouteMatch } from 'react-router-dom';
+import {
+  Edit16,
+  Checkmark16,
+  Close16,
+  Sprout16,
+  TrashCan16
+} from '@carbon/icons-react';
 import ReactQuill from 'react-quill';
 
 import 'react-quill/dist/quill.snow.css';
 
-import { uploadImages } from 'actions/trades';
-import { editOverview, loadOverview } from 'actions/overviews';
+import { loadTrades, uploadImages, deleteImage } from 'actions/trades';
+import { editOverview, loadOverviews } from 'actions/overviews';
+import { loadSeeds } from 'actions/seeds';
 
 import styles from './review.module.css';
 
 export default function Review() {
+  const match = useRouteMatch();
+  const history = useHistory();
   const dispatch = useDispatch();
-  const myTrades = useSelector(state => state.tradeReducer)?.trades;
+
+  const tradeReducer = useSelector(state => state.tradeReducer);
+  const overviewReducer = useSelector(state => state.overviewReducer);
+  const seedReducer = useSelector(state => state.seedReducer);
+
   const { day } = useParams();
+
+  const { trades } = tradeReducer;
+  const tradesReview = trades?.[day];
+
+  const { overviews } = overviewReducer;
+
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
+
+  const overviewState = overviews[day];
 
   const [formValue, setFormValue] = useState('');
 
+  const yearMonthdate = day.split('-');
+
+  // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
+  // When we create an Overview we initialize its time to 00:00
+  const dayTarget = new Date(
+    Number(yearMonthdate[2]),
+    Number(yearMonthdate[0] - 1),
+    Number(yearMonthdate[1]),
+    0,
+    0,
+    0,
+    0
+  );
+
+  const dayStartTimestamp = dayTarget.getTime();
+  const dayStartUnixTime = dayStartTimestamp / 1000;
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+
   useEffect(() => {
-    dispatch(loadOverview(day));
+    if (!overviewState) {
+      dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime));
+    }
   }, []);
 
-  const overviewState = useSelector(state => state.overviewReducer)?.overviews[
-    day
-  ];
-  const isLoading = overviewState?.loading;
-  const isLoaded = overviewState?.loaded;
-  const overview = overviewState?.overview || {};
+  useEffect(() => {
+    if (!tradesReview) {
+      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, []);
 
-  const tradesReview = myTrades[day];
+  useEffect(() => {
+    if (!overviewSeeds) {
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
+    }
+  }, []);
+
+  const isOverviewLoading = overviewState?.loading;
+  const isOverviewLoaded = overviewState?.loaded;
+
+  const isSeedLoading = seedReducer?.loading;
+  const isSeedLoaded = seedReducer?.loaded;
 
   const [isEditMode, setEditMode] = useState(false);
 
@@ -48,11 +103,13 @@ export default function Review() {
 
   const [images, setImages] = useState([]);
 
+  const [isSeedEditMode, setSeedEditMode] = useState(false);
+
   useEffect(() => {
-    if (overview?.img) {
-      overview.img.forEach(i => {
+    if (overviewState?.img) {
+      overviewState.img.forEach(i => {
         const imgArr = i.split('-');
-        const path = `${imgArr[2]}/${imgArr[1]}/${imgArr[0]}`;
+        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`;
         const filename = i;
         axios({
           method: 'get',
@@ -67,7 +124,7 @@ export default function Review() {
         });
       });
     }
-  }, [isLoading]);
+  }, [overviewState]);
 
   function makeEditState() {
     setEditMode(true);
@@ -77,8 +134,27 @@ export default function Review() {
     setEditMode(false);
   }
 
+  const makeSeedEditState = () => {
+    setSeedEditMode(true);
+  };
+
+  const makeSeedViewState = () => {
+    setSeedEditMode(false);
+  };
+
+  const handleCreateSeed = () => {
+    history.push(`/review/${match.params.day}/create-new-seed`);
+  };
+
   const onSubmit = () => {
-    dispatch(editOverview(overview, { description: formValue }));
+    const currentOverview = overviewState || {};
+    dispatch(
+      editOverview(currentOverview, {
+        description: formValue,
+        id: day,
+        timestamp: dayStartUnixTime
+      })
+    );
     makeViewState();
   };
 
@@ -99,8 +175,12 @@ export default function Review() {
     }
   };
 
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('overview', overviewState.id, img));
+  };
+
   function createMarkup() {
-    return { __html: overview?.description };
+    return { __html: overviewState?.description };
   }
 
   const renderImages = function () {
@@ -116,9 +196,9 @@ export default function Review() {
   };
 
   const renderPnLbyAccount = () => {
-    if (overview?.accounts && Object.keys(overview?.accounts)) {
-      return Object.keys(overview?.accounts).map((key, i) => {
-        const account = overview.accounts[key];
+    if (overviewState?.accounts && Object.keys(overviewState?.accounts)) {
+      return Object.keys(overviewState?.accounts).map((key, i) => {
+        const account = overviewState.accounts[key];
         return (
           <h4 key={i}>
             {account.account}: Gross: {account.gross} Net {account.net}
@@ -128,8 +208,72 @@ export default function Review() {
     }
   };
 
-  const renderTradesCard = () =>
-    tradesReview.map(trade => <TradeCard key={trade.id} trade={trade} />);
+  const renderCards = () => {
+    const linkedTradeIds = [];
+    const linkedTrades = (overviewSeeds || []).map(seed => {
+      const myTrades = (seed?.linked_trades || []).map((t, i) => {
+        const trade = tradesReview?.find(trade => trade.id === t);
+        linkedTradeIds.push(trade.id);
+        return (
+          <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
+        );
+      });
+      return (
+        <div className={styles.seedAndTrades} key={`${seed.id}-linked`}>
+          <SeedCard seed={seed} />
+          {myTrades}
+        </div>
+      );
+    });
+
+    let unlinkedTrades = [];
+    if (tradesReview) {
+      unlinkedTrades = tradesReview
+        .filter(t => {
+          return !linkedTradeIds.includes(t.id);
+        })
+        .map((trade, i) => {
+          return (
+            <div className={styles.seedAndTrades} key={`${trade.id}-unlinked`}>
+              <SeedCard unlinked seed={{}} />
+              <TradeCard trade={trade} unlinked />
+            </div>
+          );
+        });
+    }
+
+    // When there is no unlinked trades there is no way to unlink
+    // linked trade, so we push a Unlink seedcard
+    if (unlinkedTrades.length === 0) {
+      unlinkedTrades.push(
+        <div className={styles.seedAndTrades}>
+          <SeedCard unlinked seed={{}} />
+        </div>
+      );
+    }
+
+    return [linkedTrades, unlinkedTrades];
+  };
+
+  const renderImgList = () => {
+    return overviewState?.img?.map(img => {
+      return (
+        <div key={img} className={styles.imgEdit}>
+          <div>{img}</div>
+          <Button
+            className={styles.deleteImgButton}
+            kind="secondary"
+            size="small"
+            onClick={() => handleDeleteScreenshot(img)}
+            hasIconOnly
+            renderIcon={TrashCan16}
+            iconDescription="Delete"
+            tooltipPosition="left"
+          />
+        </div>
+      );
+    });
+  };
 
   let display;
 
@@ -168,37 +312,60 @@ export default function Review() {
             tooltipPosition="bottom"
           />
         </div>
-        <ReactQuill
-          theme="snow"
-          value={formValue}
-          onChange={setFormValue}
-          defaultValue={overview?.description}
-        />
+        <div>
+          <ReactQuill
+            theme="snow"
+            value={formValue}
+            onChange={setFormValue}
+            defaultValue={overviewState?.description}
+          />
+        </div>
+        <div>
+          <span>Screenshots:</span>
+          {renderImgList()}
+        </div>
       </div>
     );
   } else {
     display = (
       <div>
-        <Button
-          className={styles.editButton}
-          kind="tertiary"
-          size="small"
-          onClick={makeEditState}
-          hasIconOnly
-          renderIcon={Edit16}
-          iconDescription="Edit overview"
-          tooltipPosition="bottom"
-        />
+        <h4>
+          {dayTarget.toDateString()}
+          <Button
+            className={styles.editButton}
+            kind="tertiary"
+            size="small"
+            onClick={makeEditState}
+            hasIconOnly
+            renderIcon={Edit16}
+            iconDescription="Edit overview"
+            tooltipPosition="bottom"
+          />
+          <Button
+            className={styles.createSeed}
+            kind="primary"
+            size="small"
+            onClick={handleCreateSeed}
+            hasIconOnly
+            renderIcon={Sprout16}
+            iconDescription="Plant Seed"
+            tooltipPosition="bottom"
+          />
+        </h4>
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
-        <div className={styles.tradeCards}>{renderTradesCard()}</div>
+        {tradesReview?.length > 0 && (
+          <DndProvider backend={HTML5Backend}>
+            <div className={styles.cardsContainer}>{renderCards()}</div>
+          </DndProvider>
+        )}
         <div>{renderImages()}</div>
       </div>
     );
   }
 
-  return isLoading && !isLoaded ? (
+  return isOverviewLoading && !isOverviewLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{display}</div>

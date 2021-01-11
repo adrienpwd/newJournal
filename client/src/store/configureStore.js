@@ -3,6 +3,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import tradeReducer from '../reducers/tradeReducer';
 import dashboardReducer from '../reducers/dashboardReducer';
 import overviewReducer from '../reducers/overviewReducer';
+import seedReducer from '../reducers/seedReducer';
 
 const enhancers = [];
 
@@ -17,7 +18,8 @@ export default () => {
     combineReducers({
       tradeReducer,
       dashboardReducer,
-      overviewReducer
+      overviewReducer,
+      seedReducer
     }),
     {},
     compose(applyMiddleware(thunkMiddleware), ...enhancers)

@@ -1,0 +1,36 @@
+.rToolContainer {
+  width: 608px;
+  background-color: lightgrey;
+  padding: 8px;
+  box-shadow: 4px 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.rToolTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #0f62fe;
+}
+
+.rTool {
+  display: flex;
+  flex-direction: row;
+  max-width: 600px;
+}
+
+.config {
+  display: flex;
+  width: 620px;
+  margin-bottom: 16px;
+}
+
+.sliderContainer {
+  display: flex;
+  flex-direction: column;
+  width: 450px;
+}
+
+.rTable {
+  width: 250px;
+  max-width: 250px;
+}

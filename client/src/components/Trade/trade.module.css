@@ -47,17 +47,30 @@
 }
 
 .positive {
-  color: green;
+  color: #4caf50;
 }
 
 .negative {
-  color: red;
+  color: #a30000;
 }
 
 .neuter {
-  color: orange;
+  color: black;
 }
 
 .tradeRow {
   font-weight: bold;
+}
+
+.imgEdit {
+  align-items: center;
+  display: flex;
+}
+
+.deleteImgButton {
+  background-color: transparent;
+  color: black;
+}
+.deleteImgButton:hover {
+  background-color: #da1e28;
 }

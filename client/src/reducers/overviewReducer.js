@@ -1,62 +1,53 @@
 const initial_state = {
   error: null,
   overviews: {}
-}
+};
 
-const onLoadOverview = (state, { day }) => {
+const onLoadOverviews = (state, { start, end }) => {
   return {
     ...state,
-    overviews: {
-      ...state.overviews,
-      [day]: {
-        loading: true,
-        loaded: false
-      }
-    }
-  }
-}
+    loading: true,
+    loaded: false
+  };
+};
 
 const onLoadOverviewSuccess = (state, payload) => {
-  const { overview } = payload
+  const { overviews } = payload;
+  const overviewObject = {};
+  for (let i = 0; i < overviews.length; i++) {
+    overviewObject[overviews[i].id] = overviews[i];
+  }
+  return {
+    loading: false,
+    loaded: true,
+    overviews: {
+      ...state.overviews,
+      ...overviewObject
+    }
+  };
+};
 
+const onEditOverviewSuccess = (state, { overview }) => {
   return {
     ...state,
     overviews: {
       ...state.overviews,
-      [overview.id]: { loading: false, loaded: true, overview }
+      [overview.id]: { ...state.overviews[overview.id], ...overview }
     }
-  }
-}
-
-const onEditOverviewSuccess = (state, { overview, data }) => {
-  const editedOverview = {
-    ...state.overviews[overview.id],
-    overview: {
-      ...state.overviews[overview.id]?.overview,
-      ...data
-    }
-  }
-
-  return {
-    ...state,
-    overviews: {
-      ...state.overviews,
-      [overview.id]: editedOverview
-    }
-  }
-}
+  };
+};
 
 export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action
+  const { type, payload, error } = action;
 
   switch (type) {
     case 'LOAD_OVERVIEW':
-      return onLoadOverview(state, payload)
+      return onLoadOverviews(state, payload);
     case 'LOAD_OVERVIEW_SUCCESS':
-      return onLoadOverviewSuccess(state, payload)
+      return onLoadOverviewSuccess(state, payload);
     case 'EDIT_OVERVIEW_SUCCESS':
-      return onEditOverviewSuccess(state, payload)
+      return onEditOverviewSuccess(state, payload);
     default:
-      return state
+      return state;
   }
-}
+};

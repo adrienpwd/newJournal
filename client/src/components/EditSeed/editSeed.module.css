@@ -1,0 +1,31 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+}
+
+.seedButton {
+  color: #00600f;
+  border: solid 1px #00600f;
+}
+
+.editButton {
+  margin-left: 6px;
+}
+
+.uploadButton {
+  margin-left: 8px;
+  width: 45px;
+}
+
+.imgEdit {
+  align-items: center;
+  display: flex;
+}
+
+.deleteImgButton {
+  background-color: transparent;
+  color: black;
+}
+.deleteImgButton:hover {
+  background-color: #da1e28;
+}

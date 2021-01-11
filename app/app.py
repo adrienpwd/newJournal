@@ -134,6 +134,7 @@ def init_trade(row):
         'description': '',
         'review': '',
         'catalysts': [],
+        'rulesRespected': [],
         'rvol': None,
         'rating': None,
         'commissions': commissions
@@ -173,7 +174,7 @@ def get_nb_shares(filled_actions):
 def get_slippage(order_actions):
     slippage = 0
     for order in order_actions:
-        if order['is_stop'] == False:
+        if order['is_stop'] == False and order.get('slippage') != None:
             slippage += (order['slippage'] * order['qty'])
 
     return round(slippage, 2)
@@ -200,7 +201,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
     my_order = orders_dictionary[order_id]
     entry_time = my_order['time']
     trade_entry_time = datetime.strptime(
-        entry_time, '%d/%m/%Y %H:%M:%S').timestamp()
+        entry_time, DATE_FORMAT_OUTPUT).timestamp()
 
     while init_size >= 0:
         if len(all_trades) == 0:
@@ -235,7 +236,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
         if next_size == 0:
             exit_time = next_trade.get('time')
             trade_exit_time = datetime.strptime(
-                exit_time, '%d/%m/%Y %H:%M:%S').timestamp()
+                exit_time, DATE_FORMAT_OUTPUT).timestamp()
 
             for order in orders_dictionary:
                 my_order = orders_dictionary[order]
@@ -244,7 +245,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                         'ticker') and initial_trade.get('account') == my_order.get('account')
                 ):
                     order_time = datetime.strptime(
-                        my_order.get('time'), '%d/%m/%Y %H:%M:%S').timestamp()
+                        my_order.get('time'), DATE_FORMAT_OUTPUT).timestamp()
                     if trade_entry_time <= order_time <= trade_exit_time:
                         initial_trade['actions'].append(my_order)
 
@@ -298,12 +299,12 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             nb_shares = get_nb_shares(trade_actions)
             initial_trade['nb_shares'] = nb_shares
 
-            if initial_trade['account'] == 'TRPCT0094':
-                commissions = 0.005 * nb_shares
-                initial_trade['commissions'] = 0.005 * nb_shares
-                if gross_gain != 0:
-                    initial_trade['ratio_com_gain'] = round(abs(commissions / gross_gain), 4)
-                initial_trade['net_gain'] = round(gross_gain - commissions, 4)
+            #if initial_trade['account'] == 'TRPCT0094':
+                #commissions = 0.005 * nb_shares
+                #initial_trade['commissions'] = 0.005 * nb_shares
+                #initial_trade['ratio_com_gain'] = round(
+                    #abs(commissions / gross_gain), 4)
+                #initial_trade['net_gain'] = round(gross_gain - commissions, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(order_actions)
@@ -341,8 +342,7 @@ def list_trades():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_trades = db.trades.find(
-                {"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            matching_trades = db.trades.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
             return_data = list(matching_trades)
             return jsonify({'ok': True, 'trades': return_data})
 
@@ -351,18 +351,27 @@ def list_trades():
         return jsonify({'ok': True, 'trades': return_data})
 
 
-@application.route('/overview', methods=['GET'])
+@application.route('/overviews', methods=['GET'])
 def get_overview():
-    ''' route to get an overview '''
+    ''' route to get one or more overview(s) '''
     if request.method == 'GET':
         if request.args:
-            day = request.args['day']
-            overview = db.overviews.find_one({"id": day})
-            if overview:
-                return jsonify({'ok': True, 'overview': overview})
-        # If no overview exists we return an Object with the requested id (to store in redux)
-        return jsonify({'ok': True, 'overview': {"id": day}})
+            startTimestamp = int(request.args['start'])
+            endTimestamp = int(request.args['end'])
+            matching_overviews = db.overviews.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            return_data = list(matching_overviews)
+            return jsonify({'ok': True, 'overviews': return_data})
 
+@application.route('/seeds', methods=['GET'])
+def get_seeds():
+    ''' route to get seeds for an Overview '''
+    if request.method == 'GET':
+        if request.args:
+            startTimestamp = int(request.args['start'])
+            endTimestamp = int(request.args['end'])
+            matching_seeds = db.seeds.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            return_data = list(matching_seeds)
+            return jsonify({'ok': True, 'seeds': return_data})
 
 @application.route('/importTrades', methods=['GET', 'POST'])
 def post_raw_data():
@@ -482,13 +491,14 @@ def post_raw_data():
         overview_id = all_my_trades[0].get('time')[:10]
         overview_id = overview_id.replace('/', '-')
 
-        db.overviews.insert(
-            {
-                'id': overview_id,
+        db.overviews.update_one(
+            {'id': overview_id},
+            {"$set": {
+              'id': overview_id,
                 'accounts': pnl_by_accounts,
                 'timestamp': trade.get('timestamp')
-
             }
+            }, upsert=True
         )
 
         return jsonify({'ok': True, 'aggregatedTrades': all_my_trades})
@@ -503,6 +513,46 @@ def post_trade_images():
         trade_id = ''
         overview_id = ''
 
+        if image_type == 'seed':
+            # filename should be this format
+            # date-seedId-index
+            # ex: 12-14-2020-AMD-orb-1802-0.PNG
+            seed_id = request.args['id']
+            for i, seed_image in enumerate(request.files):
+                dayArr = day.split('-')
+                year_val = dayArr[2]
+                month_val = dayArr[0]
+                day_val = dayArr[1]
+                date_path = os.path.join(year_val, month_val, day_val)
+                try:
+                    os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
+                except FileExistsError:
+                    # directory already exists
+                    print('Folder already exists')
+                file = request.files[seed_image]
+
+                saved_images = os.listdir(os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path))
+                base_index = len(saved_images)
+                image_final_name = seed_id + '_' + str(base_index) + '.PNG'
+
+                # image_final_name = seed_id + '.PNG'
+                filename = secure_filename(image_final_name)
+                image_full_path = os.path.join(
+                    IMAGES_UPLOAD_FOLDER, date_path, filename)
+
+                file.save(image_full_path)
+                image_pathes.append(image_full_path)
+
+                db.seeds.update_one(
+                    {'id': seed_id},
+                    {"$push": {
+                        # 'img': date_path + '/' + filename
+                        'img': filename
+                    }
+                    }, upsert=True
+                )
+
         if image_type == 'overview':
             # filename should be this format
             # date-index
@@ -510,8 +560,8 @@ def post_trade_images():
             for i, overview_image in enumerate(request.files):
                 dayArr = day.split('-')
                 year_val = dayArr[2]
-                month_val = dayArr[1]
-                day_val = dayArr[0]
+                month_val = dayArr[0]
+                day_val = dayArr[1]
                 date_path = os.path.join(year_val, month_val, day_val)
                 try:
                     os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
@@ -528,7 +578,6 @@ def post_trade_images():
                 image_final_name = overview_img_name + \
                     '-' + str(base_index) + '.PNG'
 
-                # image_final_name = overview_img_name + '.PNG'
                 filename = secure_filename(image_final_name)
                 image_full_path = os.path.join(
                     IMAGES_UPLOAD_FOLDER, date_path, filename)
@@ -553,8 +602,8 @@ def post_trade_images():
             for trade_image in request.files:
                 dayArr = day.split('-')
                 year_val = dayArr[2]
-                month_val = dayArr[1]
-                day_val = dayArr[0]
+                month_val = dayArr[0]
+                day_val = dayArr[1]
                 date_path = os.path.join(year_val, month_val, day_val)
                 try:
                     os.makedirs(os.path.join(IMAGES_UPLOAD_FOLDER, date_path))
@@ -581,7 +630,7 @@ def post_trade_images():
                 db.trades.update_one(
                     {'id': trade_id},
                     {"$push": {
-                        'img': date_path + '/' + filename
+                        'img': filename
                     }
                     }, upsert=False
                 )
@@ -606,20 +655,26 @@ def edit_trade_data():
             ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
+        
+        if len(details.get('strategy', '')) > 0:
+            strategy_value = details.get('strategy')
+        else:
+            strategy_value = my_trade['strategy']
 
         db.trades.update_one(
             {'id': trade['id']},
             {"$set": {
-                'strategy': details.get('strategy', my_trade['strategy']),
+                'strategy': strategy_value,
                 'description': details.get('description', my_trade['description']),
                 'review': details.get('review', my_trade['review']),
-                'catalysts': details.get('catalysts', my_trade['catalysts']),
+                'catalysts': details.get('catalysts'),
+                'rulesRespected': details.get('rulesRespected', []),
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
                 'net_gain': net_gain,
                 'ratio_com_gain': ratio_gain_commissions
-            }
+              }
             }, upsert=False
         )
 
@@ -627,7 +682,7 @@ def edit_trade_data():
 
         # If we edited a trade and added the commission
         # we need to reflect that on the daily PnL
-        if details.get('commissions'):
+        if details.get('commissions') != my_trade.get('commissions'):
             overview_id = my_trade.get('time')[:10]
             overview_id = overview_id.replace('/', '-')
 
@@ -662,6 +717,81 @@ def edit_trade_data():
 
         return jsonify({'ok': True, 'tradeID': trade['_id']})
 
+@application.route('/editSeed', methods=['GET', 'PUT'])
+def edit_seed_data():
+    ''' route to edit a seed '''
+    if request.method == 'PUT':
+        details = request.json['data']
+        seed = request.json['seed']
+        seed_id = seed.get('id', details['id'])
+        db.seeds.update_one(
+            {'id': seed_id},
+            {"$set": {
+              'description': details['description'],
+              'isLong': details['isLong'],
+              'price': details['price'],
+              'ticker': details['ticker'],
+              'strategy': details['strategy'],
+              'timestamp': details['timestamp'],
+              'time': details['time'],
+              'rulesRespected': details.get('rulesRespected', [])
+            }
+            }, upsert=True
+        )
+        return_data = db.seeds.find_one({"id": seed_id})
+        return jsonify({'ok': True, 'seed': return_data})
+
+@application.route('/deleteSeed', methods=['GET', 'PUT'])
+def delete_seed_data():
+    ''' route to delete a seed '''
+    if request.method == 'PUT':
+        seed_id = request.json['seedId']
+        db.seeds.delete_one(
+            {'id': seed_id}
+        )
+        return jsonify({'ok': True, 'seedId': seed_id})
+
+@application.route('/editTradeLink', methods=['GET', 'PUT'])
+def edit_trade_link():
+    ''' route to edit a trade <-> seed link '''
+    if request.method == 'PUT':
+      current_seed_id = request.json['currentSeedId']
+      new_seed_id = request.json['newSeedId']
+      trade_id = request.json['tradeId']
+
+      linked_trades = []
+      my_seed = {}
+
+      # Unlinking a trade
+      if new_seed_id == "unlink" and len(current_seed_id) > 0:
+        my_seed = db.seeds.find_one({'id': current_seed_id})
+        linked_trades = my_seed.get('linked_trades', [])
+        try:
+          linked_trades.remove(trade_id)
+        except:
+          print('Tried to Unlink a Trade that was not linked')
+
+      # Linking a unlinked trade
+      elif current_seed_id == "" and new_seed_id:
+        my_seed = db.seeds.find_one({'id': new_seed_id})
+        linked_trades = my_seed.get('linked_trades', [])
+        linked_trades.append(trade_id)
+
+      else:
+        print('Please unlink the trade before making a new link.')
+
+      if my_seed:
+        db.seeds.update_one(
+          {'id': my_seed['id']},
+          {"$set": {
+            'linked_trades': linked_trades
+            }
+          }, upsert=True
+        )
+        return_data = db.seeds.find_one({"id": my_seed['id']})
+        return jsonify({'ok': True, 'seed': return_data})
+      else:
+        return jsonify({'ok': False})
 
 @application.route('/editOverview', methods=['GET', 'PUT'])
 def edit_overview_data():
@@ -669,14 +799,16 @@ def edit_overview_data():
     if request.method == 'PUT':
         overview = request.json['overview']
         details = request.json['data']
+        overview_id = overview.get('id', details['id'])
         db.overviews.update_one(
-            {'id': overview['id']},
+            {'id': overview_id},
             {"$set": {
-                'description': details['description']
+                'description': details['description'],
+                'timestamp': details.get('timestamp')
             }
             }, upsert=True
         )
-        return_data = db.overviews.find_one({"id": overview['id']})
+        return_data = db.overviews.find_one({"id": overview_id})
         return jsonify({'ok': True, 'overview': return_data})
 
 
@@ -685,6 +817,80 @@ def send_image():
     imgFilename = request.args['filename']
     imgPath = request.args['path']
     return send_from_directory(IMAGES_UPLOAD_FOLDER + '/' + imgPath, imgFilename, as_attachment=True)
+
+@application.route('/deleteImage', methods=['GET', 'PUT'])
+def delete_image():
+    ''' route to delete a screenshot '''
+    if request.method == 'PUT':
+        img_id = request.json['imgId']
+        object_type = request.json['type']
+        object_id = request.json['id']
+
+        full_img_path = ''
+
+        if object_type == 'seed':
+          my_seed = db.seeds.find_one({'id': object_id})
+          current_img = my_seed.get('img', [])
+          try:
+            current_img.remove(img_id)
+            dayArr = img_id.split('-')
+            year_val = dayArr[2]
+            month_val = dayArr[0]
+            day_val = dayArr[1]
+            full_img_path = os.path.join(IMAGES_UPLOAD_FOLDER, year_val, month_val, day_val, img_id)
+            os.remove(full_img_path)
+            db.seeds.update_one(
+              {'id': my_seed['id']},
+              {"$set": {'img': current_img}}
+            )
+            return jsonify({'ok': True, 'type': object_type, 'id': object_id, 'img_id': img_id, 'full_img_path': full_img_path})
+
+          except:
+            return jsonify({'ok': False, 'error': "Image not found"})
+
+        if object_type == 'overview':
+          my_overview = db.overviews.find_one({'id': object_id})
+          current_img = my_overview.get('img', [])
+          try:
+            current_img.remove(img_id)
+            dayArr = img_id.split('-')
+            year_val = dayArr[2]
+            month_val = dayArr[0]
+            day_val = dayArr[1]
+            full_img_path = os.path.join(IMAGES_UPLOAD_FOLDER, year_val, month_val, day_val, img_id)
+            os.remove(full_img_path)
+            db.overviews.update_one(
+              {'id': my_overview['id']},
+              {"$set": {'img': current_img}}
+            )
+            return jsonify({'ok': True, 'type': object_type, 'id': object_id, 'img_id': img_id, 'full_img_path': full_img_path})
+
+          except:
+            return jsonify({'ok': False, 'error': "Image not found"})
+
+        if object_type == 'trade':
+          my_trade = db.trades.find_one({'id': object_id})
+          current_img = my_trade.get('img', [])
+          try:
+            current_img.remove(img_id)
+            dayArr = img_id.split('-')
+            my_timestamp = dayArr[1]
+            my_date = datetime.fromtimestamp(int(my_timestamp))
+            my_year = str(my_date.year)
+            my_month = str(my_date.month)
+            my_day = str(my_date.day)
+            if len(str(my_date.day)) == 1:
+              my_day = '0' + str(my_day)
+            full_img_path = os.path.join(IMAGES_UPLOAD_FOLDER, my_year, my_month, my_day, img_id)
+            os.remove(full_img_path)
+            db.trades.update_one(
+              {'id': my_trade['id']},
+              {"$set": {'img': current_img}}
+            )
+            return jsonify({'ok': True, 'type': object_type, 'id': object_id, 'img_id': img_id, 'full_img_path': full_img_path})
+
+          except:
+            return jsonify({'ok': False, 'error': "Image not found"})
 
 
 @application.route('/statistics', methods=['GET'])

@@ -9,3 +9,6 @@
   font-weight: bold;
   color: lightgrey;
 }
+.link:hover {
+  color: #0f62fe;
+}
