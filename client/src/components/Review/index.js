@@ -246,7 +246,7 @@ export default function Review() {
     // linked trade, so we push a Unlink seedcard
     if (unlinkedTrades.length === 0) {
       unlinkedTrades.push(
-        <div className={styles.seedAndTrades}>
+        <div key="unlink" className={styles.seedAndTrades}>
           <SeedCard unlinked seed={{}} />
         </div>
       );
@@ -355,11 +355,9 @@ export default function Review() {
         <h4>Description</h4>
         <div dangerouslySetInnerHTML={createMarkup()} />
         {renderPnLbyAccount()}
-        {tradesReview?.length > 0 && (
-          <DndProvider backend={HTML5Backend}>
-            <div className={styles.cardsContainer}>{renderCards()}</div>
-          </DndProvider>
-        )}
+        <DndProvider backend={HTML5Backend}>
+          <div className={styles.cardsContainer}>{renderCards()}</div>
+        </DndProvider>
         <div>{renderImages()}</div>
       </div>
     );

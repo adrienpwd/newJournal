@@ -18,8 +18,6 @@ export default function Strategy(props) {
   } = props;
   const myStrategy = getStrategie(strategyId);
 
-  console.log(tradeRulesRespected);
-
   const renderStrategyItem = item => {
     return Object.keys(myStrategy?.[item]).map((itemKey, i) => {
       const rule = `${item}-${i}`;
