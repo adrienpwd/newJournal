@@ -78,8 +78,6 @@ const ReviewTrade = () => {
   const trades = data.trades?.[day] || [];
   const trade = trades.find(t => t.id === tradeId) || {};
 
-  console.log(trade);
-
   const seedReducer = useSelector(state => state.seedReducer);
   const { seeds } = seedReducer;
   const overviewSeeds = seeds[day];
@@ -107,12 +105,15 @@ const ReviewTrade = () => {
   useEffect(() => {
     if (trade?.img) {
       trade.img.forEach(i => {
-        console.log(i);
         const imgArr = i.split('-');
         const date = new Date(Number(imgArr[1] + '000'));
         const myDay =
-          date.getDay().length === 2 ? date.getDate() : `0${date.getDate()}`;
-        const path = `${date.getFullYear()}/${date.getMonth() + 1}/${myDay}`;
+          date.getDate().toString().length === 2
+            ? date.getDate()
+            : `0${date.getDate()}`;
+        const month = date.getMonth() + 1;
+        const myMonth = month.toString().length === 2 ? month : `0${month}`;
+        const path = `${date.getFullYear()}/${myMonth}/${myDay}`;
 
         axios({
           method: 'get',
@@ -176,8 +177,6 @@ const ReviewTrade = () => {
         rulesRespected[key] = data[key];
       }
     });
-
-    console.log(rulesRespected);
 
     if (data.seed?.length) {
       filteredFormValues.seed = data.seed;
