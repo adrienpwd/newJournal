@@ -878,6 +878,8 @@ def delete_image():
             my_date = datetime.fromtimestamp(int(my_timestamp))
             my_year = str(my_date.year)
             my_month = str(my_date.month)
+            if len(str(my_month)) == 1:
+              my_month = '0' + str(my_month)
             my_day = str(my_date.day)
             if len(str(my_date.day)) == 1:
               my_day = '0' + str(my_day)
