@@ -277,14 +277,16 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             # Find the first entry
             stop_actions = list(filter(
                 lambda action: action.get('is_stop', False) == True, initial_trade.get('actions', [])))
-            initial_stop = None
+            initial_stop = 0
+            stop_distance = 0
+            risk = 0
+            stop_ratio = 0
 
             if len(stop_actions) > 0:
                 initial_stop = stop_actions[0].get('stop_price')
-
-            stop_distance = round(abs(initial_trade.get('price') - initial_stop), 4)
-            stop_ratio = stop_distance / initial_trade.get('price')
-            risk = stop_distance * initial_trade.get('qty')
+                stop_distance = round(abs(initial_trade.get('price') - initial_stop), 4)
+                stop_ratio = stop_distance / initial_trade.get('price')
+                risk = stop_distance * initial_trade.get('qty')
 
             r = 0
             if risk > 0:
