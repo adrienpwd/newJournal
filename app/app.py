@@ -261,6 +261,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             for trade in trade_actions:
                 my_order_id = trade['order_id']
                 for order in order_actions:
+                    order['slippage'] = 0
                     if order['id'] == my_order_id:
                         if initial_trade['type'] == 'B' :
                             order['slippage'] = round(trade['price'] - order['price'], 2)
@@ -289,7 +290,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 risk = stop_distance * initial_trade.get('qty')
 
             r = 0
-            if risk > 0:
+            if risk > 0 and gross_gain != 0:
                 r = round(gross_gain / risk, 2)
 
             initial_trade['r'] = r
@@ -898,10 +899,6 @@ def delete_image():
 
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
-    all_time_total_by_account = db.overviews.aggregate(
-        [{'$group': {'_id': "$account", 'total': {'$sum': "$net_pnl"}}}])
-    return_all_time_total_by_account = list(all_time_total_by_account)
-
     pnl_per_day = db.overviews.aggregate([{'$sort': {'timestamp': 1}}])
     return_pnl_per_day = list(pnl_per_day)
 

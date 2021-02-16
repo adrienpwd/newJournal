@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export function getStats() {
+export function getStats(account, start, end) {
   return (dispatch) => {
     dispatch({
       type: 'GET_STATS'
@@ -8,7 +8,12 @@ export function getStats() {
 
     axios({
       method: 'get',
-      url: `${process.env.REACT_APP_USERS_SERVICE_URL}/statistics`
+      url: `${process.env.REACT_APP_USERS_SERVICE_URL}/statistics`,
+      params: {
+        account,
+        start,
+        end
+      }
     })
       .then((res) => {
         if (res.data.ok === true) {
@@ -32,6 +37,15 @@ export function setAccount(account) {
     dispatch({
       type: 'SET_ACCOUNT',
       payload: account
+    })
+  }
+}
+
+export function setPeriod(period) {
+  return (dispatch) => {
+    dispatch({
+      type: 'SET_PERIOD',
+      payload: period
     })
   }
 }
