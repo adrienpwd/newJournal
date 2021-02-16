@@ -3,8 +3,15 @@
   flex-direction: column;
 }
 
+.dasboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .dailyChartContainer {
-  height: 400px;
+  margin-bottom: 16px;
 }
 
 .rContainer {

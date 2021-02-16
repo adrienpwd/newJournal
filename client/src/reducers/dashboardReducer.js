@@ -1,33 +1,25 @@
-import { accounts, transformPNL, transformRstats } from './../utils';
+import { accounts, transformPNL, transformRstats } from './../utils'
 
 const initial_state = {
   loading: true,
   loaded: false,
   account: accounts[0].id
-};
+}
 
-const onGetStats = state => {
+const onGetStats = (state) => {
   const newState = {
     ...state,
     loading: true
-  };
+  }
 
-  return newState;
-};
+  return newState
+}
 
 const onGetStatsSuccess = (state, payload) => {
-  const dailyPNL = payload?.pnl_per_day;
-  const dailyPNLtransformed = dailyPNL
-    ? transformPNL(dailyPNL, accounts[0].id)
-    : [];
-  const rStats = transformRstats(payload);
-  const {
-    bigLosers,
-    bigWinners,
-    losers,
-    winners,
-    totalTradesByAccount
-  } = rStats;
+  const dailyPNL = payload?.pnl_per_day
+  const dailyPNLtransformed = dailyPNL ? transformPNL(dailyPNL, state.account) : [[], []]
+  const rStats = transformRstats(payload)
+  const { bigLosers, bigWinners, losers, winners, totalTradesByAccount } = rStats
   const newState = {
     ...state,
     rawDailyPNL: dailyPNL,
@@ -39,10 +31,10 @@ const onGetStatsSuccess = (state, payload) => {
     totalTradesByAccount,
     loading: false,
     loaded: true
-  };
+  }
 
-  return newState;
-};
+  return newState
+}
 
 const onGetStatsError = (state, error) => {
   const newState = {
@@ -50,35 +42,30 @@ const onGetStatsError = (state, error) => {
     error,
     loading: false,
     loaded: true
-  };
+  }
 
-  return newState;
-};
+  return newState
+}
 
 const onSetAccount = (state, payload) => {
-  const dailyPNLtransformed = transformPNL(state.rawDailyPNL, payload);
-
-  const newState = {
+  return {
     ...state,
-    account: payload,
-    dailyPNL: dailyPNLtransformed
-  };
-
-  return newState;
-};
+    account: payload
+  }
+}
 
 export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action;
+  const { type, payload, error } = action
   switch (type) {
     case 'GET_STATS':
-      return onGetStats(state);
+      return onGetStats(state)
     case 'GET_STATS_SUCCESS':
-      return onGetStatsSuccess(state, payload);
+      return onGetStatsSuccess(state, payload)
     case 'GET_STATS_ERROR':
-      return onGetStatsError(state, error);
+      return onGetStatsError(state, error)
     case 'SET_ACCOUNT':
-      return onSetAccount(state, payload);
+      return onSetAccount(state, payload)
     default:
-      return state;
+      return state
   }
-};
+}
