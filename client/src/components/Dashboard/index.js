@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react'
-import { getStats, setAccount, setPeriod } from './../../actions/dashboard'
+import { getStats, setAccount } from './../../actions/dashboard'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { Select, SelectItem } from 'carbon-components-react'
 import { Loading } from 'carbon-components-react'
 import { Line } from '@nivo/line'
-import { accounts } from './../../utils'
+import { accounts, getMonth } from './../../utils'
 import { useHistory } from 'react-router-dom'
 
 import styles from './dashboard.module.css'
@@ -22,6 +22,12 @@ export default function DashboardAll(props) {
   const account = dashboardState?.account
 
   const date = new Date()
+  const currentMonth = getMonth(date.getMonth())
+
+  // TODO:
+  // Add < and > Arrows to change the Months I'm viewing the stat for
+  // Also need to be able to change change Year
+  // Should I use a Month Picker ?
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1)
   const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0)
   const firstDayUnixTime = Math.floor(firstDay / 1000)
@@ -29,7 +35,7 @@ export default function DashboardAll(props) {
 
   useEffect(() => {
     dispatch(getStats(account, firstDayUnixTime, lastDayUnixTime))
-  }, [account])
+  }, [account, firstDayUnixTime, lastDayUnixTime])
 
   const handleAccountChange = (e) => {
     dispatch(setAccount(e.target.value))
@@ -37,19 +43,21 @@ export default function DashboardAll(props) {
 
   const renderAccountSelect = () => {
     return (
-      <Select
-        ref={register}
-        onChange={handleAccountChange}
-        id="account"
-        name="account"
-        invalidText="This is an invalid error message."
-        labelText="Account"
-        defaultValue={accounts[0]}
-      >
-        {accounts.map((s) => (
-          <SelectItem text={s.label} value={s.id} key={s.id} />
-        ))}
-      </Select>
+      <div>
+        <Select
+          ref={register}
+          onChange={handleAccountChange}
+          id="account"
+          name="account"
+          invalidText="This is an invalid error message."
+          labelText="Account"
+          defaultValue={accounts[0]}
+        >
+          {accounts.map((s) => (
+            <SelectItem text={s.label} value={s.id} key={s.id} />
+          ))}
+        </Select>
+      </div>
     )
   }
 
@@ -92,14 +100,12 @@ export default function DashboardAll(props) {
   }
 
   const getMonthlyRs = () => {
-    // let total = 0
-    // dailyPNL[1].forEach((pnl) => {
-    //   total += pnl.y
-    // })
+    let total = 0
+    dailyPNL[1].forEach((pnl) => {
+      total += pnl.y
+    })
 
-    // return Math.round(total * 10) / 10
-
-    return 20
+    return Math.round(total * 10) / 10
   }
 
   const renderDailyPnL = () => {
@@ -200,9 +206,12 @@ export default function DashboardAll(props) {
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.dasboardContainer}>
-      {renderAccountSelect()}
+      <div className={styles.dasboardHeader}>
+        <h4>Stats for {currentMonth}</h4>
+        {renderAccountSelect()}
+      </div>
       {renderRstats()}
-      <h4>Monthly Rs:</h4>
+      <h4>Rs:</h4>
       <div className={styles.dailyChartContainer}>{getMonthlyRs()}</div>
       <h4>Daily P&L:</h4>
       <div className={styles.dailyChartContainer}>{renderDailyPnL()}</div>

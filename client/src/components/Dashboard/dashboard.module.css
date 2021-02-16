@@ -3,6 +3,13 @@
   flex-direction: column;
 }
 
+.dasboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .dailyChartContainer {
   margin-bottom: 16px;
 }

@@ -1,3 +1,11 @@
+.appBar {
+  background-color: #4caf50;
+}
+
+.header {
+  color: #524642 !important;
+}
+
 .container {
   display: flex;
 }
@@ -7,8 +15,8 @@
   padding-right: 1rem;
   text-decoration: none;
   font-weight: bold;
-  color: lightgrey;
+  color: #a4d6a5;
 }
 .link:hover {
-  color: #0f62fe;
+  color: #1f4821;
 }
