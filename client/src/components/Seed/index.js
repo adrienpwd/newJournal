@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { loadSeeds } from 'actions/seeds';
-import { Button, Loading } from 'carbon-components-react';
-import EditSeed from './../EditSeed';
-import Strategy from './../Tradebook/strategy';
-import { strategies } from '../../utils';
-import { Carousel } from 'react-responsive-carousel';
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { loadSeeds } from 'actions/seeds'
+import { Button, Loading } from 'carbon-components-react'
+import EditSeed from './../EditSeed'
+import Strategy from './../Tradebook/strategy'
+import { strategies } from '../../utils'
+import { Carousel } from 'react-responsive-carousel'
 
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react';
+import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
 
-import styles from './seed.module.css';
+import styles from './seed.module.css'
 
-export default props => {
-  const { tradeId, day } = useParams();
+export default (props) => {
+  const { tradeId, day } = useParams()
 
   function makeEditState() {
-    setEditMode(true);
+    setEditMode(true)
   }
 
   function makeViewState() {
-    setEditMode(false);
+    setEditMode(false)
   }
 
-  const [isEditMode, setEditMode] = useState(false);
-  const [images, setImages] = useState([]);
+  const [isEditMode, setEditMode] = useState(false)
+  const [images, setImages] = useState([])
 
-  const seedReducer = useSelector(state => state.seedReducer);
-  const { seeds, loading, loaded } = seedReducer;
-  const overviewSeeds = seeds[day];
+  const seedReducer = useSelector((state) => state.seedReducer)
+  const { seeds, loading, loaded } = seedReducer
+  const overviewSeeds = seeds[day]
 
-  const dispatch = useDispatch();
-  const yearMonthdate = day.split('-');
+  const dispatch = useDispatch()
+  const yearMonthdate = day.split('-')
 
   // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
   // When we create an Overview we initialize its time to 00:00
@@ -44,34 +44,32 @@ export default props => {
     0,
     0,
     0
-  );
+  )
 
-  const dayStartTimestamp = dayTarget.getTime();
-  const dayStartUnixTime = dayStartTimestamp / 1000;
-  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
+  const dayStartTimestamp = dayTarget.getTime()
+  const dayStartUnixTime = dayStartTimestamp / 1000
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60
 
   useEffect(() => {
     if (!overviewSeeds) {
-      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime))
     }
-  }, []);
+  }, [])
 
-  let seed;
+  let seed
   if (tradeId === 'create-new-seed') {
-    seed = {};
+    seed = {}
   } else {
-    seed = overviewSeeds?.length
-      ? overviewSeeds.find(s => s.id === tradeId)
-      : {};
+    seed = overviewSeeds?.length ? overviewSeeds.find((s) => s.id === tradeId) : {}
   }
 
   useEffect(() => {
     if (seed?.img) {
-      seed.img.forEach(i => {
-        const imgArr = i.split('-');
-        const imgIndex = i.split('_')[1];
-        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`;
-        const filename = `${seed.id}_${imgIndex}`;
+      seed.img.forEach((i) => {
+        const imgArr = i.split('-')
+        const imgIndex = i.split('_')[1]
+        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`
+        const filename = `${seed.id}_${imgIndex}`
 
         axios({
           method: 'get',
@@ -81,30 +79,26 @@ export default props => {
             path
           },
           responseType: 'blob'
-        }).then(response => {
-          setImages(images => images.concat(response.data));
-        });
-      });
+        }).then((response) => {
+          setImages((images) => images.concat(response.data))
+        })
+      })
     }
-  }, [loading, loaded, seed]);
+  }, [loading, loaded, seed])
 
-  const strategy = strategies.find(s => seed?.strategy === s.id);
+  const strategy = strategies.find((s) => seed?.strategy === s.id)
 
   function createMarkup() {
-    return { __html: seed?.description };
+    return { __html: seed?.description }
   }
 
   const renderStrategy = () => {
-    const strategyClass = strategy?.label ? null : styles.strategyMissing;
-    return (
-      <div className={strategyClass}>
-        Strategie: {strategy?.label || 'Strategy Missing'}
-      </div>
-    );
-  };
+    const strategyClass = strategy?.label ? null : styles.strategyMissing
+    return <div className={strategyClass}>Strategie: {strategy?.label || 'Strategy Missing'}</div>
+  }
 
   const renderStrategyRules = () => {
-    const rulesRespected = seed?.rulesRespected || [];
+    const rulesRespected = seed?.rulesRespected || []
     return (
       <>
         <p>Did you respect all the rules and criterias ?</p>
@@ -116,22 +110,22 @@ export default props => {
           tradeRulesRespected={[]}
         />
       </>
-    );
-  };
+    )
+  }
 
-  const getTradeType = isLong => {
+  const getTradeType = (isLong) => {
     if (isLong === true) {
-      return 'Long';
+      return 'Long'
     } else if (isLong === false) {
-      return 'Short';
+      return 'Short'
     } else {
-      return '';
+      return ''
     }
-  };
+  }
 
   const handleCloseSeed = () => {
-    makeViewState();
-  };
+    makeViewState()
+  }
 
   const renderImages = function () {
     const seedImages = images.map((img, i) => {
@@ -139,11 +133,11 @@ export default props => {
         <div key={i}>
           <img src={URL.createObjectURL(img)} />
         </div>
-      );
-    });
+      )
+    })
 
-    return <Carousel autoPlay={false}>{seedImages}</Carousel>;
-  };
+    return <Carousel autoPlay={false}>{seedImages}</Carousel>
+  }
 
   const renderSeed = () => {
     return (
@@ -164,9 +158,7 @@ export default props => {
             />
             <div className={styles.container}>
               <h2 className={styles.seedHeader}>{seed?.ticker}</h2>
-              <div className={styles.element}>
-                Side: {getTradeType(seed?.isLong)}
-              </div>
+              <div className={styles.element}>Side: {getTradeType(seed?.isLong)}</div>
               <div>Time: {seed?.time}</div>
               <div className={styles.element}>{renderStrategy()}</div>
               <div>Price: {`$${seed?.price}`}</div>
@@ -180,12 +172,12 @@ export default props => {
           </>
         )}
       </>
-    );
-  };
+    )
+  }
 
   return !loaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{renderSeed()}</div>
-  );
-};
+  )
+}

@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { getStats, setAccount } from './../../actions/dashboard'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
-import { Select, SelectItem } from 'carbon-components-react'
-import { Loading } from 'carbon-components-react'
+import { Button, Loading, Select, SelectItem } from 'carbon-components-react'
+import { CaretLeft16, CaretRight16 } from '@carbon/icons-react'
 import { Line } from '@nivo/line'
 import { accounts, getMonth } from './../../utils'
 import { useHistory } from 'react-router-dom'
@@ -22,28 +22,38 @@ export default function DashboardAll(props) {
   const account = dashboardState?.account
 
   const date = new Date()
-  const currentMonth = getMonth(date.getMonth())
+  const [selectedYear, setSelectedYear] = useState(date.getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(date.getMonth())
+  const selectedMonthText = getMonth(selectedMonth)
+  const firstDay = new Date(selectedYear, selectedMonth, 1)
+  const lastDay = new Date(selectedYear, selectedMonth + 1, 0)
 
-  // TODO:
-  // Add < and > Arrows to change the Months I'm viewing the stat for
-  // Also need to be able to change change Year
-  // Should I use a Month Picker ?
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1)
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0)
   const firstDayUnixTime = Math.floor(firstDay / 1000)
   const lastDayUnixTime = Math.floor(lastDay / 1000)
 
+  function prevMonth() {
+    setSelectedMonth(selectedMonth - 1)
+  }
+
+  function nextMonth() {
+    setSelectedMonth(selectedMonth + 1)
+  }
+
   useEffect(() => {
     dispatch(getStats(account, firstDayUnixTime, lastDayUnixTime))
-  }, [account, firstDayUnixTime, lastDayUnixTime])
+  }, [account, firstDayUnixTime, lastDayUnixTime, selectedYear])
 
   const handleAccountChange = (e) => {
     dispatch(setAccount(e.target.value))
   }
 
+  const handleYearChange = (e) => {
+    setSelectedYear(e.target.value)
+  }
+
   const renderAccountSelect = () => {
     return (
-      <div>
+      <div className={styles.dropdown}>
         <Select
           ref={register}
           onChange={handleAccountChange}
@@ -54,6 +64,29 @@ export default function DashboardAll(props) {
           defaultValue={accounts[0]}
         >
           {accounts.map((s) => (
+            <SelectItem text={s.label} value={s.id} key={s.id} />
+          ))}
+        </Select>
+      </div>
+    )
+  }
+
+  const renderYearSelect = () => {
+    const years = [
+      { id: '2020', label: '2020' },
+      { id: '2021', label: '2021' }
+    ]
+    return (
+      <div className={styles.dropdown}>
+        <Select
+          onChange={handleYearChange}
+          id="year"
+          name="year"
+          invalidText="This is an invalid error message."
+          labelText="Year"
+          defaultValue={selectedYear}
+        >
+          {years.map((s) => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
           ))}
         </Select>
@@ -108,11 +141,11 @@ export default function DashboardAll(props) {
     return Math.round(total * 10) / 10
   }
 
-  const renderDailyPnL = () => {
+  const renderDailyR = () => {
     const data = [
       {
-        id: 'pnl',
-        data: dailyPNL[0]
+        id: 'r',
+        data: dailyPNL[1]
       }
     ]
 
@@ -122,7 +155,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 20, bottom: 20, left: 30 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
         enableSlices={false}
@@ -135,6 +168,7 @@ export default function DashboardAll(props) {
           max: 'auto'
         }}
         axisLeft={{
+          tickPadding: 20,
           legend: '',
           legendOffset: 0
         }}
@@ -155,25 +189,25 @@ export default function DashboardAll(props) {
     )
   }
 
-  const renderDailyR = () => {
+  const renderMonthlyPnL = () => {
     const data = [
       {
         id: 'r',
-        data: dailyPNL[1]
+        data: dailyPNL[0]
       }
     ]
 
     return (
       <Line
         colors={{ scheme: 'category10' }}
-        account={account}
+        onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 20, bottom: 20, left: 30 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
-        enableSlices="x"
-        data={data}
+        enableSlices={false}
+        useMesh={true}
         xScale={{ type: 'point' }}
         yScale={{
           type: 'linear',
@@ -182,6 +216,7 @@ export default function DashboardAll(props) {
           max: 'auto'
         }}
         axisLeft={{
+          tickPadding: 20,
           legend: '',
           legendOffset: 0
         }}
@@ -207,16 +242,46 @@ export default function DashboardAll(props) {
   ) : (
     <div className={styles.dasboardContainer}>
       <div className={styles.dasboardHeader}>
-        <h4>Stats for {currentMonth}</h4>
-        {renderAccountSelect()}
+        <div className={styles.nav}>
+          <Button
+            className={styles.navButton}
+            kind="secondary"
+            size="small"
+            onClick={() => {
+              prevMonth()
+            }}
+            hasIconOnly
+            renderIcon={CaretLeft16}
+            iconDescription="Previous"
+            tooltipPosition="bottom"
+          />
+          <h4>Stats for {selectedMonthText}</h4>
+          <Button
+            className={styles.navButton}
+            kind="secondary"
+            size="small"
+            onClick={() => {
+              nextMonth()
+            }}
+            hasIconOnly
+            renderIcon={CaretRight16}
+            iconDescription="Next"
+            tooltipPosition="bottom"
+          />
+        </div>
+        <div className={styles.dropdowns}>
+          {renderAccountSelect()}
+          {renderYearSelect()}
+        </div>
       </div>
       {renderRstats()}
-      <h4>Rs:</h4>
-      <div className={styles.dailyChartContainer}>{getMonthlyRs()}</div>
-      <h4>Daily P&L:</h4>
-      <div className={styles.dailyChartContainer}>{renderDailyPnL()}</div>
-      <h4>Daily RvR:</h4>
+      <div className={styles.monthlyR}>
+        <h4>Total R: {getMonthlyRs()}</h4>
+      </div>
+      <h4>Daily Rs:</h4>
       <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
+      <h4>Monthly Equity:</h4>
+      <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
     </div>
   )
 }
