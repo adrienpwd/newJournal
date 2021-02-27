@@ -206,11 +206,14 @@ export default function Review() {
   const renderCards = () => {
     const linkedTradeIds = []
     const linkedTrades = (overviewSeeds || []).map((seed) => {
-      const myTrades = (seed?.linked_trades || []).map((t, i) => {
-        const trade = tradesReview?.find((trade) => trade.id === t)
-        linkedTradeIds.push(trade.id)
-        return <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
-      })
+      let myTrades = []
+      if (tradesReview) {
+        myTrades = (seed?.linked_trades || []).map((t, i) => {
+          const trade = tradesReview?.find((trade) => trade.id === t)
+          linkedTradeIds.push(trade.id)
+          return <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
+        })
+      }
       return (
         <div className={styles.seedAndTrades} key={`${seed.id}-linked`}>
           <SeedCard seed={seed} />
