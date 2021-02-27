@@ -1,55 +1,55 @@
-import React, { useState, useEffect } from 'react'
-import { getStats, setAccount } from './../../actions/dashboard'
-import { useDispatch, useSelector } from 'react-redux'
-import { useForm } from 'react-hook-form'
-import { Button, Loading, Select, SelectItem } from 'carbon-components-react'
-import { CaretLeft16, CaretRight16 } from '@carbon/icons-react'
-import { Line } from '@nivo/line'
-import { accounts, getMonth } from './../../utils'
-import { useHistory } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { getStats, setAccount } from './../../actions/dashboard';
+import { useDispatch, useSelector } from 'react-redux';
+import { useForm } from 'react-hook-form';
+import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
+import { CaretLeft16, CaretRight16 } from '@carbon/icons-react';
+import { Line } from '@nivo/line';
+import { accounts, getMonth } from './../../utils';
+import { useHistory } from 'react-router-dom';
 
-import styles from './dashboard.module.css'
+import styles from './dashboard.module.css';
 
 export default function DashboardAll(props) {
-  const dispatch = useDispatch()
-  const dashboardState = useSelector((state) => state.dashboardReducer)
-  const { register } = useForm()
-  const history = useHistory()
+  const dispatch = useDispatch();
+  const dashboardState = useSelector(state => state.dashboardReducer);
+  const { register } = useForm();
+  const history = useHistory();
 
-  const isLoading = dashboardState?.loading
-  const isLoaded = dashboardState?.loaded
-  const dailyPNL = dashboardState?.dailyPNL
-  const account = dashboardState?.account
+  const isLoading = dashboardState?.loading;
+  const isLoaded = dashboardState?.loaded;
+  const dailyPNL = dashboardState?.dailyPNL;
+  const account = dashboardState?.account;
 
-  const date = new Date()
-  const [selectedYear, setSelectedYear] = useState(date.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(date.getMonth())
-  const selectedMonthText = getMonth(selectedMonth)
-  const firstDay = new Date(selectedYear, selectedMonth, 1)
-  const lastDay = new Date(selectedYear, selectedMonth + 1, 0)
+  const date = new Date();
+  const [selectedYear, setSelectedYear] = useState(date.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(date.getMonth());
+  const selectedMonthText = getMonth(selectedMonth);
+  const firstDay = new Date(selectedYear, selectedMonth, 1);
+  const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
 
-  const firstDayUnixTime = Math.floor(firstDay / 1000)
-  const lastDayUnixTime = Math.floor(lastDay / 1000)
+  const firstDayUnixTime = Math.floor(firstDay / 1000);
+  const lastDayUnixTime = Math.floor(lastDay / 1000);
 
   function prevMonth() {
-    setSelectedMonth(selectedMonth - 1)
+    setSelectedMonth(selectedMonth - 1);
   }
 
   function nextMonth() {
-    setSelectedMonth(selectedMonth + 1)
+    setSelectedMonth(selectedMonth + 1);
   }
 
   useEffect(() => {
-    dispatch(getStats(account, firstDayUnixTime, lastDayUnixTime))
-  }, [account, firstDayUnixTime, lastDayUnixTime, selectedYear, selectedMonth])
+    dispatch(getStats(account, firstDayUnixTime, lastDayUnixTime));
+  }, [account, firstDayUnixTime, lastDayUnixTime, selectedYear, selectedMonth]);
 
-  const handleAccountChange = (e) => {
-    dispatch(setAccount(e.target.value))
-  }
+  const handleAccountChange = e => {
+    dispatch(setAccount(e.target.value));
+  };
 
-  const handleYearChange = (e) => {
-    setSelectedYear(e.target.value)
-  }
+  const handleYearChange = e => {
+    setSelectedYear(e.target.value);
+  };
 
   const renderAccountSelect = () => {
     return (
@@ -63,19 +63,19 @@ export default function DashboardAll(props) {
           labelText="Account"
           defaultValue={accounts[0]}
         >
-          {accounts.map((s) => (
+          {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
           ))}
         </Select>
       </div>
-    )
-  }
+    );
+  };
 
   const renderYearSelect = () => {
     const years = [
       { id: '2020', label: '2020' },
       { id: '2021', label: '2021' }
-    ]
+    ];
     return (
       <div className={styles.dropdown}>
         <Select
@@ -86,25 +86,27 @@ export default function DashboardAll(props) {
           labelText="Year"
           defaultValue={selectedYear}
         >
-          {years.map((s) => (
+          {years.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
           ))}
         </Select>
       </div>
-    )
-  }
+    );
+  };
 
   const renderRstats = () => {
-    const getRdisplay = (v) => {
-      const rValue = v ? v : 0
+    const getRdisplay = v => {
+      const rValue = v ? v : 0;
       return (
         <span>
           {`${rValue} / ${dashboardState.totalTradesByAccount?.[account]} (${
-            Math.round((rValue / dashboardState.totalTradesByAccount?.[account]) * 1000) / 10
+            Math.round(
+              (rValue / dashboardState.totalTradesByAccount?.[account]) * 1000
+            ) / 10
           }%)`}
         </span>
-      )
-    }
+      );
+    };
     return (
       <div className={styles.rContainer}>
         <div className={styles.rItem}>
@@ -124,22 +126,22 @@ export default function DashboardAll(props) {
           <span>{getRdisplay(dashboardState?.bigWinners?.[account])}</span>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const handlePnLClick = (point, event) => {
-    const day = point.data.xFormatted
-    history.push(`/review/${day}`)
-  }
+    const day = point.data.xFormatted;
+    history.push(`/review/${day}`);
+  };
 
   const getMonthlyRs = () => {
-    let total = 0
-    dailyPNL[1].forEach((pnl) => {
-      total += pnl.y
-    })
+    let total = 0;
+    dailyPNL[1].forEach(pnl => {
+      total += pnl.y;
+    });
 
-    return Math.round(total * 10) / 10
-  }
+    return Math.round(total * 10) / 10;
+  };
 
   const renderDailyR = () => {
     const data = [
@@ -147,7 +149,7 @@ export default function DashboardAll(props) {
         id: 'r',
         data: dailyPNL[1]
       }
-    ]
+    ];
 
     return (
       <Line
@@ -186,8 +188,8 @@ export default function DashboardAll(props) {
         enableGridX={false}
         enableGridY
       />
-    )
-  }
+    );
+  };
 
   const renderMonthlyPnL = () => {
     const data = [
@@ -195,7 +197,7 @@ export default function DashboardAll(props) {
         id: 'r',
         data: dailyPNL[0]
       }
-    ]
+    ];
 
     return (
       <Line
@@ -234,8 +236,8 @@ export default function DashboardAll(props) {
         enableGridX={false}
         enableGridY
       />
-    )
-  }
+    );
+  };
 
   return isLoading && !isLoaded ? (
     <Loading active small={false} withOverlay={true} />
@@ -248,7 +250,7 @@ export default function DashboardAll(props) {
             kind="secondary"
             size="small"
             onClick={() => {
-              prevMonth()
+              prevMonth();
             }}
             hasIconOnly
             renderIcon={CaretLeft16}
@@ -261,7 +263,7 @@ export default function DashboardAll(props) {
             kind="secondary"
             size="small"
             onClick={() => {
-              nextMonth()
+              nextMonth();
             }}
             hasIconOnly
             renderIcon={CaretRight16}
@@ -283,5 +285,5 @@ export default function DashboardAll(props) {
       <h4>Monthly Equity:</h4>
       <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
     </div>
-  )
+  );
 }
