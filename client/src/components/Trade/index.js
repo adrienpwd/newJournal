@@ -22,7 +22,6 @@ import {
 
 import {
   DataTable,
-  TableContainer,
   Table,
   TableHead,
   TableRow,
@@ -258,6 +257,7 @@ const ReviewTrade = () => {
   }
 
   const renderActions = () => {
+    console.log(trade.actions)
     return (
       <DataTable
         rows={trade.actions}
