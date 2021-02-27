@@ -257,7 +257,6 @@ const ReviewTrade = () => {
   }
 
   const renderActions = () => {
-    console.log(trade.actions)
     return (
       <DataTable
         rows={trade.actions}

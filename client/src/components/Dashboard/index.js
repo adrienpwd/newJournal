@@ -155,7 +155,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
+        margin={{ top: 20, right: 0, bottom: 20, left: 50 }}
         data={data}
         animate={true}
         enableSlices={false}
@@ -203,7 +203,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
+        margin={{ top: 20, right: 0, bottom: 20, left: 50 }}
         data={data}
         animate={true}
         enableSlices={false}
