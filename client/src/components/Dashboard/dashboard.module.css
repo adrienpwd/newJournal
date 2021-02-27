@@ -33,6 +33,11 @@
   margin: 16px 0;
 }
 
+.monthlyR {
+  font-size: 24px;
+  margin: 16px 0;
+}
+
 .rContainer .button {
   border-width: 0;
 }

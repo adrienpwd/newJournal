@@ -1,17 +1,22 @@
 export const transformPNL = (data, account) => {
   const transformedData = [[], []]
-  data.forEach((d) => {
+
+  const filteredData = data.filter((d) => account in d.accounts)
+  const pnlArray = filteredData.map((d) => d.accounts?.[account].net)
+
+  filteredData.forEach((d, i) => {
     if (d.accounts?.[account]) {
-      const pnl = {
+      const myArr = pnlArray.slice(0, i + 1)
+      const sumPnl = {
         x: d.id,
-        y: d.accounts[account].net
+        y: myArr.reduce((a, b) => a + b).toFixed(2)
       }
       const r = {
         x: d.id,
         y: d.accounts[account].r
       }
 
-      transformedData[0].push(pnl)
+      transformedData[0].push(sumPnl)
       transformedData[1].push(r)
     }
   })

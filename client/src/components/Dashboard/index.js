@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { getStats, setAccount } from './../../actions/dashboard'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
-import { Button, Dropdown, Loading, Select, SelectItem } from 'carbon-components-react'
+import { Button, Loading, Select, SelectItem } from 'carbon-components-react'
 import { CaretLeft16, CaretRight16 } from '@carbon/icons-react'
 import { Line } from '@nivo/line'
 import { accounts, getMonth } from './../../utils'
@@ -141,11 +141,11 @@ export default function DashboardAll(props) {
     return Math.round(total * 10) / 10
   }
 
-  const renderDailyPnL = () => {
+  const renderDailyR = () => {
     const data = [
       {
-        id: 'pnl',
-        data: dailyPNL[0]
+        id: 'r',
+        data: dailyPNL[1]
       }
     ]
 
@@ -155,7 +155,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 20, bottom: 20, left: 30 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
         enableSlices={false}
@@ -168,6 +168,7 @@ export default function DashboardAll(props) {
           max: 'auto'
         }}
         axisLeft={{
+          tickPadding: 20,
           legend: '',
           legendOffset: 0
         }}
@@ -188,25 +189,25 @@ export default function DashboardAll(props) {
     )
   }
 
-  const renderDailyR = () => {
+  const renderMonthlyPnL = () => {
     const data = [
       {
         id: 'r',
-        data: dailyPNL[1]
+        data: dailyPNL[0]
       }
     ]
 
     return (
       <Line
         colors={{ scheme: 'category10' }}
-        account={account}
+        onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 20, bottom: 20, left: 30 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
-        enableSlices="x"
-        data={data}
+        enableSlices={false}
+        useMesh={true}
         xScale={{ type: 'point' }}
         yScale={{
           type: 'linear',
@@ -215,6 +216,7 @@ export default function DashboardAll(props) {
           max: 'auto'
         }}
         axisLeft={{
+          tickPadding: 20,
           legend: '',
           legendOffset: 0
         }}
@@ -273,12 +275,13 @@ export default function DashboardAll(props) {
         </div>
       </div>
       {renderRstats()}
-      <h4>Rs:</h4>
-      <div className={styles.dailyChartContainer}>{getMonthlyRs()}</div>
-      <h4>Daily P&L:</h4>
-      <div className={styles.dailyChartContainer}>{renderDailyPnL()}</div>
-      <h4>Daily RvR:</h4>
+      <div className={styles.monthlyR}>
+        <h4>Total R: {getMonthlyRs()}</h4>
+      </div>
+      <h4>Daily Rs:</h4>
       <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
+      <h4>Monthly Equity:</h4>
+      <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
     </div>
   )
 }
