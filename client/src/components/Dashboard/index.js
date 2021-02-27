@@ -280,14 +280,6 @@ export default function DashboardAll(props) {
         <h4>Monthly Equity:</h4>
         <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
       </div>
-      {renderRstats()}
-      <div className={styles.monthlyR}>
-        <h4>Total R: {getMonthlyRs()}</h4>
-      </div>
-      <h4>Daily Rs:</h4>
-      <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
-      <h4>Monthly Equity:</h4>
-      <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
     </div>
   );
 }
