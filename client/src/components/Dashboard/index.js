@@ -157,7 +157,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 50, bottom: 20, left: 50 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
         enableSlices={false}
@@ -205,7 +205,7 @@ export default function DashboardAll(props) {
         onClick={handlePnLClick}
         width={900}
         height={250}
-        margin={{ top: 20, right: 50, bottom: 20, left: 50 }}
+        margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
         data={data}
         animate={true}
         enableSlices={false}
@@ -271,15 +271,19 @@ export default function DashboardAll(props) {
             tooltipPosition="bottom"
           />
         </div>
-        {renderRstats()}
-        <div className={styles.monthlyR}>
-          <h4>Total R: {getMonthlyRs()}</h4>
+        <div className={styles.dropdowns}>
+          {renderAccountSelect()}
+          {renderYearSelect()}
         </div>
-        <h4>Daily Rs:</h4>
-        <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
-        <h4>Monthly Equity:</h4>
-        <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
       </div>
+      {renderRstats()}
+      <div className={styles.monthlyR}>
+        <h4>Total R: {getMonthlyRs()}</h4>
+      </div>
+      <h4>Daily Rs:</h4>
+      <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
+      <h4>Monthly Equity:</h4>
+      <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
     </div>
   );
 }
