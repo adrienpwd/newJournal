@@ -1,7 +1,7 @@
 export const transformPNL = (data, account) => {
   const transformedData = [[], []]
 
-  const filteredData = data.filter((d) => account in d.accounts)
+  const filteredData = data.filter((d) => account in (d?.accounts || []))
   const pnlArray = filteredData.map((d) => d.accounts?.[account].net)
 
   filteredData.forEach((d, i) => {

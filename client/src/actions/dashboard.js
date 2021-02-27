@@ -24,6 +24,7 @@ export function getStats(account, start, end) {
         }
       })
       .catch((err) => {
+        console.log(err)
         dispatch({
           type: 'GET_STATS_ERROR',
           error: err

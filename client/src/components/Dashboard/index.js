@@ -99,9 +99,8 @@ export default function DashboardAll(props) {
       const rValue = v ? v : 0
       return (
         <span>
-          {`${rValue} / ${dashboardState.totalTradesByAccount?.[account]} (${
-            Math.round((rValue / dashboardState.totalTradesByAccount?.[account]) * 1000) / 10
-          }%)`}
+          {`${rValue} / ${dashboardState.totalTradesByAccount?.[account]} (${Math.round((rValue / dashboardState.totalTradesByAccount?.[account]) * 1000) / 10
+            }%)`}
         </span>
       )
     }
@@ -240,48 +239,48 @@ export default function DashboardAll(props) {
   return isLoading && !isLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
-    <div className={styles.dasboardContainer}>
-      <div className={styles.dasboardHeader}>
-        <div className={styles.nav}>
-          <Button
-            className={styles.navButton}
-            kind="secondary"
-            size="small"
-            onClick={() => {
-              prevMonth()
-            }}
-            hasIconOnly
-            renderIcon={CaretLeft16}
-            iconDescription="Previous"
-            tooltipPosition="bottom"
-          />
-          <h4>Stats for {selectedMonthText}</h4>
-          <Button
-            className={styles.navButton}
-            kind="secondary"
-            size="small"
-            onClick={() => {
-              nextMonth()
-            }}
-            hasIconOnly
-            renderIcon={CaretRight16}
-            iconDescription="Next"
-            tooltipPosition="bottom"
-          />
+      <div className={styles.dasboardContainer}>
+        <div className={styles.dasboardHeader}>
+          <div className={styles.nav}>
+            <Button
+              className={styles.navButton}
+              kind="secondary"
+              size="small"
+              onClick={() => {
+                prevMonth()
+              }}
+              hasIconOnly
+              renderIcon={CaretLeft16}
+              iconDescription="Previous"
+              tooltipPosition="bottom"
+            />
+            <h4>Stats for {selectedMonthText}</h4>
+            <Button
+              className={styles.navButton}
+              kind="secondary"
+              size="small"
+              onClick={() => {
+                nextMonth()
+              }}
+              hasIconOnly
+              renderIcon={CaretRight16}
+              iconDescription="Next"
+              tooltipPosition="bottom"
+            />
+          </div>
+          <div className={styles.dropdowns}>
+            {renderAccountSelect()}
+            {renderYearSelect()}
+          </div>
         </div>
-        <div className={styles.dropdowns}>
-          {renderAccountSelect()}
-          {renderYearSelect()}
+        {renderRstats()}
+        <div className={styles.monthlyR}>
+          <h4>Total R: {getMonthlyRs()}</h4>
         </div>
+        <h4>Daily Rs:</h4>
+        <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
+        <h4>Monthly Equity:</h4>
+        <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
       </div>
-      {renderRstats()}
-      <div className={styles.monthlyR}>
-        <h4>Total R: {getMonthlyRs()}</h4>
-      </div>
-      <h4>Daily Rs:</h4>
-      <div className={styles.dailyChartContainer}>{renderDailyR()}</div>
-      <h4>Monthly Equity:</h4>
-      <div className={styles.dailyChartContainer}>{renderMonthlyPnL()}</div>
-    </div>
-  )
+    )
 }
