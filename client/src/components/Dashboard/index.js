@@ -41,7 +41,7 @@ export default function DashboardAll(props) {
 
   useEffect(() => {
     dispatch(getStats(account, firstDayUnixTime, lastDayUnixTime))
-  }, [account, firstDayUnixTime, lastDayUnixTime, selectedYear])
+  }, [account, firstDayUnixTime, lastDayUnixTime, selectedYear, selectedMonth])
 
   const handleAccountChange = (e) => {
     dispatch(setAccount(e.target.value))
