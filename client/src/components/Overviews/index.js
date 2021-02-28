@@ -8,7 +8,7 @@ import {
   DatePickerInput,
   Loading
 } from 'carbon-components-react';
-import { getDayOfWeek, getMonth } from '../../utils';
+import { accounts, getMonth } from '../../utils';
 
 import styles from './overviews.module.css';
 
@@ -93,7 +93,8 @@ export default function Overviews() {
     );
   };
 
-  const renderDay = function (dayString) {
+  const renderDay = function (overview) {
+    const dayString = overview.id;
     const dayArr = dayString.split('-');
     const year = dayArr[2];
     const month = dayArr[0] - 1;
@@ -102,13 +103,33 @@ export default function Overviews() {
     const dayOfWeekIndex = date.getDay();
     const monthIndex = date.getMonth();
 
-    const dateString = `${getDayOfWeek(dayOfWeekIndex)} ${Number(
-      day
-    )} ${getMonth(monthIndex)} ${date.getFullYear()}`;
+    // We only look at the Live account to assign a color, based on R
+    const myAccount = accounts[0].id;
+
+    let overviewClass;
+    const r = overview?.accounts?.[myAccount]?.r;
+    if (r >= 1) {
+      overviewClass = styles.overviewGreen;
+    } else if (r <= 1 && r >= -1) {
+      overviewClass = styles.overviewNeuter;
+    } else {
+      overviewClass = styles.overviewRed;
+    }
 
     return (
-      <Link key={day} to={`review/${dayString}`} className={styles.tradeLink}>
-        {dateString}
+      <Link key={day} to={`review/${dayString}`}>
+        <div className={styles.overview + ' ' + overviewClass}>
+          {date.toDateString()}
+          {Object.keys(overview.accounts).map(k => {
+            return (
+              <div key={k}>
+                <div>{k}:</div>
+                <div>R: {overview.accounts[k].r}</div>
+                <div>P&L:{overview.accounts[k].net}</div>
+              </div>
+            );
+          })}
+        </div>
       </Link>
     );
   };
@@ -116,7 +137,7 @@ export default function Overviews() {
   const renderOverviews = () => {
     if (Object.keys(overviews)?.length) {
       return Object.keys(overviews).map(o => {
-        return <div key={o}>{renderDay(overviews[o].id)}</div>;
+        return renderDay(overviews[o]);
       });
     } else {
       return <div>No Overviews found for this period</div>;
