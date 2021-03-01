@@ -3,7 +3,7 @@
 }
 
 .header {
-  color: #524642 !important;
+  color: #fff !important;
 }
 
 .container {
@@ -15,7 +15,7 @@
   padding-right: 1rem;
   text-decoration: none;
   font-weight: bold;
-  color: #a4d6a5;
+  color: #fff;
 }
 .link:hover {
   color: #1f4821;

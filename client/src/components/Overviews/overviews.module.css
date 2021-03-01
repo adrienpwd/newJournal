@@ -1,11 +1,12 @@
 .calendarContainer {
   display: flex;
-  flex-direction: column;
-  height: 120px;
+  width: 400px;
+  align-items: flex-end;
 }
 
 .submitButton {
   width: 80px;
+  height: 25px;
 }
 
 .overviewsContainer {
