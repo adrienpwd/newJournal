@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Header,
   HeaderMenuButton,
@@ -9,15 +9,15 @@ import {
   SkipToContent,
   SideNav,
   SideNavItems
-} from 'carbon-components-react/lib/components/UIShell'
+} from 'carbon-components-react/lib/components/UIShell';
 
-import styles from './nav.module.css'
+import styles from './nav.module.css';
 
 export default function Navbar() {
-  const [isSideNavExpanded, setSideNavExpanded] = useState(false)
+  const [isSideNavExpanded, setSideNavExpanded] = useState(false);
 
   function updateMenuState() {
-    setSideNavExpanded(!isSideNavExpanded)
+    setSideNavExpanded(!isSideNavExpanded);
   }
 
   return (
@@ -29,7 +29,7 @@ export default function Navbar() {
         isActive={isSideNavExpanded}
       />
       <HeaderName prefix="" className={styles.header}>
-        TradeSeeds
+        TS
       </HeaderName>
       <HeaderNavigation className={styles.container} aria-label="TradeSeeds">
         <Link className={styles.link} to="/dashboard">
@@ -48,7 +48,11 @@ export default function Navbar() {
           Import
         </Link>
       </HeaderNavigation>
-      <SideNav aria-label="Side navigation" expanded={isSideNavExpanded} isPersistent={false}>
+      <SideNav
+        aria-label="Side navigation"
+        expanded={isSideNavExpanded}
+        isPersistent={false}
+      >
         <SideNavItems>
           <HeaderSideNavItems>
             <Link to="/">Home</Link>
@@ -60,5 +64,5 @@ export default function Navbar() {
         </SideNavItems>
       </SideNav>
     </Header>
-  )
+  );
 }

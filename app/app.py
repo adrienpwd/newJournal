@@ -360,7 +360,7 @@ def get_overview():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_overviews = db.overviews.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            matching_overviews = db.overviews.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, {'$sort': {'timestamp': 1}}])
             return_data = list(matching_overviews)
             return jsonify({'ok': True, 'overviews': return_data})
 

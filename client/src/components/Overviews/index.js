@@ -67,7 +67,7 @@ export default function Overviews() {
           id="date-picker-input-id-start"
           invalid={false}
           invalidText="A valid value is required"
-          labelText="Starting date"
+          labelText="Starting Date"
           onChange={function noRefCheck() {}}
           onClick={function noRefCheck() {}}
           pattern="d{1,2}/d{4}"
@@ -104,10 +104,13 @@ export default function Overviews() {
     const monthIndex = date.getMonth();
 
     // We only look at the Live account to assign a color, based on R
-    const myAccount = accounts[0].id;
+    const myLiveAccount = accounts[0].id;
+    const mySimAccount = accounts[1].id;
 
     let overviewClass;
-    const r = overview?.accounts?.[myAccount]?.r;
+    const r =
+      overview?.accounts?.[myLiveAccount]?.r ||
+      overview?.accounts?.[mySimAccount]?.r;
     if (r >= 1) {
       overviewClass = styles.overviewGreen;
     } else if (r <= 1 && r >= -1) {
@@ -118,8 +121,8 @@ export default function Overviews() {
 
     return (
       <Link key={day} to={`review/${dayString}`}>
-        <div className={styles.overview + ' ' + overviewClass}>
-          {date.toDateString()}
+        <div className={styles.overview}>
+          <div className={overviewClass}>{date.toDateString()}</div>
           {Object.keys(overview.accounts).map(k => {
             return (
               <div key={k}>
@@ -135,6 +138,48 @@ export default function Overviews() {
   };
 
   const renderOverviews = () => {
+    // const overviewsByWeek = [[], [], [], []];
+    // let weekIndex = 0;
+    // const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    // let currentWeek = [];
+
+    // if (Object.keys(overviews)?.length) {
+    //   Object.keys(overviews).forEach((o, i) => {
+    //     if (i < Object.keys(overviews).length) {
+    //       const currentDay = new Date(o).toDateString().substring(0, 3);
+    //       const next = Object.keys(overviews)[i + 1];
+    //       const nextDay = new Date(next).toDateString().substring(0, 3);
+    //       const currentDayIndex = weekDays.indexOf(currentDay);
+    //       const nextDayIndex = weekDays.indexOf(nextDay);
+
+    //       console.log(currentDay);
+    //       console.log(currentDayIndex);
+    //       console.log(nextDay);
+    //       console.log(nextDayIndex);
+
+    //       if (nextDayIndex < currentDayIndex) {
+    //         // New Week
+    //         overviewsByWeek.splice(weekIndex, 0, currentWeek);
+    //         weekIndex += 1;
+    //         currentWeek = [];
+    //       } else {
+    //         currentWeek.push(renderDay(overviews[o]));
+    //       }
+    //     }
+    //     // TODO:
+    //     // Need to push last day into week (i < overviews.length)
+    //     // There will be one remaining day
+    //   });
+    // }
+
+    // console.log(overviewsByWeek);
+
+    // return overviewsByWeek.length ? (
+    //   overviewsByWeek
+    // ) : (
+    //   <div>No Overviews found for this period</div>
+    // );
+
     if (Object.keys(overviews)?.length) {
       return Object.keys(overviews).map(o => {
         return renderDay(overviews[o]);
