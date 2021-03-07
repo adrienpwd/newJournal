@@ -5,67 +5,22 @@ export const strategies = [
     type: '',
     label: 'Not Defined',
     description: '',
-    indicators: [],
+    requirements: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    targets: [],
-    rules: [],
     screenshot: []
   },
   // Breakouts
-  {
-    id: 'wedge',
-    type: 'breakout',
-    label: 'Wedge',
-    description: 'Trade the breakout of a Wedge pattern.',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'triangle',
-    type: 'breakout',
-    label: 'Triangle',
-    description: 'Trade the breakout of a Triangle pattern.',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
   {
     id: '3-bars-play',
     type: 'breakout',
     label: '3 Bars Play',
     description: 'A scalp trade.',
-    indicators: [],
+    requirements: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'orb',
-    type: 'breakout',
-    label: 'ORB',
-    description: 'Opening Range Breakout.',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [
-      'You must wait to see the power of the other group first (Hammer if you are long)'
-    ],
     screenshot: []
   },
   {
@@ -74,49 +29,121 @@ export const strategies = [
     label: 'Range Breakout',
     description:
       'Stock moves above or below a trading range after a clean consolidation. Usually moves away from support/resistance. It is always in the same direction of the existing move or trend.',
-    indicators: {
-      1: 'Is the stock nice on the daily chart (Gap, ABCD, ...)?',
-      2: 'Is the stock trading in a clean and tight range, without wicks',
-      3: 'Is the stock in near HOD or LOD',
-      4: 'Is the stock strong or weak relatively to the market',
-      5: 'Is there one or more shakeout bars ?',
-      6: 'Is the stock liquid enough ? (RVOL)',
-      7: 'Is the spread okay ?',
-      6: 'Is the stock coming into the breakout area after a pullback of maximum 50% of the range',
-      7: 'Is there a nice void before the next level of resistance (long), or support (short)',
-      8: 'Is the stock NOT extended',
-      9: 'Is the stock at or near whole or 1/2 $ ?',
-      10: 'Is there large volume at or near whole or 1/2 $ ?'
+    requirements: {
+      // Known when creating seed
+      flat60: {
+        id: 'flat60',
+        description: 'Flat top on 60 min',
+        required: true
+      },
+      '4candles60': {
+        id: '4candles60',
+        description: '4 candles minimum in the 60 min range',
+        required: true
+      },
+      noWick: {
+        id: 'noWick',
+        description:
+          'No wick against your direction, or entry after break of wicks',
+        required: true
+      },
+      rvol: { id: 'rvol', description: '90% or more RVOL', required: true },
+      void: {
+        id: 'void',
+        description: 'Void above breakout, or minimum 3R doable',
+        required: true
+      }
     },
     confirmations: {
-      1: 'Volume comes in at the breakout area',
-      2: 'Big Asks at the breakout area (long), or big Bids (short)',
-      3: 'Times and Sales accelerates at the breakout area',
-      4: 'There is more volume at the bottom of the range (buying pressure), or at the top of the range (selling pressure)'
+      // Known when entering the trade
+      miniSetup: {
+        id: 'miniSetup',
+        description: 'Setup on 1 or 5min',
+        required: true
+      },
+      independant: {
+        id: 'independant',
+        description: 'Trading independently of the market',
+        required: true
+      },
+      notExtended: {
+        id: 'notExtended',
+        description: 'Not extended (3 consecutive candles on 5 min)',
+        required: true
+      },
+      volume: {
+        id: 'volume',
+        description: 'Volume comes in at the breakout area',
+        required: false
+      },
+      askOrBid: {
+        id: 'askOrBid',
+        description:
+          'Big Asks at the breakout area (long), or big Bids (short)',
+        required: false
+      },
+      tsAccelerate: {
+        id: 'tsAccelerate',
+        description: 'Times and Sales accelerates at the breakout area',
+        required: false
+      },
+      rangeVolume: {
+        id: 'rangeVolume',
+        description:
+          'There is more volume at the bottom of the range (buying pressure), or at the top of the range (selling pressure)',
+        required: false
+      }
     },
     adds: {
-      1: 'At the breakout area if you entered in the range, and if it does not increase your risk',
-      2: 'After the retest of the breakout area if it is on low volume',
-      3: 'After a pullback (minimum 30%) if it does not increase your risk, and if it is only the 1st or 2nd leg'
+      addAtBreak: {
+        id: 'addAtBreak',
+        description:
+          'At the breakout area if you entered in the range, and if it does not increase your risk'
+      },
+      addAtRetest: {
+        id: 'addAtRetest',
+        description:
+          'After the retest of the breakout area if it is on low volume'
+      },
+      addPullback: {
+        id: 'addPullback',
+        description:
+          'After a pullback (minimum 30%) if it does not increase your risk, and if it is only the 1st or 2nd leg'
+      },
+      noAdd: {
+        id: 'noAdd',
+        description: 'No adds'
+      },
+      noAddRespect: {
+        id: 'noAddRespect',
+        description: 'Did not respect adding rules'
+      }
     },
     stopLoss: {
-      1: 'Entry in the range: below the range',
-      2: 'Entry before the breakout: below the middle of the range',
-      3: 'Entry after the break: below top of the range'
-    },
-    targets: {
-      1: '50% at 3R',
-      2: 'Next level of resitance/support',
-      3: 'Whole $',
-      4: 'After a big move on high volume'
-    },
-    rules: {
-      1: 'There must be maximum 1 wick against your direction',
-      2: 'There must be at least 4 candles in the range',
-      3: 'Once the breakout happened you must move the stop to the middle of the range',
-      4: 'If entering at the open, you must wait to see the power of the other group first (Hammer if you are long)',
-      5: 'You must wait 3R to take the first partial (50%)',
-      6: 'If a fake breakout happens in the opposite direction, you can re-enter'
+      entryBeforeBreak: {
+        id: 'entryBeforeBreak',
+        description: 'Entry in the range: below the range'
+      },
+      entryAtBreak: {
+        id: 'entryAtBreak',
+        description: 'Entry at the breakout: below the middle of the range'
+      },
+      entryAfterBreak: {
+        id: 'entryAfterBreak',
+        description: 'Entry after the break: below top of the range'
+      },
+      noStopRespect: {
+        id: 'noStopRespect',
+        description: 'Did not respect stop rules'
+      },
+      manualExit: {
+        id: 'manualExit',
+        description: 'Exited manually before my stop'
+      },
+      manualExitWithoutReason: {
+        id: 'manualExitWithoutReason',
+        description: 'Exited manually before my stop for no reason'
+      }
     },
     screenshot: []
   },
@@ -127,12 +154,10 @@ export const strategies = [
     type: 'reversal',
     label: 'Climactic Reversal',
     description: 'Catch a pullback to the 9EMA on the 5min chart.',
-    indicators: [],
+    requirements: [],
     confirmations: [],
     adds: ['No add in this setup'],
     stopLoss: [],
-    targets: [],
-    rules: [],
     screenshot: []
   },
   {
@@ -140,84 +165,61 @@ export const strategies = [
     type: 'reversal',
     label: 'Extreme Reversal',
     description: 'A nice V reversal',
-    indicators: [],
+    requirements: [],
     confirmations: [],
     adds: [],
     stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'mountain-pass',
-    type: 'reversal',
-    label: 'Mountain Pass',
-    description: "Peter's Mountain Pass",
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-
-  // Trends
-  {
-    id: 'abcd-1',
-    type: 'trend',
-    label: 'ABCD type 1',
-    description: `ABCD that looks like an ascending triangle.
-    The breakout happens after a long sideways consolidation.
-    The MAs come closer and closer to the price.`,
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'abcd-2',
-    type: 'trend',
-    label: 'ABCD type 2',
-    description: `ABCD where the consolidation slightly pulls back.
-    The MAs come closer and closer to the price.`,
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'abcd-3',
-    type: 'trend',
-    label: 'ABCD type 3',
-    description: 'ABCD where the pullback is parabolic.',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
-    screenshot: []
-  },
-  {
-    id: 'trendline-break',
-    type: 'trend',
-    label: 'Trend Line Break',
-    description: 'Trend Line Break',
-    indicators: [],
-    confirmations: [],
-    adds: [],
-    stopLoss: [],
-    targets: [],
-    rules: [],
     screenshot: []
   }
+
+  // Trends
+  // {
+  //   id: 'abcd-1',
+  //   type: 'trend',
+  //   label: 'ABCD type 1',
+  //   description: `ABCD that looks like an ascending triangle.
+  //   The breakout happens after a long sideways consolidation.
+  //   The MAs come closer and closer to the price.`,
+  //   requirements: [],
+  //   confirmations: [],
+  //   adds: [],
+  //   stopLoss: [],
+  //   screenshot: []
+  // },
+  // {
+  //   id: 'abcd-2',
+  //   type: 'trend',
+  //   label: 'ABCD type 2',
+  //   description: `ABCD where the consolidation slightly pulls back.
+  //   The MAs come closer and closer to the price.`,
+  //   requirements: [],
+  //   confirmations: [],
+  //   adds: [],
+  //   stopLoss: [],
+  //   screenshot: []
+  // },
+  // {
+  //   id: 'abcd-3',
+  //   type: 'trend',
+  //   label: 'ABCD type 3',
+  //   description: 'ABCD where the pullback is parabolic.',
+  //   requirements: [],
+  //   confirmations: [],
+  //   adds: [],
+  //   stopLoss: [],
+  //   screenshot: []
+  // },
+  // {
+  //   id: 'trendline-break',
+  //   type: 'trend',
+  //   label: 'Trend Line Break',
+  //   description: 'Trend Line Break',
+  //   requirements: [],
+  //   confirmations: [],
+  //   adds: [],
+  //   stopLoss: [],
+  //   screenshot: []
+  // }
 ];
 
 export const catalysts = [

@@ -1,8 +1,1 @@
-export const rulesItems = [
-  'indicators',
-  'confirmations',
-  'adds',
-  'stopLoss',
-  'targets',
-  'rules'
-];
+export const rulesItems = ['requirements', 'confirmations', 'adds', 'stopLoss'];
