@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Button,
   FileUploaderButton,
@@ -9,65 +9,65 @@ import {
   SelectItem,
   TextInput,
   Toggle
-} from 'carbon-components-react'
-import { useForm } from 'react-hook-form'
-import ReactQuill from 'react-quill'
-import { strategies } from '../../utils'
-import Strategy from './../Tradebook/strategy'
-import { editSeed, deleteSeed } from 'actions/seeds'
-import { uploadImages, deleteImage } from 'actions/trades'
-import { useHistory } from 'react-router-dom'
+} from 'carbon-components-react';
+import { useForm } from 'react-hook-form';
+import ReactQuill from 'react-quill';
+import { strategies } from '../../utils';
+import Strategy from './../Tradebook/strategy';
+import { editSeed, deleteSeed } from 'actions/seeds';
+import { uploadImages, deleteImage } from 'actions/trades';
+import { useHistory } from 'react-router-dom';
 
-import { Checkmark16, Edit16, Close16, TrashCan16 } from '@carbon/icons-react'
+import { Checkmark16, Edit16, Close16, TrashCan16 } from '@carbon/icons-react';
 
-import styles from './editSeed.module.css'
+import styles from './editSeed.module.css';
 
 export default function EditSeed(props) {
-  const dispatch = useDispatch()
-  const history = useHistory()
+  const dispatch = useDispatch();
+  const history = useHistory();
 
-  const [tradeLong, setTradeLong] = useState(true)
-  const [formValue, setFormValue] = useState('')
+  const [tradeLong, setTradeLong] = useState(true);
+  const [formValue, setFormValue] = useState('');
 
-  const { overviewId, onClose, seed } = props
+  const { overviewId, onClose, seed } = props;
 
-  const seedId = seed?.id
+  const seedId = seed?.id;
 
   const makeViewState = () => {
     if (!seed?.id) {
-      history.push(`/review/${overviewId}`)
+      history.push(`/review/${overviewId}`);
     } else {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const handleDeleteSeed = () => {
-    dispatch(deleteSeed(seedId))
-    history.push(`/review/${overviewId}`)
-  }
+    dispatch(deleteSeed(seedId));
+    history.push(`/review/${overviewId}`);
+  };
 
-  const onSubmit = (data) => {
-    const { ticker, strategy } = data
+  const onSubmit = data => {
+    const { ticker, strategy } = data;
 
-    const currentTime = new Date()
-    const seedHours = currentTime.getHours()
+    const currentTime = new Date();
+    const seedHours = currentTime.getHours();
     const seedMinutes =
       String(currentTime.getMinutes()).length == 2
         ? currentTime.getMinutes()
-        : `0${currentTime.getMinutes()}`
-    const seedDate = new Date(overviewId)
-    const timestamp = (seedDate - (seedDate % 1000)) / 1000
-    const time = `${seedHours}:${seedMinutes}`
+        : `0${currentTime.getMinutes()}`;
+    const seedDate = new Date(overviewId);
+    const timestamp = (seedDate - (seedDate % 1000)) / 1000;
+    const time = `${seedHours}:${seedMinutes}`;
 
-    const rulesItems = ['indicators', 'confirmations', 'rules']
+    const rulesItems = ['requirements'];
 
-    const rulesRespected = {}
-    Object.keys(data).forEach((key) => {
-      const test = key.split('-')[0]
+    const rulesRespected = {};
+    Object.keys(data).forEach(key => {
+      const test = key.split('-')[0];
       if (rulesItems.includes(test)) {
-        rulesRespected[key] = data[key]
+        rulesRespected[key] = data[key];
       }
-    })
+    });
 
     const seedData = {
       id: seed?.id || `${overviewId}-${ticker}-${strategy}-${timestamp}`,
@@ -77,37 +77,37 @@ export default function EditSeed(props) {
       description: formValue,
       rulesRespected,
       ...data
-    }
+    };
 
-    dispatch(editSeed({}, seedData))
-    makeViewState()
-  }
+    dispatch(editSeed({}, seedData));
+    makeViewState();
+  };
 
-  const handleSideChange = (e) => {
-    setTradeLong(e)
-  }
+  const handleSideChange = e => {
+    setTradeLong(e);
+  };
 
-  const _handleUploadImages = (e) => {
-    const formData = new FormData()
+  const _handleUploadImages = e => {
+    const formData = new FormData();
 
-    const files = e.target.files
+    const files = e.target.files;
 
     if (files.length > 0) {
       for (let i = 0; i < files.length; i++) {
-        const imageName = `${seed?.id}_${i}`
-        formData.append(imageName, files[i], imageName)
+        const imageName = `${seed?.id}_${i}`;
+        formData.append(imageName, files[i], imageName);
       }
 
-      dispatch(uploadImages(formData, 'seed', overviewId, seed.id))
+      dispatch(uploadImages(formData, 'seed', overviewId, seed.id));
     }
-  }
+  };
 
-  const handleDeleteScreenshot = (img) => {
-    dispatch(deleteImage('seed', seed.id, img))
-  }
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('seed', seed.id, img));
+  };
 
   const renderImgList = () => {
-    return seed?.img?.map((img) => {
+    return seed?.img?.map(img => {
       return (
         <div key={img} className={styles.imgEdit}>
           <div>{img}</div>
@@ -122,12 +122,12 @@ export default function EditSeed(props) {
             tooltipPosition="left"
           />
         </div>
-      )
-    })
-  }
+      );
+    });
+  };
 
   const renderStrategyRules = () => {
-    const rulesRespected = seed?.rulesRespected || []
+    const rulesRespected = seed?.rulesRespected || [];
     return (
       <>
         <p>Did you respect all the rules and criterias ?</p>
@@ -140,14 +140,14 @@ export default function EditSeed(props) {
           register={register}
         />
       </>
-    )
-  }
+    );
+  };
 
   const defaultValues = {
     price: seed?.price
-  }
+  };
 
-  const { register, handleSubmit, reset } = useForm({ defaultValues })
+  const { register, handleSubmit, reset } = useForm({ defaultValues });
 
   return (
     <div>
@@ -226,8 +226,8 @@ export default function EditSeed(props) {
           invalidText="A valid value is required"
           defaultValue={seed?.strategy}
         >
-          {strategies.map((s) => {
-            return <SelectItem text={s.label} value={s.id} key={s.id} />
+          {strategies.map(s => {
+            return <SelectItem text={s.label} value={s.id} key={s.id} />;
           })}
         </Select>
         <NumberInput
@@ -247,5 +247,5 @@ export default function EditSeed(props) {
         {renderImgList()}
       </div>
     </div>
-  )
+  );
 }
