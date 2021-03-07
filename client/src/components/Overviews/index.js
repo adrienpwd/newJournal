@@ -16,10 +16,8 @@ export default function Overviews() {
   const dispatch = useDispatch();
 
   const today = new Date();
-  // const twoWeeks = 1209600000;
   const oneMonth = 2419200000;
   const end = today.getTime();
-  // const start = end - twoWeeks;
   const start = end - oneMonth;
 
   const endUnixTime = Math.floor(end / 1000);
@@ -96,6 +94,7 @@ export default function Overviews() {
   };
 
   const renderDay = function (overview) {
+    if (!overview) return;
     const dayString = overview.id;
     const dayArr = dayString.split('-');
     const year = dayArr[2];
@@ -164,7 +163,6 @@ export default function Overviews() {
 
           if (nextDayIndex < currentDayIndex) {
             // New Week
-            // currentWeek.push(renderDay(overviews[o]));
             currentWeek[currentDayIndex] = renderDay(overviews[o]);
             overviewsByWeek.push(currentWeek);
             currentWeek = [
@@ -208,7 +206,11 @@ export default function Overviews() {
 
   const renderBody = () => {
     if (overviewsByWeek.length === 0) {
-      return <div>No Overviews found for this period</div>;
+      return (
+        <div className={styles.noOverviewFound}>
+          No Overviews found for this period
+        </div>
+      );
     }
     if (loading) {
       return <Loading description="Loading overviews" withOverlay={false} />;
