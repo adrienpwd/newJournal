@@ -16,9 +16,11 @@ export default function Overviews() {
   const dispatch = useDispatch();
 
   const today = new Date();
-  const twoWeeks = 1209600000;
+  // const twoWeeks = 1209600000;
+  const oneMonth = 2419200000;
   const end = today.getTime();
-  const start = end - twoWeeks;
+  // const start = end - twoWeeks;
+  const start = end - oneMonth;
 
   const endUnixTime = Math.floor(end / 1000);
   const startUnixTime = Math.floor(start / 1000);
@@ -126,9 +128,9 @@ export default function Overviews() {
           {Object.keys(overview.accounts).map(k => {
             return (
               <div key={k}>
-                <div>{k}:</div>
+                <div>{k}</div>
                 <div>R: {overview.accounts[k].r}</div>
-                <div>P&L:{overview.accounts[k].net}</div>
+                <div>P&L: {overview.accounts[k].net}</div>
               </div>
             );
           })}
@@ -137,62 +139,77 @@ export default function Overviews() {
     );
   };
 
-  const renderOverviews = () => {
-    // const overviewsByWeek = [[], [], [], []];
-    // let weekIndex = 0;
-    // const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    // let currentWeek = [];
+  const getOverviewsByWeek = () => {
+    const overviewsByWeek = [];
+    let weekIndex = 0;
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    let currentWeek = [
+      <div className={styles.overview} key={1} />,
+      <div className={styles.overview} key={2} />,
+      <div className={styles.overview} key={3} />,
+      <div className={styles.overview} key={4} />,
+      <div className={styles.overview} key={5} />
+    ];
 
-    // if (Object.keys(overviews)?.length) {
-    //   Object.keys(overviews).forEach((o, i) => {
-    //     if (i < Object.keys(overviews).length) {
-    //       const currentDay = new Date(o).toDateString().substring(0, 3);
-    //       const next = Object.keys(overviews)[i + 1];
-    //       const nextDay = new Date(next).toDateString().substring(0, 3);
-    //       const currentDayIndex = weekDays.indexOf(currentDay);
-    //       const nextDayIndex = weekDays.indexOf(nextDay);
+    const overviewKeys = Object.keys(overviews);
 
-    //       console.log(currentDay);
-    //       console.log(currentDayIndex);
-    //       console.log(nextDay);
-    //       console.log(nextDayIndex);
+    if (overviewKeys?.length) {
+      overviewKeys.forEach((o, i) => {
+        if (i < overviewKeys.length - 1) {
+          const currentDay = new Date(o).toDateString().substring(0, 3);
+          const next = overviewKeys[i + 1];
+          const nextDay = new Date(next).toDateString().substring(0, 3);
+          const currentDayIndex = weekDays.indexOf(currentDay);
+          const nextDayIndex = weekDays.indexOf(nextDay);
 
-    //       if (nextDayIndex < currentDayIndex) {
-    //         // New Week
-    //         overviewsByWeek.splice(weekIndex, 0, currentWeek);
-    //         weekIndex += 1;
-    //         currentWeek = [];
-    //       } else {
-    //         currentWeek.push(renderDay(overviews[o]));
-    //       }
-    //     }
-    //     // TODO:
-    //     // Need to push last day into week (i < overviews.length)
-    //     // There will be one remaining day
-    //   });
-    // }
-
-    // console.log(overviewsByWeek);
-
-    // return overviewsByWeek.length ? (
-    //   overviewsByWeek
-    // ) : (
-    //   <div>No Overviews found for this period</div>
-    // );
-
-    if (Object.keys(overviews)?.length) {
-      return Object.keys(overviews).map(o => {
-        return renderDay(overviews[o]);
+          if (nextDayIndex < currentDayIndex) {
+            // New Week
+            // currentWeek.push(renderDay(overviews[o]));
+            currentWeek[currentDayIndex] = renderDay(overviews[o]);
+            overviewsByWeek.push(currentWeek);
+            currentWeek = [
+              <div className={styles.overview} key={1} />,
+              <div className={styles.overview} key={2} />,
+              <div className={styles.overview} key={3} />,
+              <div className={styles.overview} key={4} />,
+              <div className={styles.overview} key={5} />
+            ];
+          } else {
+            currentWeek[currentDayIndex] = renderDay(overviews[o]);
+          }
+        }
       });
-    } else {
-      return <div>No Overviews found for this period</div>;
+
+      // Need to push last day into week (i < overviews.length)
+      // There will be one remaining day
+      const lastOverviewIndex = overviewKeys.length - 1;
+      const lastOverviewKey = overviewKeys[lastOverviewIndex];
+      const lastOverviewDay = new Date(overviews[lastOverviewKey].id)
+        .toDateString()
+        .substring(0, 3);
+      const lastOverviewDayIndex = weekDays.indexOf(lastOverviewDay);
+      currentWeek[lastOverviewDayIndex] = renderDay(overviews[lastOverviewKey]);
+
+      // Push last week of the month
+      overviewsByWeek.push(currentWeek);
     }
+
+    return overviewsByWeek;
+  };
+
+  const renderOverviewsByWeek = overviews => {
+    return <div className={styles.overviewsList}>{overviews}</div>;
   };
 
   const startingDate = new Date(dateRange.start);
   const endingDate = new Date(dateRange.end);
 
+  const overviewsByWeek = getOverviewsByWeek();
+
   const renderBody = () => {
+    if (overviewsByWeek.length === 0) {
+      return <div>No Overviews found for this period</div>;
+    }
     if (loading) {
       return <Loading description="Loading overviews" withOverlay={false} />;
     } else {
@@ -202,7 +219,11 @@ export default function Overviews() {
           <div>
             {startingDate.toDateString()} to {endingDate.toDateString()}
           </div>
-          <div className={styles.overviewsList}>{renderOverviews()}</div>
+          {renderOverviewsByWeek(overviewsByWeek[0])}
+          {renderOverviewsByWeek(overviewsByWeek[1])}
+          {renderOverviewsByWeek(overviewsByWeek[2])}
+          {renderOverviewsByWeek(overviewsByWeek[3])}
+          {renderOverviewsByWeek(overviewsByWeek[4])}
         </div>
       );
     }
