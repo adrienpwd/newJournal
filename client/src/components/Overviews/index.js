@@ -124,7 +124,7 @@ export default function Overviews() {
       <Link key={day} to={`review/${dayString}`}>
         <div className={styles.overview}>
           <div className={overviewClass}>{date.toDateString()}</div>
-          {Object.keys(overview?.accounts).map(k => {
+          {Object.keys(overview?.accounts || {}).map(k => {
             return (
               <div key={k} className={styles.account}>
                 <div>{k}</div>
