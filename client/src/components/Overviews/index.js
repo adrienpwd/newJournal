@@ -154,15 +154,27 @@ export default function Overviews() {
     if (overviewKeys?.length) {
       overviewKeys.forEach((o, i) => {
         if (i < overviewKeys.length - 1) {
-          const currentDay = new Date(o).toDateString().substring(0, 3);
+          const currentYear = o.substring(6, 10);
+          const currentMonth = o.substring(0, 2) - 1;
+          const currentDay = o.substring(3, 5);
+
+          const currentDate = new Date(currentYear, currentMonth, currentDay)
+            .toDateString()
+            .substring(0, 3);
           const next = overviewKeys[i + 1];
-          const nextDay = new Date(next).toDateString().substring(0, 3);
-          const currentDayIndex = weekDays.indexOf(currentDay);
-          const nextDayIndex = weekDays.indexOf(nextDay);
+          const nextYear = next.substring(6, 10);
+          const nextMonth = next.substring(0, 2) - 1;
+          const nextDay = next.substring(3, 5);
+          const nextDate = new Date(nextYear, nextMonth, nextDay)
+            .toDateString()
+            .substring(0, 3);
+          const currentDayIndex = weekDays.indexOf(currentDate);
+          const nextDayIndex = weekDays.indexOf(nextDate);
 
           if (nextDayIndex < currentDayIndex) {
             // New Week
-            currentWeek[currentDayIndex] = renderDay(overviews[o]);
+            // currentWeek[currentDayIndex] = renderDay(overviews[o]);
+            currentWeek.splice(currentDayIndex, 1, renderDay(overviews[o]));
             overviewsByWeek.push(currentWeek);
             currentWeek = [
               <div className={styles.overview} key={1} />,
@@ -172,7 +184,8 @@ export default function Overviews() {
               <div className={styles.overview} key={5} />
             ];
           } else {
-            currentWeek[currentDayIndex] = renderDay(overviews[o]);
+            // currentWeek[currentDayIndex] = renderDay(overviews[o]);
+            currentWeek.splice(currentDayIndex, 1, renderDay(overviews[o]));
           }
         }
       });
@@ -185,7 +198,12 @@ export default function Overviews() {
         .toDateString()
         .substring(0, 3);
       const lastOverviewDayIndex = weekDays.indexOf(lastOverviewDay);
-      currentWeek[lastOverviewDayIndex] = renderDay(overviews[lastOverviewKey]);
+      // currentWeek[lastOverviewDayIndex] = renderDay(overviews[lastOverviewKey]);
+      currentWeek.splice(
+        lastOverviewDayIndex,
+        1,
+        renderDay(overviews[lastOverviewKey])
+      );
 
       // Push last week of the month
       overviewsByWeek.push(currentWeek);
