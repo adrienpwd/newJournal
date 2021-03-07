@@ -21,7 +21,6 @@ const onLoadOverviewSuccess = (state, payload) => {
     loading: false,
     loaded: true,
     overviews: {
-      ...state.overviews,
       ...overviewObject
     }
   };
