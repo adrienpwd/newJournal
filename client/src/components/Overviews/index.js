@@ -143,7 +143,13 @@ export default function Overviews() {
     const overviewsByWeek = [];
     let weekIndex = 0;
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    let currentWeek = [];
+    let currentWeek = [
+      <div className={styles.overview} key={1} />,
+      <div className={styles.overview} key={2} />,
+      <div className={styles.overview} key={3} />,
+      <div className={styles.overview} key={4} />,
+      <div className={styles.overview} key={5} />
+    ];
 
     const overviewKeys = Object.keys(overviews);
 
@@ -158,11 +164,18 @@ export default function Overviews() {
 
           if (nextDayIndex < currentDayIndex) {
             // New Week
-            currentWeek.push(renderDay(overviews[o]));
+            // currentWeek.push(renderDay(overviews[o]));
+            currentWeek[currentDayIndex] = renderDay(overviews[o]);
             overviewsByWeek.push(currentWeek);
-            currentWeek = [];
+            currentWeek = [
+              <div className={styles.overview} key={1} />,
+              <div className={styles.overview} key={2} />,
+              <div className={styles.overview} key={3} />,
+              <div className={styles.overview} key={4} />,
+              <div className={styles.overview} key={5} />
+            ];
           } else {
-            currentWeek.push(renderDay(overviews[o]));
+            currentWeek[currentDayIndex] = renderDay(overviews[o]);
           }
         }
       });
@@ -171,7 +184,12 @@ export default function Overviews() {
       // There will be one remaining day
       const lastOverviewIndex = overviewKeys.length - 1;
       const lastOverviewKey = overviewKeys[lastOverviewIndex];
-      currentWeek.push(renderDay(overviews[lastOverviewKey]));
+      const lastOverviewDay = new Date(overviews[lastOverviewKey].id)
+        .toDateString()
+        .substring(0, 3);
+      const lastOverviewDayIndex = weekDays.indexOf(lastOverviewDay);
+      currentWeek[lastOverviewDayIndex] = renderDay(overviews[lastOverviewKey]);
+
       // Push last week of the month
       overviewsByWeek.push(currentWeek);
     }
