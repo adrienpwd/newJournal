@@ -126,7 +126,7 @@ export default function Overviews() {
           <div className={overviewClass}>{date.toDateString()}</div>
           {Object.keys(overview.accounts).map(k => {
             return (
-              <div key={k}>
+              <div key={k} className={styles.account}>
                 <div>{k}</div>
                 <div>R: {overview.accounts[k].r}</div>
                 <div>P&L: {overview.accounts[k].net}</div>

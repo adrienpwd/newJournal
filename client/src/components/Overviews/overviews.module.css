@@ -37,17 +37,23 @@
   display: flex;
   flex-direction: column;
   align-items: baseline;
-  justify-content: space-evenly;
+}
+
+.account {
+  margin-bottom: 8px;
 }
 
 .overviewGreen {
   color: #4caf50;
+  margin-bottom: 8px;
 }
 
 .overviewNeuter {
   color: orange;
+  margin-bottom: 8px;
 }
 
 .overviewRed {
   color: #a30000;
+  margin-bottom: 8px;
 }
