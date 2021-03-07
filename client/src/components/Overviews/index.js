@@ -94,7 +94,6 @@ export default function Overviews() {
   };
 
   const renderDay = function (overview) {
-    if (!overview?.account) return;
     const dayString = overview.id;
     const dayArr = dayString.split('-');
     const year = dayArr[2];
