@@ -146,6 +146,7 @@ def get_duration(entry_time, exit_time):
     datetime_b = datetime.strptime(exit_time, DATE_FORMAT_OUTPUT)
     return datetime_b - datetime_a
 
+
 def get_gain(trades):
     gain = 0
     buy = 0
@@ -254,19 +255,23 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 key=lambda action: (action['time'], action['category']))
 
             # Filter all Orders to have only those that were filled
-            trade_actions = list(filter(lambda action: action.get('category') == 1, initial_trade.get('actions', [])))
+            trade_actions = list(filter(lambda action: action.get(
+                'category') == 1, initial_trade.get('actions', [])))
 
             # Add slippage to each order
-            order_actions = list(filter(lambda action: action.get('category') == 0, initial_trade.get('actions', [])))
+            order_actions = list(filter(lambda action: action.get(
+                'category') == 0, initial_trade.get('actions', [])))
             for trade in trade_actions:
                 my_order_id = trade['order_id']
                 for order in order_actions:
                     order['slippage'] = 0
                     if order['id'] == my_order_id:
-                        if initial_trade['type'] == 'B' :
-                            order['slippage'] = round(trade['price'] - order['price'], 2)
+                        if initial_trade['type'] == 'B':
+                            order['slippage'] = round(
+                                trade['price'] - order['price'], 2)
                         if initial_trade['type'] == 'S':
-                            order['slippage'] = round(order['price'] - trade['price'], 2)
+                            order['slippage'] = round(
+                                order['price'] - trade['price'], 2)
 
             # calculate gain for this trade
             gross_gain = get_gain(trade_actions)
@@ -280,16 +285,16 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 lambda action: action.get('is_stop', False) == True, initial_trade.get('actions', [])))
             initial_stop = 0
             stop_distance = 0
-            risk = 0
+            risk = 20
             stop_ratio = 0
 
             if len(stop_actions) > 0:
                 initial_stop = stop_actions[0].get('stop_price')
-                stop_distance = round(abs(initial_trade.get('price') - initial_stop), 4)
+                stop_distance = round(
+                    abs(initial_trade.get('price') - initial_stop), 4)
                 stop_ratio = stop_distance / initial_trade.get('price')
-                risk = stop_distance * initial_trade.get('qty')
+                # risk = stop_distance * initial_trade.get('qty')
 
-            r = 0
             if risk > 0 and gross_gain != 0:
                 r = round(gross_gain / risk, 2)
 
@@ -301,12 +306,12 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             nb_shares = get_nb_shares(trade_actions)
             initial_trade['nb_shares'] = nb_shares
 
-            #if initial_trade['account'] == 'TRPCT0094':
-                #commissions = 0.005 * nb_shares
-                #initial_trade['commissions'] = 0.005 * nb_shares
-                #initial_trade['ratio_com_gain'] = round(
-                    #abs(commissions / gross_gain), 4)
-                #initial_trade['net_gain'] = round(gross_gain - commissions, 4)
+            # if initial_trade['account'] == 'TRPCT0094':
+                # commissions = 0.005 * nb_shares
+                # initial_trade['commissions'] = 0.005 * nb_shares
+                # initial_trade['ratio_com_gain'] = round(
+                    # abs(commissions / gross_gain), 4)
+                # initial_trade['net_gain'] = round(gross_gain - commissions, 4)
 
             # slippage
             initial_trade['slippage'] = get_slippage(order_actions)
@@ -344,7 +349,8 @@ def list_trades():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_trades = db.trades.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            matching_trades = db.trades.find(
+                {"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
             return_data = list(matching_trades)
             return jsonify({'ok': True, 'trades': return_data})
 
@@ -360,9 +366,11 @@ def get_overview():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_overviews = db.overviews.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, {'$sort': {'timestamp': 1}}])
+            matching_overviews = db.overviews.aggregate([{'$match': {"timestamp": {
+                                                        '$gte': startTimestamp, '$lte': endTimestamp}}}, {'$sort': {'timestamp': 1}}])
             return_data = list(matching_overviews)
             return jsonify({'ok': True, 'overviews': return_data})
+
 
 @application.route('/seeds', methods=['GET'])
 def get_seeds():
@@ -371,9 +379,11 @@ def get_seeds():
         if request.args:
             startTimestamp = int(request.args['start'])
             endTimestamp = int(request.args['end'])
-            matching_seeds = db.seeds.find({"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
+            matching_seeds = db.seeds.find(
+                {"timestamp": {"$gte": startTimestamp, "$lte": endTimestamp}})
             return_data = list(matching_seeds)
             return jsonify({'ok': True, 'seeds': return_data})
+
 
 @application.route('/importTrades', methods=['GET', 'POST'])
 def post_raw_data():
@@ -415,7 +425,6 @@ def post_raw_data():
                 # if stop_order[11] == order['ticker'] and should_process:
                     # order['order_risk'] = round(
                         # abs(order.get('price', 0) - float(stop_order[15])), 4)
-
 
         # Build Trades
         csv_trades = request.files['tradesInput']
@@ -657,11 +666,16 @@ def edit_trade_data():
             ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
-        
+
         if len(details.get('strategy', '')) > 0:
             strategy_value = details.get('strategy')
         else:
             strategy_value = my_trade['strategy']
+
+        if details.get('r'):
+            r = float(details.get('r'))
+        else:
+          r = my_trade['r']
 
         db.trades.update_one(
             {'id': trade['id']},
@@ -674,6 +688,7 @@ def edit_trade_data():
                 'rvol': details.get('rvol', my_trade['rvol']),
                 'rating': details.get('rating', my_trade['rating']),
                 'commissions': commissions,
+                'r': r,
                 'net_gain': net_gain,
                 'ratio_com_gain': ratio_gain_commissions
               }
@@ -713,6 +728,17 @@ def edit_trade_data():
                 {"net": my_overview_net_pnl_for_account})
 
             db.overviews.update_one(
+                {'id': overview_id},
+                {"$set": my_overview}, upsert=True
+            )
+
+        if details.get('r') != my_trade.get('r'):
+           r_diff = my_trade.get('r') - float(details.get('r'))
+           original_r = my_overview['accounts'][my_trade.get('account')]['r']
+
+           my_overview['accounts'].get(my_trade.get('account')).update(
+                {"r": round(original_r - r_diff, 2)})
+           db.overviews.update_one(
                 {'id': overview_id},
                 {"$set": my_overview}, upsert=True
             )
