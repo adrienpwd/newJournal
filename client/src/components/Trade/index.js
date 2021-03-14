@@ -386,6 +386,14 @@ const ReviewTrade = () => {
           </FormGroup>
           <NumberInput
             ref={register}
+            id="r"
+            name="r"
+            invalidText="Number is not valid"
+            label="R"
+            value={Number(trade?.r)}
+          />
+          <NumberInput
+            ref={register}
             id="rvol"
             name="rvol"
             invalidText="Number is not valid"

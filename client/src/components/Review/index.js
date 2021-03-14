@@ -1,44 +1,50 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useHistory, useParams } from 'react-router-dom'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import { TradeCard } from 'components/Common'
-import SeedCard from '../SeedCard'
-import { Carousel } from 'react-responsive-carousel'
-import { useForm } from 'react-hook-form'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useHistory, useParams } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TradeCard } from 'components/Common';
+import SeedCard from '../SeedCard';
+import { Carousel } from 'react-responsive-carousel';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
 import {
   Accordion,
   AccordionItem,
   Button,
   FileUploaderButton,
   Loading
-} from 'carbon-components-react'
-import { useRouteMatch } from 'react-router-dom'
-import { Edit16, Checkmark16, Close16, Sprout16, TrashCan16 } from '@carbon/icons-react'
-import ReactQuill from 'react-quill'
+} from 'carbon-components-react';
+import { useRouteMatch } from 'react-router-dom';
+import {
+  Edit16,
+  Checkmark16,
+  Close16,
+  Sprout16,
+  TrashCan16
+} from '@carbon/icons-react';
+import ReactQuill from 'react-quill';
 
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill/dist/quill.snow.css';
 
-import { loadTrades, uploadImages, deleteImage } from 'actions/trades'
-import { editOverview, loadOverviews } from 'actions/overviews'
-import { loadSeeds } from 'actions/seeds'
+import { loadTrades, uploadImages, deleteImage } from 'actions/trades';
+import { editOverview, loadOverviews } from 'actions/overviews';
+import { loadSeeds } from 'actions/seeds';
 
-import styles from './review.module.css'
+import styles from './review.module.css';
 
 export default function Review() {
-  const match = useRouteMatch()
-  const history = useHistory()
-  const dispatch = useDispatch()
+  const match = useRouteMatch();
+  const history = useHistory();
+  const dispatch = useDispatch();
 
-  const tradeReducer = useSelector((state) => state.tradeReducer)
-  const overviewReducer = useSelector((state) => state.overviewReducer)
-  const seedReducer = useSelector((state) => state.seedReducer)
+  const tradeReducer = useSelector(state => state.tradeReducer);
+  const overviewReducer = useSelector(state => state.overviewReducer);
+  const seedReducer = useSelector(state => state.seedReducer);
 
-  const { day } = useParams()
+  const { day } = useParams();
 
-  const yearMonthdate = day.split('-')
+  const yearMonthdate = day.split('-');
 
   // Time given by browser can vary, be carefull it doesn't bump to a different date because of the hours
   // When we create an Overview we initialize its time to 00:00
@@ -50,62 +56,62 @@ export default function Review() {
     0,
     0,
     0
-  )
+  );
 
-  const dayStartTimestamp = dayTarget.getTime()
-  const dayStartUnixTime = dayStartTimestamp / 1000
-  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60
+  const dayStartTimestamp = dayTarget.getTime();
+  const dayStartUnixTime = dayStartTimestamp / 1000;
+  const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
 
   useEffect(() => {
     if (!overviewState) {
-      dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime))
+      dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime));
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!tradesReview) {
-      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime))
+      dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!overviewSeeds) {
-      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime))
+      dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
     }
-  }, [])
+  }, []);
 
-  const { trades } = tradeReducer
-  const tradesReview = trades?.[day]
+  const { trades } = tradeReducer;
+  const tradesReview = trades?.[day];
 
-  const { overviews } = overviewReducer
+  const { overviews } = overviewReducer;
 
-  const { seeds } = seedReducer
-  const overviewSeeds = seeds[day]
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
 
-  const overviewState = overviews[day]
+  const overviewState = overviews[day];
 
-  const [formValue, setFormValue] = useState('')
+  const [formValue, setFormValue] = useState('');
 
-  const isOverviewLoading = overviewState?.loading
-  const isOverviewLoaded = overviewState?.loaded
+  const isOverviewLoading = overviewState?.loading;
+  const isOverviewLoaded = overviewState?.loaded;
 
-  const isSeedLoading = seedReducer?.loading
-  const isSeedLoaded = seedReducer?.loaded
+  const isSeedLoading = seedReducer?.loading;
+  const isSeedLoaded = seedReducer?.loaded;
 
-  const [isEditMode, setEditMode] = useState(false)
+  const [isEditMode, setEditMode] = useState(false);
 
-  const { register, handleSubmit } = useForm()
+  const { register, handleSubmit } = useForm();
 
-  const [images, setImages] = useState([])
+  const [images, setImages] = useState([]);
 
-  const [isSeedEditMode, setSeedEditMode] = useState(false)
+  const [isSeedEditMode, setSeedEditMode] = useState(false);
 
   useEffect(() => {
     if (overviewState?.img) {
-      overviewState.img.forEach((i) => {
-        const imgArr = i.split('-')
-        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`
-        const filename = i
+      overviewState.img.forEach(i => {
+        const imgArr = i.split('-');
+        const path = `${imgArr[2]}/${imgArr[0]}/${imgArr[1]}`;
+        const filename = i;
         axios({
           method: 'get',
           url: `${process.env.REACT_APP_USERS_SERVICE_URL}/importImages`,
@@ -114,68 +120,68 @@ export default function Review() {
             path
           },
           responseType: 'blob'
-        }).then((response) => {
-          setImages((images) => images.concat(response.data))
-        })
-      })
+        }).then(response => {
+          setImages(images => images.concat(response.data));
+        });
+      });
     }
-  }, [overviewState])
+  }, [overviewState]);
 
   function makeEditState() {
-    setEditMode(true)
+    setEditMode(true);
   }
 
   function makeViewState() {
-    setEditMode(false)
+    setEditMode(false);
   }
 
   const makeSeedEditState = () => {
-    setSeedEditMode(true)
-  }
+    setSeedEditMode(true);
+  };
 
   const makeSeedViewState = () => {
-    setSeedEditMode(false)
-  }
+    setSeedEditMode(false);
+  };
 
   const handleCreateSeed = () => {
-    history.push(`/review/${match.params.day}/create-new-seed`)
-  }
+    history.push(`/review/${match.params.day}/create-new-seed`);
+  };
 
   const onSubmit = () => {
-    const currentOverview = overviewState || {}
+    const currentOverview = overviewState || {};
     dispatch(
       editOverview(currentOverview, {
         description: formValue,
         id: day,
         timestamp: dayStartUnixTime
       })
-    )
-    makeViewState()
-  }
+    );
+    makeViewState();
+  };
 
-  const _handleUploadImages = (e) => {
-    const formData = new FormData()
+  const _handleUploadImages = e => {
+    const formData = new FormData();
 
-    const files = e.target.files
+    const files = e.target.files;
 
     if (files.length > 0) {
       for (let i = 0; i < files.length; i++) {
-        const imageName = `${day}/${i}`
-        formData.append(imageName, files[i], imageName)
+        const imageName = `${day}/${i}`;
+        formData.append(imageName, files[i], imageName);
       }
 
-      dispatch(uploadImages(formData, 'overview', day))
+      dispatch(uploadImages(formData, 'overview', day));
 
       //fileUploader.clearFiles()
     }
-  }
+  };
 
-  const handleDeleteScreenshot = (img) => {
-    dispatch(deleteImage('overview', overviewState.id, img))
-  }
+  const handleDeleteScreenshot = img => {
+    dispatch(deleteImage('overview', overviewState.id, img));
+  };
 
   function createMarkup() {
-    return { __html: overviewState?.description }
+    return { __html: overviewState?.description };
   }
 
   const renderImages = function () {
@@ -184,46 +190,48 @@ export default function Review() {
         <div key={i}>
           <img src={URL.createObjectURL(img)} />
         </div>
-      )
-    })
+      );
+    });
 
-    return <Carousel autoPlay={false}>{overviewImages}</Carousel>
-  }
+    return <Carousel autoPlay={false}>{overviewImages}</Carousel>;
+  };
 
   const renderPnLbyAccount = () => {
     if (overviewState?.accounts && Object.keys(overviewState?.accounts)) {
       return Object.keys(overviewState?.accounts).map((key, i) => {
-        const account = overviewState.accounts[key]
+        const account = overviewState.accounts[key];
         return (
           <h4 key={i}>
-            {account.account}: Gross: {account.gross} Net {account.net}
+            {account.account}: Gross: {account.gross} R {account.r}
           </h4>
-        )
-      })
+        );
+      });
     }
-  }
+  };
 
   const renderCards = () => {
-    const linkedTradeIds = []
-    const linkedTrades = (overviewSeeds || []).map((seed) => {
+    const linkedTradeIds = [];
+    const linkedTrades = (overviewSeeds || []).map(seed => {
       const myTrades = (seed?.linked_trades || []).map((t, i) => {
-        const trade = tradesReview?.find((trade) => trade.id === t)
-        linkedTradeIds.push(trade.id)
-        return <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
-      })
+        const trade = tradesReview?.find(trade => trade.id === t);
+        linkedTradeIds.push(trade.id);
+        return (
+          <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
+        );
+      });
       return (
         <div className={styles.seedAndTrades} key={`${seed.id}-linked`}>
           <SeedCard seed={seed} />
           {myTrades}
         </div>
-      )
-    })
+      );
+    });
 
-    let unlinkedTrades = []
+    let unlinkedTrades = [];
     if (tradesReview) {
       unlinkedTrades = tradesReview
-        .filter((t) => {
-          return !linkedTradeIds.includes(t.id)
+        .filter(t => {
+          return !linkedTradeIds.includes(t.id);
         })
         .map((trade, i) => {
           return (
@@ -231,8 +239,8 @@ export default function Review() {
               <SeedCard unlinked seed={{}} />
               <TradeCard trade={trade} unlinked />
             </div>
-          )
-        })
+          );
+        });
     }
 
     // When there is no unlinked trades there is no way to unlink
@@ -242,14 +250,14 @@ export default function Review() {
         <div key="unlink" className={styles.seedAndTrades}>
           <SeedCard unlinked seed={{}} />
         </div>
-      )
+      );
     }
 
-    return [linkedTrades, unlinkedTrades]
-  }
+    return [linkedTrades, unlinkedTrades];
+  };
 
   const renderImgList = () => {
-    return overviewState?.img?.map((img) => {
+    return overviewState?.img?.map(img => {
       return (
         <div key={img} className={styles.imgEdit}>
           <div>{img}</div>
@@ -264,14 +272,14 @@ export default function Review() {
             tooltipPosition="left"
           />
         </div>
-      )
-    })
-  }
+      );
+    });
+  };
 
-  let display
+  let display;
 
   if (isOverviewLoading) {
-    display = 'Loading'
+    display = 'Loading';
   } else if (isEditMode) {
     display = (
       <div className={styles.editContainer}>
@@ -319,7 +327,7 @@ export default function Review() {
           {renderImgList()}
         </div>
       </div>
-    )
+    );
   } else {
     display = (
       <div>
@@ -357,12 +365,12 @@ export default function Review() {
         </DndProvider>
         <div>{renderImages()}</div>
       </div>
-    )
+    );
   }
 
   return isOverviewLoading && !isOverviewLoaded ? (
     <Loading active small={false} withOverlay={true} />
   ) : (
     <div className={styles.reviewContainer}>{display}</div>
-  )
+  );
 }
