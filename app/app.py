@@ -297,6 +297,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
 
             if risk > 0 and gross_gain != 0:
                 r = round(gross_gain / risk, 2)
+            else:
+                r = 0
 
             initial_trade['r'] = r
             initial_trade['stop_distance'] = round(stop_distance, 2)
