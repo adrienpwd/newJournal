@@ -27,9 +27,11 @@ export default function DashboardAll(props) {
   const selectedMonthText = getMonth(selectedMonth);
   const firstDay = new Date(selectedYear, selectedMonth, 1);
   const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
+  // Add 24 hours minus 1sec to include the last day of the month
+  const thisDayInSeconds = 86399;
 
   const firstDayUnixTime = Math.floor(firstDay / 1000);
-  const lastDayUnixTime = Math.floor(lastDay / 1000);
+  const lastDayUnixTime = Math.floor(lastDay / 1000 + thisDayInSeconds);
 
   function prevMonth() {
     setSelectedMonth(selectedMonth - 1);
