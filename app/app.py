@@ -285,7 +285,7 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
                 lambda action: action.get('is_stop', False) == True, initial_trade.get('actions', [])))
             initial_stop = 0
             stop_distance = 0
-            risk = 10
+            risk = 35
             stop_ratio = 0
 
             if len(stop_actions) > 0:
