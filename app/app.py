@@ -947,6 +947,9 @@ def get_strategy_stats():
             big_winners = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
             return_big_winners = list(big_winners)
 
+            total_trades = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, { '$group': { '_id': '$account', 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
+            return_total_trades = list(total_trades)
+
             return jsonify({
               'ok': True,
               'sets': return_sets,
@@ -954,7 +957,8 @@ def get_strategy_stats():
               'big_losers': return_big_losers,
               'losers': return_losers,
               'winners': return_winners,
-              'big_winners': return_big_winners
+              'big_winners': return_big_winners,
+              'total_trades': return_total_trades
             })
 
 @application.route('/statistics', methods=['GET'])
@@ -977,7 +981,7 @@ def get_statistics():
     big_winners = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_big_winners = list(big_winners)
 
-    total_trades = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, { '$group': { '_id': '$account', 'count': { '$sum': 1 } } }])
+    total_trades = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, { '$group': { '_id': '$account', 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_total_trades = list(total_trades)
 
     return jsonify({
@@ -987,7 +991,7 @@ def get_statistics():
       'losers': return_losers,
       'winners': return_winners,
       'big_winners': return_big_winners,
-      'total_trades_by_account': return_total_trades
+      'total_trades': return_total_trades
       })
 
 

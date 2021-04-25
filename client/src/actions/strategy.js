@@ -18,12 +18,16 @@ export function loadStrategy(strategy, account) {
         if (res.data.ok === true) {
           dispatch({
             type: 'LOAD_STRATEGY_STATS_SUCCESS',
-            payload: { strategy, sets: res.data.sets }
+            payload: { ...res.data, strategy, account }
           });
         }
       })
       .catch(err => {
         console.log(err);
+        dispatch({
+          type: 'LOAD_STRATEGY_STATS_ERROR',
+          error: err
+        });
       });
   };
 }

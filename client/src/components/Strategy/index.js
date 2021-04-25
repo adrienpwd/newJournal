@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
 import { Checkmark16 } from '@carbon/icons-react';
+import { Rstats } from 'components/Common';
 import { accounts, strategies } from '../../utils';
 
 import styles from './strategy.module.css';
@@ -12,14 +13,12 @@ const Strategy = () => {
   const dispatch = useDispatch();
 
   const data = useSelector(state => state.strategyReducer);
-  console.log(data.sets);
+  const { sets } = data;
 
   const { register, handleSubmit, reset } = useForm();
 
   const [account, setAccount] = useState(accounts[0].id);
   const [strategy, setStrategy] = useState('range');
-
-  console.log(account, strategy);
 
   useEffect(() => {
     dispatch(loadStrategy(strategy, account));
@@ -77,14 +76,21 @@ const Strategy = () => {
     );
   };
 
+  const renderRstats = () => {
+    return <Rstats account={account} data={data} />;
+  };
+
   if (data.loading) {
     return <Loading active small={false} withOverlay={true} />;
   } else {
     return (
-      <div className={styles.dropdowns}>
-        {renderStrategySelect()}
-        {renderAccountSelect()}
-      </div>
+      <>
+        <div className={styles.dropdowns}>
+          {renderStrategySelect()}
+          {renderAccountSelect()}
+        </div>
+        {renderRstats()}
+      </>
     );
   }
 };
