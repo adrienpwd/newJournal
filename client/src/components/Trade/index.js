@@ -350,20 +350,18 @@ const ReviewTrade = () => {
     return (
       <>
         <Form>
-          {!mySeed && (
-            <Select
-              ref={register}
-              id="strategy"
-              name="strategy"
-              labelText="Strategy"
-              defaultValue={trade?.strategy}
-              invalidText="A valid value is required"
-            >
-              {strategies.map(s => {
-                return <SelectItem text={s.label} value={s.id} key={s.id} />;
-              })}
-            </Select>
-          )}
+          <Select
+            ref={register}
+            id="strategy"
+            name="strategy"
+            labelText="Strategy"
+            defaultValue={trade?.strategy}
+            invalidText="A valid value is required"
+          >
+            {strategies.map(s => {
+              return <SelectItem text={s.label} value={s.id} key={s.id} />;
+            })}
+          </Select>
           Description:
           <ReactQuill
             theme="snow"

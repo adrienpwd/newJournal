@@ -922,6 +922,15 @@ def delete_image():
           except:
             return jsonify({'ok': False, 'error': "Image not found"})
 
+@application.route('/sets', methods=['GET'])
+def get_sets():
+    if request.method == 'GET':
+        if request.args:
+            strategy = request.args['strategy']
+            # get last 100 trades corresponding to a chosen strategy
+            sets = db.trades.aggregate([{'$match': {"strategy": strategy}}, {'$sort': {'timestamp': 1}}, {'$limit': 100}])
+            return_data = list(sets)
+            return jsonify({'ok': True, 'sets': return_data})
 
 @application.route('/statistics', methods=['GET'])
 def get_statistics():

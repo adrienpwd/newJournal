@@ -4,6 +4,7 @@ import tradeReducer from '../reducers/tradeReducer';
 import dashboardReducer from '../reducers/dashboardReducer';
 import overviewReducer from '../reducers/overviewReducer';
 import seedReducer from '../reducers/seedReducer';
+import setReducer from '../reducers/setReducer';
 
 const enhancers = [];
 
@@ -19,7 +20,8 @@ export default () => {
       tradeReducer,
       dashboardReducer,
       overviewReducer,
-      seedReducer
+      seedReducer,
+      setReducer
     }),
     {},
     compose(applyMiddleware(thunkMiddleware), ...enhancers)
