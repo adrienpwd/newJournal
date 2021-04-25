@@ -6,6 +6,7 @@ import { transformPNL, transformRstats } from './transformData';
 import accounts from './accounts';
 import { actionsHeadersData, rHeadersData } from './headersData';
 import { rulesItems } from './rules';
+import getRcolor from './rColor';
 
 export {
   accounts,
@@ -20,5 +21,6 @@ export {
   actionsHeadersData,
   getStrategie,
   rulesItems,
-  rHeadersData
+  rHeadersData,
+  getRcolor
 };

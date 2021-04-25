@@ -6,6 +6,7 @@ import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
 import { CaretLeft16, CaretRight16 } from '@carbon/icons-react';
 import { Line } from '@nivo/line';
 import { accounts, getMonth } from './../../utils';
+import { Rstats } from 'components/Common';
 import { useHistory } from 'react-router-dom';
 
 import styles from './dashboard.module.css';
@@ -63,7 +64,7 @@ export default function DashboardAll(props) {
           name="account"
           invalidText="This is an invalid error message."
           labelText="Account"
-          defaultValue={accounts[0]}
+          defaultValue={accounts[0].id}
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
@@ -97,38 +98,7 @@ export default function DashboardAll(props) {
   };
 
   const renderRstats = () => {
-    const getRdisplay = v => {
-      const rValue = v ? v : 0;
-      return (
-        <span>
-          {`${rValue} / ${dashboardState.totalTradesByAccount?.[account]} (${
-            Math.round(
-              (rValue / dashboardState.totalTradesByAccount?.[account]) * 1000
-            ) / 10
-          }%)`}
-        </span>
-      );
-    };
-    return (
-      <div className={styles.rContainer}>
-        <div className={styles.rItem}>
-          <h4 className={styles.rHeader}>Big Losers</h4>
-          <span>{getRdisplay(dashboardState?.bigLosers?.[account])}</span>
-        </div>
-        <div className={styles.rItem}>
-          <h4 className={styles.rHeader}>Losers</h4>
-          <span>{getRdisplay(dashboardState?.losers?.[account])}</span>
-        </div>
-        <div className={styles.rItem}>
-          <h4 className={styles.rHeader}>Winners</h4>
-          <span>{getRdisplay(dashboardState?.winners?.[account])}</span>
-        </div>
-        <div className={styles.rItem}>
-          <h4 className={styles.rHeader}>Big Winners</h4>
-          <span>{getRdisplay(dashboardState?.bigWinners?.[account])}</span>
-        </div>
-      </div>
-    );
+    return <Rstats account={account} data={dashboardState} />;
   };
 
   const handlePnLClick = (point, event) => {

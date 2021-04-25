@@ -2,7 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import { Navbar, TradeOrSeed } from 'components/Common';
-import { Dashboard, Import, Review, Overviews, Tradebook, Utils } from './../';
+import {
+  Dashboard,
+  Import,
+  Review,
+  Overviews,
+  Tradebook,
+  Utils,
+  Strategy
+} from './../';
 
 import styles from './app.module.css';
 
@@ -30,6 +38,9 @@ export default function App() {
             </Route>
             <Route path="/tradebook">
               <Tradebook />
+            </Route>
+            <Route path="/strategy">
+              <Strategy />
             </Route>
             <Route path="/utils">
               <Utils />

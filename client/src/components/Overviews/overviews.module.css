@@ -22,7 +22,7 @@
 
 .noOverviewFound {
   margin: 16px 0;
-  color: red;
+  color: black;
   font-weight: bold;
 }
 
@@ -40,20 +40,25 @@
 }
 
 .account {
-  margin-bottom: 8px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 45px;
 }
 
-.overviewGreen {
+.black {
+  color: #000;
+}
+
+.green {
   color: #4caf50;
-  margin-bottom: 8px;
 }
 
-.overviewNeuter {
+.neuter {
   color: orange;
-  margin-bottom: 8px;
 }
 
-.overviewRed {
+.red {
   color: #a30000;
-  margin-bottom: 8px;
 }

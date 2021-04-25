@@ -1,0 +1,11 @@
+.strategyContainer {
+  overflow: hidden;
+}
+
+.dropdowns {
+  display: flex;
+}
+
+.dropdown {
+  margin-left: 8px;
+}

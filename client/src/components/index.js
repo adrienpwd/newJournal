@@ -7,5 +7,16 @@ import Seed from './Seed';
 import Review from './Review';
 import Tradebook from './Tradebook';
 import Utils from './Utils';
+import Strategy from './Strategy';
 
-export { App, Dashboard, Import, Overviews, Trade, Review, Tradebook, Utils };
+export {
+  App,
+  Dashboard,
+  Import,
+  Overviews,
+  Trade,
+  Review,
+  Tradebook,
+  Utils,
+  Strategy
+};

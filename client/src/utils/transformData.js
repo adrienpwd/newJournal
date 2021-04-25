@@ -29,11 +29,11 @@ export const transformRstats = payload => {
   const bigWinners = {};
   const losers = {};
   const winners = {};
-  const totalTradesByAccount = {};
+  const totalTrades = {};
 
   const makeRbyAccount = (input, target) => {
     input.forEach(account => {
-      target[account._id] = account.count;
+      target[account._id] = [account.avg_r, account.count];
     });
   };
 
@@ -41,13 +41,13 @@ export const transformRstats = payload => {
   makeRbyAccount(payload.big_winners, bigWinners);
   makeRbyAccount(payload.losers, losers);
   makeRbyAccount(payload.winners, winners);
-  makeRbyAccount(payload.total_trades_by_account, totalTradesByAccount);
+  makeRbyAccount(payload.total_trades, totalTrades);
 
   return {
     bigLosers,
     bigWinners,
     losers,
     winners,
-    totalTradesByAccount
+    totalTrades
   };
 };
