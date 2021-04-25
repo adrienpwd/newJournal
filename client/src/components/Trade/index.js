@@ -300,7 +300,7 @@ const ReviewTrade = () => {
                   <TableRow
                     {...getRowProps({ row })}
                     className={className}
-                    id={i}
+                    key={i}
                   >
                     <TableCell id="category" key="category">
                       {row.category === 0 ? 'Order' : 'Trade'}

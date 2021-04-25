@@ -1,3 +1,7 @@
+.strategyContainer {
+  overflow: hidden;
+}
+
 .dropdowns {
   display: flex;
 }

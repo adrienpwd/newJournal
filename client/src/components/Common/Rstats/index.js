@@ -7,10 +7,23 @@ const Rstats = ({ account, data }) => {
   if (!data.loaded) {
     return <Loading active small={false} withOverlay={true} />;
   } else {
-    const [avgR, numberOfTrades] = data?.totalTrades?.[account];
+    const avgR = data?.totalTrades?.[account]?.[0];
+    const numberOfTrades = data?.totalTrades?.[account]?.[1];
+
+    const displayHeader = () => {
+      if (!isNaN(numberOfTrades) && !isNaN(avgR)) {
+        return (
+          <h4>{`${numberOfTrades} trades, Avg. R: ${avgR?.toFixed(2)}`}</h4>
+        );
+      }
+    };
 
     const getRdisplay = v => {
-      const [r, count] = v;
+      if (!v) {
+        return 'No Data';
+      }
+      const r = v?.[0];
+      const count = v?.[1];
       return (
         <div className={styles.itemStatsContainer}>
           <span className={styles.itemStats}>
@@ -18,14 +31,14 @@ const Rstats = ({ account, data }) => {
               Math.round((count / numberOfTrades) * 1000) / 10
             }%)`}
           </span>
-          <span className={styles.itemStats}>Avg. R: {r.toFixed(2)}</span>
+          <span className={styles.itemStats}>Avg. R: {r?.toFixed(2)}</span>
         </div>
       );
     };
 
     return (
       <div className={styles.rStatsContainer}>
-        <h4>{`${numberOfTrades} trades, Avg. R: ${avgR.toFixed(2)}`}</h4>
+        {displayHeader()}
         <div className={styles.rContainer}>
           <div className={styles.rItem}>
             <h4 className={styles.rHeader}>Big Losers</h4>

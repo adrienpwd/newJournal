@@ -1,0 +1,29 @@
+.set {
+  display: flex;
+  margin: 16px 0;
+}
+
+.setItem {
+  display: flex;
+  width: 45px;
+  height: 45px;
+  margin-left: 4px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.green {
+  background-color: #4caf50;
+}
+
+.neuter {
+  background-color: orange;
+}
+
+.red {
+  background-color: #a30000;
+}

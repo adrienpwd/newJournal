@@ -8,7 +8,7 @@ import {
   DatePickerInput,
   Loading
 } from 'carbon-components-react';
-import { accounts, getMonth } from '../../utils';
+import { accounts, getMonth, getRcolor } from '../../utils';
 
 import styles from './overviews.module.css';
 
@@ -107,17 +107,10 @@ export default function Overviews() {
     const myLiveAccount = accounts[0].id;
     const mySimAccount = accounts[1].id;
 
-    let overviewClass;
     const r =
       overview?.accounts?.[myLiveAccount]?.r ||
       overview?.accounts?.[mySimAccount]?.r;
-    if (r >= 1) {
-      overviewClass = styles.overviewGreen;
-    } else if (r <= 1 && r >= -1) {
-      overviewClass = styles.overviewNeuter;
-    } else {
-      overviewClass = styles.overviewRed;
-    }
+    const overviewClass = styles[getRcolor(r)];
 
     return (
       <Link key={day} to={`review/${dayString}`}>
