@@ -932,7 +932,7 @@ def get_strategy_stats():
             sets = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, {'$sort': {'timestamp': 1}}, {'$limit': 200}])
             return_sets = list(sets)
 
-            avg_r = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, {'$group': {'_id': "$strategy", 'avg_r': { '$avg': "$r" }}}])
+            avg_r = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, {'$group': {'_id': "$strategy", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" }}}])
             return_avg_r = list(avg_r)
 
             big_losers = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$lt': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])

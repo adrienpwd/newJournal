@@ -63,7 +63,7 @@ export default function DashboardAll(props) {
           name="account"
           invalidText="This is an invalid error message."
           labelText="Account"
-          defaultValue={accounts[0]}
+          defaultValue={accounts[0].id}
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />

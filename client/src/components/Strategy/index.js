@@ -2,52 +2,89 @@ import { loadStrategy } from 'actions/strategy';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { Button, Form, Select, SelectItem } from 'carbon-components-react';
+import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
 import { Checkmark16 } from '@carbon/icons-react';
-import { strategies } from '../../utils';
+import { accounts, strategies } from '../../utils';
 
 import styles from './strategy.module.css';
 
 const Strategy = () => {
   const dispatch = useDispatch();
-  const account = 'U3470252';
-  useEffect(() => {
-    const strategy = 'range';
-    dispatch(loadStrategy(strategy, account));
-  }, []);
 
   const data = useSelector(state => state.strategyReducer);
   console.log(data.sets);
 
   const { register, handleSubmit, reset } = useForm();
 
-  const onSubmit = e => {
+  const [account, setAccount] = useState(accounts[0].id);
+  const [strategy, setStrategy] = useState('range');
+
+  console.log(account, strategy);
+
+  useEffect(() => {
+    dispatch(loadStrategy(strategy, account));
+  }, []);
+
+  const onSubmitStrategy = e => {
     e.persist();
-    dispatch(loadStrategy(e.target.value));
+    setStrategy(e.target.value);
+    dispatch(loadStrategy(e.target.value, account));
+  };
+
+  const onSubmitAccount = e => {
+    e.persist();
+    setAccount(e.target.value);
+    dispatch(loadStrategy(strategy, e.target.value));
+  };
+
+  const renderAccountSelect = () => {
+    return (
+      <div className={styles.dropdown}>
+        <Select
+          ref={register}
+          id="account"
+          name="account"
+          invalidText="This is an invalid error message."
+          labelText="Account"
+          defaultValue={account}
+          onChange={onSubmitAccount}
+        >
+          {accounts.map(s => (
+            <SelectItem text={s.label} value={s.id} key={s.id} />
+          ))}
+        </Select>
+      </div>
+    );
+  };
+
+  const renderStrategySelect = () => {
+    return (
+      <div className={styles.dropdown}>
+        <Select
+          ref={register}
+          id="strategy"
+          name="strategy"
+          labelText="Strategy"
+          defaultValue={strategy}
+          invalidText="A valid value is required"
+          onChange={onSubmitStrategy}
+        >
+          {strategies.map(s => {
+            return <SelectItem text={s.label} value={s.id} key={s.id} />;
+          })}
+        </Select>
+      </div>
+    );
   };
 
   if (data.loading) {
-    return 'Loading ...';
+    return <Loading active small={false} withOverlay={true} />;
   } else {
     return (
-      <>
-        <Form>
-          <Select
-            ref={register}
-            id="strategy"
-            name="strategy"
-            labelText="Strategy"
-            defaultValue={'range'}
-            invalidText="A valid value is required"
-            onChange={onSubmit}
-          >
-            {strategies.map(s => {
-              return <SelectItem text={s.label} value={s.id} key={s.id} />;
-            })}
-          </Select>
-        </Form>
-        <div>Strategy</div>
-      </>
+      <div className={styles.dropdowns}>
+        {renderStrategySelect()}
+        {renderAccountSelect()}
+      </div>
     );
   }
 };
