@@ -38,8 +38,8 @@ export default function Navbar() {
         <Link className={styles.link} to="/overviews">
           Overviews
         </Link>
-        <Link className={styles.link} to="/sets">
-          Sets
+        <Link className={styles.link} to="/strategy">
+          Strategy
         </Link>
         <Link className={styles.link} to="/tradebook">
           Tradebook

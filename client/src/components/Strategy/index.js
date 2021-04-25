@@ -1,28 +1,29 @@
-import { loadSets } from 'actions/sets';
+import { loadStrategy } from 'actions/strategy';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Button, Form, Select, SelectItem } from 'carbon-components-react';
 import { Checkmark16 } from '@carbon/icons-react';
-import { strategies } from './../../utils';
+import { strategies } from '../../utils';
 
-import styles from './sets.module.css';
+import styles from './strategy.module.css';
 
-const Sets = () => {
+const Strategy = () => {
   const dispatch = useDispatch();
+  const account = 'U3470252';
   useEffect(() => {
     const strategy = 'range';
-    dispatch(loadSets(strategy));
+    dispatch(loadStrategy(strategy, account));
   }, []);
 
-  const data = useSelector(state => state.setReducer);
+  const data = useSelector(state => state.strategyReducer);
   console.log(data.sets);
 
   const { register, handleSubmit, reset } = useForm();
 
   const onSubmit = e => {
     e.persist();
-    dispatch(loadSets(e.target.value));
+    dispatch(loadStrategy(e.target.value));
   };
 
   if (data.loading) {
@@ -45,10 +46,10 @@ const Sets = () => {
             })}
           </Select>
         </Form>
-        <div>Sets</div>
+        <div>Strategy</div>
       </>
     );
   }
 };
 
-export default Sets;
+export default Strategy;

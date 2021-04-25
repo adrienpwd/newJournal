@@ -922,15 +922,40 @@ def delete_image():
           except:
             return jsonify({'ok': False, 'error': "Image not found"})
 
-@application.route('/sets', methods=['GET'])
-def get_sets():
+@application.route('/strategy', methods=['GET'])
+def get_strategy_stats():
     if request.method == 'GET':
         if request.args:
             strategy = request.args['strategy']
-            # get last 100 trades corresponding to a chosen strategy
-            sets = db.trades.aggregate([{'$match': {"strategy": strategy}}, {'$sort': {'timestamp': 1}}, {'$limit': 100}])
-            return_data = list(sets)
-            return jsonify({'ok': True, 'sets': return_data})
+            account = request.args['account']
+            # get last 200 trades (10 sets) corresponding to a chosen strategy
+            sets = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, {'$sort': {'timestamp': 1}}, {'$limit': 200}])
+            return_sets = list(sets)
+
+            avg_r = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account}}, {'$group': {'_id': "$strategy", 'avg_r': { '$avg': "$r" }}}])
+            return_avg_r = list(avg_r)
+
+            big_losers = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$lt': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
+            return_big_losers = list(big_losers)
+
+            losers = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$lt': 0, '$gte': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
+            return_losers = list(losers)
+
+            winners = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$lt': 2, '$gte': 0}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
+            return_winners = list(winners)
+
+            big_winners = db.trades.aggregate([{'$match': {"strategy": strategy, "account": account, "r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
+            return_big_winners = list(big_winners)
+
+            return jsonify({
+              'ok': True,
+              'sets': return_sets,
+              'avg_r': return_avg_r,
+              'big_losers': return_big_losers,
+              'losers': return_losers,
+              'winners': return_winners,
+              'big_winners': return_big_winners
+            })
 
 @application.route('/statistics', methods=['GET'])
 def get_statistics():
@@ -940,16 +965,16 @@ def get_statistics():
     pnl_per_day = db.overviews.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, {'$sort': {'timestamp': 1}}])
     return_pnl_per_day = list(pnl_per_day)
 
-    big_losers = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    big_losers = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_big_losers = list(big_losers)
 
-    losers = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': 0, '$gte': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    losers = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': 0, '$gte': -1}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_losers = list(losers)
 
-    winners = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': 2, '$gte': 0}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    winners = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$lt': 2, '$gte': 0}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_winners = list(winners)
 
-    big_winners = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 } } }])
+    big_winners = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}, "r": {'$gt': 2}}}, { '$group': { '_id': "$account", 'count': { '$sum': 1 }, 'avg_r': { '$avg': "$r" } } }])
     return_big_winners = list(big_winners)
 
     total_trades = db.trades.aggregate([{'$match': {"timestamp": {'$gte': startTimestamp, '$lte': endTimestamp}}}, { '$group': { '_id': '$account', 'count': { '$sum': 1 } } }])
