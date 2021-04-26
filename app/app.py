@@ -816,6 +816,14 @@ def edit_trade_link():
             }
           }, upsert=True
         )
+        # update trade strategy with seed data
+        db.trades.update_one(
+          {'id': trade_id},
+          {"$set": {
+            'strategy': my_seed['strategy']
+            }
+          }, upsert=True
+        )
         return_data = db.seeds.find_one({"id": my_seed['id']})
         return jsonify({'ok': True, 'seed': return_data})
       else:
