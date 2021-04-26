@@ -1,11 +1,11 @@
 export default function (r) {
   let colorClass;
 
-  if (!r) return 'black';
+  if (isNaN(r)) return 'black';
 
   if (r >= 1) {
     colorClass = 'green';
-  } else if (r >= 0 && r <= 1) {
+  } else if ((r >= 0 && r <= 1) || r === 0) {
     colorClass = 'neuter';
   } else {
     colorClass = 'red';
