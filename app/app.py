@@ -312,7 +312,8 @@ def consolidate_trade(all_trades, built_trades, orders_dictionary):
             if commissions < 0.35:
               commissions = 0.35
             initial_trade['commissions'] = 0.005 * nb_shares
-            initial_trade['ratio_com_gain'] = round(abs(commissions / gross_gain), 4)
+            if gross_gain != 0:
+                initial_trade['ratio_com_gain'] = round(abs(commissions / gross_gain), 4)
             initial_trade['net_gain'] = round(gross_gain - commissions, 4)
 
             # slippage

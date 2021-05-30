@@ -22,7 +22,7 @@ db: 'flaskdb'
 })
 
 For PROD env
-export REACT_APP_USERS_SERVICE_URL=http://192.168.1.70:5001
+export REACT_APP_USERS_SERVICE_URL=http://192.168.1.71:5001
 Make sure the IP of the server (Intel NUC computer) didn't change
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
