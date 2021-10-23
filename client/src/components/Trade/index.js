@@ -351,12 +351,12 @@ const ReviewTrade = () => {
       <>
         <Form>
           <Select
-            ref={register}
             id="strategy"
             name="strategy"
             labelText="Strategy"
             defaultValue={trade?.strategy}
             invalidText="A valid value is required"
+            {...register("strategy")}
           >
             {strategies.map(s => {
               return <SelectItem text={s.label} value={s.id} key={s.id} />;
@@ -372,35 +372,34 @@ const ReviewTrade = () => {
             {catalysts.map(c => {
               return (
                 <Checkbox
-                  ref={register}
                   labelText={c.label}
                   id={c.id}
                   name={c.id}
                   key={c.id}
                   defaultChecked={trade?.catalysts?.includes(c.id)}
+                  {...register(c.id)}
                 />
               );
             })}
           </FormGroup>
           <NumberInput
-            ref={register}
             id="r"
             name="r"
             invalidText="Number is not valid"
             label="R"
             value={Number(trade?.r)}
+            {...register("r")}
           />
           <NumberInput
-            ref={register}
             id="rvol"
             name="rvol"
             invalidText="Number is not valid"
             label="Relative Volume"
             min={0}
             value={Number(trade?.rvol)}
+            {...register("rvol")}
           />
           <NumberInput
-            ref={register}
             id="commissions"
             name="commissions"
             invalidText="Number is not valid"
@@ -408,6 +407,7 @@ const ReviewTrade = () => {
             min={0}
             step={1}
             value={Number(trade?.commissions)}
+            {...register("commissions")}
           />
           Rating:
           <ReactStars

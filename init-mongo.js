@@ -8,3 +8,14 @@ db.createUser({
     }
   ]
 });
+
+// db.createUser({
+//   user: 'flaskuser',
+//   pwd: 'ayqgqc2h2o',
+//   roles: [
+//     {
+//       role: 'dbOwner',
+//       db: 'flaskdb'
+//     }
+//   ]
+// });

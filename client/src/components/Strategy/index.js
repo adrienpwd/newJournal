@@ -39,13 +39,13 @@ const Strategy = () => {
     return (
       <div className={styles.dropdown}>
         <Select
-          ref={register}
           id="account"
           name="account"
           invalidText="This is an invalid error message."
           labelText="Account"
           defaultValue={account}
           onChange={onSubmitAccount}
+          {...register("account")}
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
@@ -59,13 +59,13 @@ const Strategy = () => {
     return (
       <div className={styles.dropdown}>
         <Select
-          ref={register}
           id="strategy"
           name="strategy"
           labelText="Strategy"
           defaultValue={strategy}
           invalidText="A valid value is required"
           onChange={onSubmitStrategy}
+          {...register("strategy")}
         >
           {strategies.map(s => {
             return <SelectItem text={s.label} value={s.id} key={s.id} />;

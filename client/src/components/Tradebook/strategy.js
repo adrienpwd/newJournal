@@ -23,15 +23,16 @@ export default function Strategy(props) {
       const rule = `${item}-${itemKey}`;
       const isChecked =
         tradeRulesRespected?.[rule] ?? seedRulesRespected?.[rule];
+      const name = `${item}-${myStrategy[item][itemKey].id}`;
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
           <Checkbox
-            ref={register}
             labelText={myStrategy[item][itemKey].description}
-            id={`${item}-${myStrategy[item][itemKey].id}`}
-            name={`${item}-${myStrategy[item][itemKey].id}`}
-            key={`${item}-${myStrategy[item][itemKey].id}`}
+            id={name}
+            name={name}
+            key={name}
             defaultChecked={isChecked}
+            {...register(name)}
           />
         </div>
       );

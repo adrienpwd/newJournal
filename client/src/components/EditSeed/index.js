@@ -200,16 +200,15 @@ export default function EditSeed(props) {
       />
       <Form>
         <TextInput
-          ref={register}
           id="ticker"
           name="ticker"
           invalidText="A valid value is required"
           labelText="Ticker"
           placeholder="Enter Ticker"
           defaultValue={seed?.ticker}
+          {...register("ticker")}
         />
         <Toggle
-          ref={register}
           id="side"
           name="side"
           aria-label="trade side"
@@ -217,27 +216,28 @@ export default function EditSeed(props) {
           id="side-toggle"
           labelText="Long"
           onToggle={handleSideChange}
+          {...register("side")}
         />
         <Select
-          ref={register}
           id="strategy"
           name="strategy"
           labelText="Strategy"
           invalidText="A valid value is required"
           defaultValue={seed?.strategy}
+          {...register("strategy")}
         >
           {strategies.map(s => {
             return <SelectItem text={s.label} value={s.id} key={s.id} />;
           })}
         </Select>
         <NumberInput
-          ref={register}
           id="price"
           name="price"
           invalidText="Number is not valid"
           label="Price"
           min={0}
           step={1}
+          {...register("price")}
         />
       </Form>
       {renderStrategyRules()}
