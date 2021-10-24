@@ -18,7 +18,7 @@ import { editSeed, deleteSeed } from 'actions/seeds';
 import { uploadImages, deleteImage } from 'actions/trades';
 import { useHistory } from 'react-router-dom';
 
-import { Checkmark16, Edit16, Close16, TrashCan16 } from '@carbon/icons-react';
+import { Checkmark16, Close16, TrashCan16 } from '@carbon/icons-react';
 
 import styles from './editSeed.module.css';
 
@@ -52,7 +52,7 @@ export default function EditSeed(props) {
     const currentTime = new Date();
     const seedHours = currentTime.getHours();
     const seedMinutes =
-      String(currentTime.getMinutes()).length == 2
+      String(currentTime.getMinutes()).length === 2
         ? currentTime.getMinutes()
         : `0${currentTime.getMinutes()}`;
     const seedDate = new Date(overviewId);
@@ -147,7 +147,7 @@ export default function EditSeed(props) {
     price: seed?.price
   };
 
-  const { register, handleSubmit, reset } = useForm({ defaultValues });
+  const { register, handleSubmit } = useForm({ defaultValues });
 
   return (
     <div>
@@ -213,7 +213,6 @@ export default function EditSeed(props) {
           name="side"
           aria-label="trade side"
           defaultToggled
-          id="side-toggle"
           labelText="Long"
           onToggle={handleSideChange}
           {...register("side")}

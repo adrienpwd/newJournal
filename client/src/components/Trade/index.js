@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
@@ -20,7 +20,6 @@ import {
   catalysts,
   rulesItems,
   strategies,
-  filterFormValues,
   actionsHeadersData,
   getStrategie
 } from './../../utils';
@@ -74,8 +73,10 @@ const ReviewTrade = () => {
 
   const data = useSelector(state => state.tradeReducer);
 
-  const trades = data.trades?.[day] || [];
-  const trade = trades.find(t => t.id === tradeId) || {};
+  const trade = useMemo(() => {
+    const trades = data.trades?.[day] || [];
+    return trades.find(t => t.id === tradeId) || {}
+  }, [data.trades, tradeId, day]);
 
   const seedReducer = useSelector(state => state.seedReducer);
   const { seeds } = seedReducer;
@@ -99,7 +100,7 @@ const ReviewTrade = () => {
     if (!trade?.id) {
       dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
-  }, [reset]);
+  }, [trade?.id, day, reset]);
 
   useEffect(() => {
     if (trade?.img) {
@@ -133,7 +134,7 @@ const ReviewTrade = () => {
     if (!overviewSeeds) {
       dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
     }
-  }, []);
+  }, [dayStartUnixTime, dayEndUnixTime]);
 
   if (!trade) {
     return <Loading description="Loading trade" withOverlay={false} />;
@@ -246,7 +247,7 @@ const ReviewTrade = () => {
     const tradeImages = images.map((img, i) => {
       return (
         <div key={i}>
-          <img src={URL.createObjectURL(img)} />
+          <img alt="trade screenshot" src={URL.createObjectURL(img)} />
         </div>
       );
     });

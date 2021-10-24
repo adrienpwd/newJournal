@@ -1,10 +1,7 @@
 import React from 'react';
 import {
   Tabs,
-  Tab,
-  OrderedList,
-  UnorderedList,
-  ListItem
+  Tab
 } from 'carbon-components-react';
 import Rules from './rules';
 import Strategies from './strategies';

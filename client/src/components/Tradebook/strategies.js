@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { UnorderedList, ListItem } from 'carbon-components-react';
-import { strategies, getStrategie } from './../../utils';
 import Strategy from './strategy';
 
 import styles from './strategies.module.css';

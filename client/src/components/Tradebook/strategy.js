@@ -1,16 +1,12 @@
 import React from 'react';
-import Strategies from './strategies';
 import { getStrategie, rulesItems } from '../../utils';
 import { Checkbox, Form, FormGroup } from 'carbon-components-react';
-
-import { Checkmark16, Close16 } from '@carbon/icons-react';
 
 import styles from './strategies.module.css';
 
 export default function Strategy(props) {
   const {
     type,
-    isEditMode,
     strategyId,
     register,
     seedRulesRespected,

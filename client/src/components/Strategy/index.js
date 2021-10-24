@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { loadStrategy } from 'actions/strategy';
-import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
-import { Checkmark16 } from '@carbon/icons-react';
+import { Loading, Select, SelectItem } from 'carbon-components-react';
 import { Rstats, Sets } from 'components/Common';
 import { accounts, strategies } from '../../utils';
 
@@ -14,14 +13,14 @@ const Strategy = () => {
 
   const data = useSelector(state => state.strategyReducer);
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register } = useForm();
 
   const [account, setAccount] = useState(accounts[0].id);
   const [strategy, setStrategy] = useState('range');
 
   useEffect(() => {
     dispatch(loadStrategy(strategy, account));
-  }, []);
+  }, [account, strategy]);
 
   const onSubmitStrategy = e => {
     e.persist();

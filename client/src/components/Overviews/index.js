@@ -8,7 +8,7 @@ import {
   DatePickerInput,
   Loading
 } from 'carbon-components-react';
-import { accounts, getMonth, getRcolor } from '../../utils';
+import { accounts, getRcolor } from '../../utils';
 
 import styles from './overviews.module.css';
 
@@ -30,10 +30,10 @@ export default function Overviews() {
 
   useEffect(() => {
     dispatch(loadOverviews(startUnixTime, endUnixTime));
-  }, []);
+  }, [endUnixTime, startUnixTime]);
 
   const data = useSelector(state => state.overviewReducer);
-  const { loaded, loading, overviews } = data;
+  const { loading, overviews } = data;
 
   const handleDateChange = range => {
     const [start, end] = range;
@@ -100,8 +100,8 @@ export default function Overviews() {
     const month = dayArr[0] - 1;
     const day = dayArr[1];
     const date = new Date(year, month, day);
-    const dayOfWeekIndex = date.getDay();
-    const monthIndex = date.getMonth();
+    // const dayOfWeekIndex = date.getDay();
+    // const monthIndex = date.getMonth();
 
     // We only look at the Live account to assign a color, based on R
     const myLiveAccount = accounts[0].id;
@@ -132,7 +132,7 @@ export default function Overviews() {
 
   const getOverviewsByWeek = () => {
     const overviewsByWeek = [];
-    let weekIndex = 0;
+    // let weekIndex = 0;
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     let currentWeek = [
       <div className={styles.overview} key={1} />,

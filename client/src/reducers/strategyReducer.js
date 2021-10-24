@@ -52,7 +52,7 @@ const onLoadStrategyError = (state, error) => {
   };
 };
 
-export default (state = initial_state, action = {}) => {
+export default function strategyReducer(state = initial_state, action = {}) {
   const { type, payload, error } = action;
 
   switch (type) {

@@ -1,4 +1,4 @@
-export default function (r) {
+export default function rColor (r) {
   let colorClass;
 
   if (isNaN(r)) return 'black';

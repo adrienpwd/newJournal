@@ -3,7 +3,6 @@ export const actionsHeadersData = [
     key: 'category',
     header: 'Category'
   },
-  ,
   {
     key: 'time',
     header: 'Time'
