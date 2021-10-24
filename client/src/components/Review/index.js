@@ -212,8 +212,8 @@ export default function Review() {
     const linkedTradeIds = [];
     const linkedTrades = (overviewSeeds || []).map(seed => {
       const myTrades = (seed?.linked_trades || []).map((t, i) => {
-        const trade = tradesReview?.find(trade => trade.id === t);
-        linkedTradeIds.push(trade.id);
+        const trade = tradesReview?.find(trade => trade?.id === t);
+        trade?.id && linkedTradeIds.push(trade.id);
         return (
           <TradeCard trade={trade} seed={seed} key={`${trade.id}-${seed.id}`} />
         );

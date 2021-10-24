@@ -1,6 +1,7 @@
 import React from 'react';
 import { getStrategie, rulesItems } from '../../utils';
 import { Checkbox, Form, FormGroup } from 'carbon-components-react';
+import { useForm, Controller } from "react-hook-form";
 
 import styles from './strategies.module.css';
 
@@ -8,10 +9,12 @@ export default function Strategy(props) {
   const {
     type,
     strategyId,
-    register,
     seedRulesRespected,
     tradeRulesRespected
   } = props;
+
+  const { control, register } = useForm();
+
 
   const myStrategy = getStrategie(strategyId);
 
@@ -21,18 +24,23 @@ export default function Strategy(props) {
       const isChecked =
         tradeRulesRespected?.[rule] ?? seedRulesRespected?.[rule];
       const name = `${item}-${myStrategy[item][itemKey].id}`;
-      const registerProp = typeof register === 'function' ?
-        {...register(name)}:
-        {};
+
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
-          <Checkbox
-            labelText={myStrategy[item][itemKey].description}
-            id={name}
+          <Controller
             name={name}
-            key={name}
-            defaultChecked={isChecked}
-            register={registerProp}
+            control={control}
+            defaultValue={isChecked}
+            render={({ field }) => (
+              <Checkbox
+                labelText={myStrategy[item][itemKey].description}
+                id={name}
+                name={name}
+                key={name}
+                defaultChecked={isChecked}
+                {...field}
+              />
+            )}
           />
         </div>
       );

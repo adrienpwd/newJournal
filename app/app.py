@@ -664,7 +664,7 @@ def edit_trade_data():
             ratio_gain_commissions = round(abs(commissions / gross_gain), 4)
         else:
             commissions = my_trade['commissions']
-
+        
         if len(details.get('strategy', '')) > 0:
             strategy_value = details.get('strategy')
         else:

@@ -13,7 +13,6 @@ import styles from './dashboard.module.css';
 export default function DashboardAll(props) {
   const dispatch = useDispatch();
   const dashboardState = useSelector(state => state.dashboardReducer);
-  const { register } = useForm();
   const history = useHistory();
 
   const isLoading = dashboardState?.loading;
@@ -63,7 +62,7 @@ export default function DashboardAll(props) {
           invalidText="This is an invalid error message."
           labelText="Account"
           defaultValue={accounts[0].id}
-          {...register("account")}
+          register="account"
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />

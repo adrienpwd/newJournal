@@ -54,7 +54,7 @@ export default function Seed(props) {
     if (!overviewSeeds) {
       dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime))
     }
-  }, [])
+  }, [overviewSeeds, dayStartUnixTime, dayEndUnixTime])
 
   let seed
   if (tradeId === 'create-new-seed') {

@@ -50,6 +50,12 @@ export default function Strategies() {
           <h4>Reversals</h4>
           <ListItem
             className={styles.strategyLink}
+            onClick={() => onStrategieClick('bounce')}
+          >
+            Bounce
+          </ListItem>
+          <ListItem
+            className={styles.strategyLink}
             onClick={() => onStrategieClick('climactic-reversal')}
           >
             Climactic Reversal

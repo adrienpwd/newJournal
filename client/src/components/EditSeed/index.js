@@ -49,6 +49,8 @@ export default function EditSeed(props) {
   const onSubmit = data => {
     const { ticker, strategy } = data;
 
+    console.log(data)
+
     const currentTime = new Date();
     const seedHours = currentTime.getHours();
     const seedMinutes =
@@ -137,7 +139,6 @@ export default function EditSeed(props) {
           isEditMode={false}
           seedRulesRespected={rulesRespected}
           tradeRulesRespected={[]}
-          register={register}
         />
       </>
     );

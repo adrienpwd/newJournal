@@ -357,7 +357,7 @@ const ReviewTrade = () => {
             labelText="Strategy"
             defaultValue={trade?.strategy}
             invalidText="A valid value is required"
-            {...register("strategy")}
+            {...register('strategy')}
           >
             {strategies.map(s => {
               return <SelectItem text={s.label} value={s.id} key={s.id} />;
@@ -574,7 +574,6 @@ const ReviewTrade = () => {
                 isEditMode={isEditMode}
                 tradeRulesRespected={trade?.rulesRespected}
                 seedRulesRespected={mySeed?.rulesRespected}
-                register={register}
               />
             </>
           </Tab>

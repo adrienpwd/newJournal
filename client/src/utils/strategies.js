@@ -150,6 +150,17 @@ export const strategies = [
 
   // Reversals
   {
+    id: 'bounce',
+    type: 'reversal',
+    label: 'Bounce',
+    description: 'Bounce off of an identified level on the Daily or 60',
+    requirements: [],
+    confirmations: [],
+    adds: [],
+    stopLoss: [],
+    screenshot: []
+  },
+  {
     id: 'climactic-reversal',
     type: 'reversal',
     label: 'Climactic Reversal',

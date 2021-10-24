@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
 import { loadStrategy } from 'actions/strategy';
 import { Loading, Select, SelectItem } from 'carbon-components-react';
 import { Rstats, Sets } from 'components/Common';
@@ -13,17 +12,19 @@ const Strategy = () => {
 
   const data = useSelector(state => state.strategyReducer);
 
-  const { register } = useForm();
-
   const [account, setAccount] = useState(accounts[0].id);
   const [strategy, setStrategy] = useState('range');
+
+  console.log(strategy)
 
   useEffect(() => {
     dispatch(loadStrategy(strategy, account));
   }, [account, strategy]);
 
+
   const onSubmitStrategy = e => {
     e.persist();
+    console.log(e.target.value)
     setStrategy(e.target.value);
     dispatch(loadStrategy(e.target.value, account));
   };
@@ -44,7 +45,7 @@ const Strategy = () => {
           labelText="Account"
           defaultValue={account}
           onChange={onSubmitAccount}
-          {...register("account")}
+          register="account"
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
@@ -64,7 +65,7 @@ const Strategy = () => {
           defaultValue={strategy}
           invalidText="A valid value is required"
           onChange={onSubmitStrategy}
-          {...register("strategy")}
+          register="strategy"
         >
           {strategies.map(s => {
             return <SelectItem text={s.label} value={s.id} key={s.id} />;
