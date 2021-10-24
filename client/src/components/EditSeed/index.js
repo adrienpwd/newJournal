@@ -165,7 +165,7 @@ export default function EditSeed(props) {
         <FileUploaderButton
           className={styles.uploadButton}
           buttonKind="tertiary"
-          accept={['.jpg', '.png']}
+          accept={['jpg', 'png']}
           size="small"
           labelText="Images"
           multiple

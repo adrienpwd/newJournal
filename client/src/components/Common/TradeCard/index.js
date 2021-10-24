@@ -47,7 +47,7 @@ export default function TradeCard({ unlinked, trade, url, seed }) {
       const dropResult = monitor.getDropResult();
       if (item && dropResult) {
         const currentSeedId = seed?.id || '';
-        dispatch(editTradeLink(currentSeedId, dropResult.name, item.name));
+        dispatch(editTradeLink(currentSeedId, dropResult.name, item.id));
       }
     },
     collect: monitor => ({

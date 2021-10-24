@@ -12,6 +12,7 @@ export default function Strategy(props) {
     seedRulesRespected,
     tradeRulesRespected
   } = props;
+
   const myStrategy = getStrategie(strategyId);
 
   const renderStrategyItem = item => {
@@ -20,6 +21,9 @@ export default function Strategy(props) {
       const isChecked =
         tradeRulesRespected?.[rule] ?? seedRulesRespected?.[rule];
       const name = `${item}-${myStrategy[item][itemKey].id}`;
+      const registerProp = typeof register === 'function' ?
+        {...register(name)}:
+        {};
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
           <Checkbox
@@ -28,7 +32,7 @@ export default function Strategy(props) {
             name={name}
             key={name}
             defaultChecked={isChecked}
-            {...register(name)}
+            register={registerProp}
           />
         </div>
       );
@@ -53,8 +57,8 @@ export default function Strategy(props) {
 
   return strategyId ? (
     <div className={styles.strategieContainer}>
-      <h4>{myStrategy.label}</h4>
-      <p>{myStrategy.description}</p>
+      <h4>{myStrategy?.label}</h4>
+      <p>{myStrategy?.description}</p>
       <br />
       <Form>{renderRules.map(r => renderFormGroup(r))}</Form>
       <br />

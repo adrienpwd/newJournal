@@ -23,18 +23,16 @@ pp = pprint.PrettyPrinter(indent=4)
 application = Flask(__name__)
 application.config.from_object(Config)
 
-
 application.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_USERNAME'] + ':' + \
     os.environ['MONGODB_PASSWORD'] + '@' + os.environ['MONGODB_HOSTNAME'] + \
     ':27017/' + os.environ['MONGODB_DATABASE']
 
 mongo = PyMongo(application)
 db = mongo.db
-cors = CORS()
+
+cors = CORS(application, resources={r"*": {"origins": "*"}})
 
 pp = pprint.PrettyPrinter(indent=4)
-
-cors.init_app(application, resources={r"*": {"origins": "*"}})
 
 IMAGES_UPLOAD_FOLDER = application.config['IMAGES_UPLOAD_FOLDER']
 DATE_FORMAT_INPUT = application.config['DATE_FORMAT_INPUT']

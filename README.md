@@ -11,3 +11,11 @@ Then create 'flaskdb' and insert the user 'flaskuser'
 
 
 For PROD env export REACT_APP_USERS_SERVICE_URL=http://192.168.1.70:5001 Make sure the IP of the server (Intel NUC computer) didn't change
+
+Errors with uploading images ?
+RUN:
+$ sudo chown adrien:adrien -R tradeLogs
+
+Errors while installing packages ?
+RUN:
+$ sudo service docker restart

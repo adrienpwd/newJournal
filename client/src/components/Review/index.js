@@ -286,7 +286,7 @@ export default function Review() {
           <FileUploaderButton
             className={styles.uploadButton}
             buttonKind="tertiary"
-            accept={['.jpg', '.png']}
+            accept={['jpg', 'png']}
             size="small"
             labelText="Images"
             multiple
