@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
@@ -20,7 +20,6 @@ import {
   catalysts,
   rulesItems,
   strategies,
-  filterFormValues,
   actionsHeadersData,
   getStrategie
 } from './../../utils';
@@ -74,8 +73,10 @@ const ReviewTrade = () => {
 
   const data = useSelector(state => state.tradeReducer);
 
-  const trades = data.trades?.[day] || [];
-  const trade = trades.find(t => t.id === tradeId) || {};
+  const trade = useMemo(() => {
+    const trades = data.trades?.[day] || [];
+    return trades.find(t => t.id === tradeId) || {}
+  }, [data.trades, tradeId, day]);
 
   const seedReducer = useSelector(state => state.seedReducer);
   const { seeds } = seedReducer;
@@ -99,7 +100,7 @@ const ReviewTrade = () => {
     if (!trade?.id) {
       dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
-  }, [reset]);
+  }, [trade?.id, day, reset]);
 
   useEffect(() => {
     if (trade?.img) {
@@ -133,7 +134,7 @@ const ReviewTrade = () => {
     if (!overviewSeeds) {
       dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
     }
-  }, []);
+  }, [dayStartUnixTime, dayEndUnixTime]);
 
   if (!trade) {
     return <Loading description="Loading trade" withOverlay={false} />;
@@ -246,7 +247,7 @@ const ReviewTrade = () => {
     const tradeImages = images.map((img, i) => {
       return (
         <div key={i}>
-          <img src={URL.createObjectURL(img)} />
+          <img alt="trade screenshot" src={URL.createObjectURL(img)} />
         </div>
       );
     });
@@ -351,12 +352,12 @@ const ReviewTrade = () => {
       <>
         <Form>
           <Select
-            ref={register}
             id="strategy"
             name="strategy"
             labelText="Strategy"
             defaultValue={trade?.strategy}
             invalidText="A valid value is required"
+            {...register('strategy')}
           >
             {strategies.map(s => {
               return <SelectItem text={s.label} value={s.id} key={s.id} />;
@@ -372,35 +373,34 @@ const ReviewTrade = () => {
             {catalysts.map(c => {
               return (
                 <Checkbox
-                  ref={register}
                   labelText={c.label}
                   id={c.id}
                   name={c.id}
                   key={c.id}
                   defaultChecked={trade?.catalysts?.includes(c.id)}
+                  {...register(c.id)}
                 />
               );
             })}
           </FormGroup>
           <NumberInput
-            ref={register}
             id="r"
             name="r"
             invalidText="Number is not valid"
             label="R"
             value={Number(trade?.r)}
+            {...register("r")}
           />
           <NumberInput
-            ref={register}
             id="rvol"
             name="rvol"
             invalidText="Number is not valid"
             label="Relative Volume"
             min={0}
             value={Number(trade?.rvol)}
+            {...register("rvol")}
           />
           <NumberInput
-            ref={register}
             id="commissions"
             name="commissions"
             invalidText="Number is not valid"
@@ -408,6 +408,7 @@ const ReviewTrade = () => {
             min={0}
             step={1}
             value={Number(trade?.commissions)}
+            {...register("commissions")}
           />
           Rating:
           <ReactStars
@@ -509,7 +510,7 @@ const ReviewTrade = () => {
             <FileUploaderButton
               className={styles.uploadButton}
               buttonKind="tertiary"
-              accept={['.jpg', '.png']}
+              accept={['jpg', 'png']}
               size="small"
               labelText="Images"
               multiple
@@ -573,7 +574,6 @@ const ReviewTrade = () => {
                 isEditMode={isEditMode}
                 tradeRulesRespected={trade?.rulesRespected}
                 seedRulesRespected={mySeed?.rulesRespected}
-                register={register}
               />
             </>
           </Tab>

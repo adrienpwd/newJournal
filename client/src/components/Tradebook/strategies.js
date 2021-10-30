@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { UnorderedList, ListItem } from 'carbon-components-react';
-import { strategies, getStrategie } from './../../utils';
 import Strategy from './strategy';
 
 import styles from './strategies.module.css';
@@ -49,6 +48,12 @@ export default function Strategies() {
           </ListItem>
           <br />
           <h4>Reversals</h4>
+          <ListItem
+            className={styles.strategyLink}
+            onClick={() => onStrategieClick('bounce')}
+          >
+            Bounce
+          </ListItem>
           <ListItem
             className={styles.strategyLink}
             onClick={() => onStrategieClick('climactic-reversal')}

@@ -1,3 +1,3 @@
-export default function(trade) {
-  return `${trade.ticker}-${trade.timestamp}`
+export default function createTradeId(trade) {
+  return `${trade.ticker}-${trade.timestamp}`;
 }

@@ -54,8 +54,8 @@ const onEditTradeSuccess = (state, { trade, data }) => {
   };
 };
 
-export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action;
+export default function tradeReducer(state = initial_state, action = {}) {
+  const { type, payload } = action;
 
   switch (type) {
     case 'LOAD_TRADES_SUCCESS':

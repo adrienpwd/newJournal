@@ -78,8 +78,8 @@ const onDeleteSeedSuccess = (state, { seedId }) => {
   };
 };
 
-export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action;
+export default function seedReducer(state = initial_state, action = {}) {
+  const { type, payload } = action;
 
   switch (type) {
     case 'LOAD_SEEDS_SUCCESS':

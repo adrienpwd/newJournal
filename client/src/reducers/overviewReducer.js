@@ -36,8 +36,8 @@ const onEditOverviewSuccess = (state, { overview }) => {
   };
 };
 
-export default (state = initial_state, action = {}) => {
-  const { type, payload, error } = action;
+export default function overviewReducer(state = initial_state, action = {}) {
+  const { type, payload } = action;
 
   switch (type) {
     case 'LOAD_OVERVIEW':

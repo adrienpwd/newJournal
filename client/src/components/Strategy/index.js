@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
 import { loadStrategy } from 'actions/strategy';
-import { Button, Loading, Select, SelectItem } from 'carbon-components-react';
-import { Checkmark16 } from '@carbon/icons-react';
+import { Loading, Select, SelectItem } from 'carbon-components-react';
 import { Rstats, Sets } from 'components/Common';
 import { accounts, strategies } from '../../utils';
 
@@ -14,17 +12,19 @@ const Strategy = () => {
 
   const data = useSelector(state => state.strategyReducer);
 
-  const { register, handleSubmit, reset } = useForm();
-
   const [account, setAccount] = useState(accounts[0].id);
   const [strategy, setStrategy] = useState('range');
 
+  console.log(strategy)
+
   useEffect(() => {
     dispatch(loadStrategy(strategy, account));
-  }, []);
+  }, [account, strategy]);
+
 
   const onSubmitStrategy = e => {
     e.persist();
+    console.log(e.target.value)
     setStrategy(e.target.value);
     dispatch(loadStrategy(e.target.value, account));
   };
@@ -39,13 +39,13 @@ const Strategy = () => {
     return (
       <div className={styles.dropdown}>
         <Select
-          ref={register}
           id="account"
           name="account"
           invalidText="This is an invalid error message."
           labelText="Account"
           defaultValue={account}
           onChange={onSubmitAccount}
+          register="account"
         >
           {accounts.map(s => (
             <SelectItem text={s.label} value={s.id} key={s.id} />
@@ -59,13 +59,13 @@ const Strategy = () => {
     return (
       <div className={styles.dropdown}>
         <Select
-          ref={register}
           id="strategy"
           name="strategy"
           labelText="Strategy"
           defaultValue={strategy}
           invalidText="A valid value is required"
           onChange={onSubmitStrategy}
+          register="strategy"
         >
           {strategies.map(s => {
             return <SelectItem text={s.label} value={s.id} key={s.id} />;

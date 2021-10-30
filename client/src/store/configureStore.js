@@ -14,7 +14,7 @@ if (window.__REDUX_DEVTOOLS_EXTENSION__) {
   );
 }
 
-export default () => {
+export default function configureStore() {
   const store = createStore(
     combineReducers({
       tradeReducer,

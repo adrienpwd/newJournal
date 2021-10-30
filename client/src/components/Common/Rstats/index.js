@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Loading } from 'carbon-components-react';
 
 import styles from './rstats.module.css';

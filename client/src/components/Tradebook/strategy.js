@@ -1,21 +1,21 @@
 import React from 'react';
-import Strategies from './strategies';
 import { getStrategie, rulesItems } from '../../utils';
 import { Checkbox, Form, FormGroup } from 'carbon-components-react';
-
-import { Checkmark16, Close16 } from '@carbon/icons-react';
+import { useForm, Controller } from "react-hook-form";
 
 import styles from './strategies.module.css';
 
 export default function Strategy(props) {
   const {
     type,
-    isEditMode,
     strategyId,
-    register,
     seedRulesRespected,
     tradeRulesRespected
   } = props;
+
+  const { control, register } = useForm();
+
+
   const myStrategy = getStrategie(strategyId);
 
   const renderStrategyItem = item => {
@@ -23,15 +23,24 @@ export default function Strategy(props) {
       const rule = `${item}-${itemKey}`;
       const isChecked =
         tradeRulesRespected?.[rule] ?? seedRulesRespected?.[rule];
+      const name = `${item}-${myStrategy[item][itemKey].id}`;
+
       return (
         <div key={`${myStrategy.id}-${itemKey}`} className={styles.rule}>
-          <Checkbox
-            ref={register}
-            labelText={myStrategy[item][itemKey].description}
-            id={`${item}-${myStrategy[item][itemKey].id}`}
-            name={`${item}-${myStrategy[item][itemKey].id}`}
-            key={`${item}-${myStrategy[item][itemKey].id}`}
-            defaultChecked={isChecked}
+          <Controller
+            name={name}
+            control={control}
+            defaultValue={isChecked}
+            render={({ field }) => (
+              <Checkbox
+                labelText={myStrategy[item][itemKey].description}
+                id={name}
+                name={name}
+                key={name}
+                defaultChecked={isChecked}
+                {...field}
+              />
+            )}
           />
         </div>
       );
@@ -56,8 +65,8 @@ export default function Strategy(props) {
 
   return strategyId ? (
     <div className={styles.strategieContainer}>
-      <h4>{myStrategy.label}</h4>
-      <p>{myStrategy.description}</p>
+      <h4>{myStrategy?.label}</h4>
+      <p>{myStrategy?.description}</p>
       <br />
       <Form>{renderRules.map(r => renderFormGroup(r))}</Form>
       <br />

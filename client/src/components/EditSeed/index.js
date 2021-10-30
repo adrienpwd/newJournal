@@ -18,7 +18,7 @@ import { editSeed, deleteSeed } from 'actions/seeds';
 import { uploadImages, deleteImage } from 'actions/trades';
 import { useHistory } from 'react-router-dom';
 
-import { Checkmark16, Edit16, Close16, TrashCan16 } from '@carbon/icons-react';
+import { Checkmark16, Close16, TrashCan16 } from '@carbon/icons-react';
 
 import styles from './editSeed.module.css';
 
@@ -49,10 +49,12 @@ export default function EditSeed(props) {
   const onSubmit = data => {
     const { ticker, strategy } = data;
 
+    console.log(data)
+
     const currentTime = new Date();
     const seedHours = currentTime.getHours();
     const seedMinutes =
-      String(currentTime.getMinutes()).length == 2
+      String(currentTime.getMinutes()).length === 2
         ? currentTime.getMinutes()
         : `0${currentTime.getMinutes()}`;
     const seedDate = new Date(overviewId);
@@ -137,7 +139,6 @@ export default function EditSeed(props) {
           isEditMode={false}
           seedRulesRespected={rulesRespected}
           tradeRulesRespected={[]}
-          register={register}
         />
       </>
     );
@@ -147,7 +148,7 @@ export default function EditSeed(props) {
     price: seed?.price
   };
 
-  const { register, handleSubmit, reset } = useForm({ defaultValues });
+  const { register, handleSubmit } = useForm({ defaultValues });
 
   return (
     <div>
@@ -165,7 +166,7 @@ export default function EditSeed(props) {
         <FileUploaderButton
           className={styles.uploadButton}
           buttonKind="tertiary"
-          accept={['.jpg', '.png']}
+          accept={['jpg', 'png']}
           size="small"
           labelText="Images"
           multiple
@@ -200,44 +201,43 @@ export default function EditSeed(props) {
       />
       <Form>
         <TextInput
-          ref={register}
           id="ticker"
           name="ticker"
           invalidText="A valid value is required"
           labelText="Ticker"
           placeholder="Enter Ticker"
           defaultValue={seed?.ticker}
+          {...register("ticker")}
         />
         <Toggle
-          ref={register}
           id="side"
           name="side"
           aria-label="trade side"
           defaultToggled
-          id="side-toggle"
           labelText="Long"
           onToggle={handleSideChange}
+          {...register("side")}
         />
         <Select
-          ref={register}
           id="strategy"
           name="strategy"
           labelText="Strategy"
           invalidText="A valid value is required"
           defaultValue={seed?.strategy}
+          {...register("strategy")}
         >
           {strategies.map(s => {
             return <SelectItem text={s.label} value={s.id} key={s.id} />;
           })}
         </Select>
         <NumberInput
-          ref={register}
           id="price"
           name="price"
           invalidText="Number is not valid"
           label="Price"
           min={0}
           step={1}
+          {...register("price")}
         />
       </Form>
       {renderStrategyRules()}

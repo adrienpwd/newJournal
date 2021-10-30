@@ -40,19 +40,20 @@ export default function TradeCard({ unlinked, trade, url, seed }) {
   // if we have it.
   const displayWarning = !trade?.net_gain || isNaN(trade?.net_gain);
 
-  const [{ isDragging }, drag] = useDrag({
-    item: { name: trade?.id, type: 'Box' },
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'Box',
+    item: { id: trade?.id },
     end: (item, monitor) => {
       const dropResult = monitor.getDropResult();
       if (item && dropResult) {
         const currentSeedId = seed?.id || '';
-        dispatch(editTradeLink(currentSeedId, dropResult.name, item.name));
+        dispatch(editTradeLink(currentSeedId, dropResult.name, item.id));
       }
     },
     collect: monitor => ({
-      isDragging: monitor.isDragging()
+      isDragging: !!monitor.isDragging()
     })
-  });
+  }));
 
   const opacity = isDragging ? 0.4 : 1;
 

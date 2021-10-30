@@ -4,7 +4,6 @@ import {
   Slider,
   Toggle,
   DataTable,
-  TableContainer,
   Table,
   TableHead,
   TableRow,

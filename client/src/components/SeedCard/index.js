@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { strategies } from '../../utils'
 import { useDrop } from 'react-dnd'
 import { Link, useRouteMatch } from 'react-router-dom'
@@ -6,7 +6,7 @@ import { CaretDown32, CaretUp32, WarningAlt32 } from '@carbon/icons-react'
 
 import styles from './seedCard.module.css'
 
-export default (props) => {
+export default function SeedCard(props) {
   const { seed, unlinked } = props
   const match = useRouteMatch()
 
@@ -47,14 +47,15 @@ export default (props) => {
     }
   }
 
-  const [{ canDrop, isOver }, drop] = useDrop({
+  const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: 'Box',
     drop: () => ({ name: seed?.id || 'unlink' }),
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop()
+      isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop()
     })
-  })
+  }))
+
   const isActive = canDrop && isOver
   const borderColor = unlinked ? '#d7ccc8' : '#a1887f'
   let backgroundColor = '#f5f5f6'

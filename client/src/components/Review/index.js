@@ -62,49 +62,48 @@ export default function Review() {
   const dayStartUnixTime = dayStartTimestamp / 1000;
   const dayEndUnixTime = dayStartUnixTime + 24 * 60 * 60;
 
+  const { trades } = tradeReducer;
+  const tradesReview = trades?.[day];
+
+  const { seeds } = seedReducer;
+  const overviewSeeds = seeds[day];
+
+  const { overviews } = overviewReducer;
+  const overviewState = overviews[day];
+
   useEffect(() => {
     if (!overviewState) {
       dispatch(loadOverviews(dayStartUnixTime, dayEndUnixTime));
     }
-  }, []);
+  }, [dayStartUnixTime, dayEndUnixTime, overviewState]);
 
   useEffect(() => {
     if (!tradesReview) {
       dispatch(loadTrades(dayStartUnixTime, dayEndUnixTime));
     }
-  }, []);
+  }, [dayStartUnixTime, dayEndUnixTime, tradesReview]);
 
   useEffect(() => {
     if (!overviewSeeds) {
       dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime));
     }
-  }, []);
-
-  const { trades } = tradeReducer;
-  const tradesReview = trades?.[day];
-
-  const { overviews } = overviewReducer;
-
-  const { seeds } = seedReducer;
-  const overviewSeeds = seeds[day];
-
-  const overviewState = overviews[day];
+  }, [dayStartUnixTime, dayEndUnixTime, overviewSeeds]);
 
   const [formValue, setFormValue] = useState('');
 
   const isOverviewLoading = overviewState?.loading;
   const isOverviewLoaded = overviewState?.loaded;
 
-  const isSeedLoading = seedReducer?.loading;
-  const isSeedLoaded = seedReducer?.loaded;
+  // const isSeedLoading = seedReducer?.loading;
+  // const isSeedLoaded = seedReducer?.loaded;
 
   const [isEditMode, setEditMode] = useState(false);
 
-  const { register, handleSubmit } = useForm();
+  const { handleSubmit } = useForm();
 
   const [images, setImages] = useState([]);
 
-  const [isSeedEditMode, setSeedEditMode] = useState(false);
+  // const [isSeedEditMode, setSeedEditMode] = useState(false);
 
   useEffect(() => {
     if (overviewState?.img) {
@@ -135,13 +134,13 @@ export default function Review() {
     setEditMode(false);
   }
 
-  const makeSeedEditState = () => {
-    setSeedEditMode(true);
-  };
+  // const makeSeedEditState = () => {
+  //   setSeedEditMode(true);
+  // };
 
-  const makeSeedViewState = () => {
-    setSeedEditMode(false);
-  };
+  // const makeSeedViewState = () => {
+  //   setSeedEditMode(false);
+  // };
 
   const handleCreateSeed = () => {
     history.push(`/review/${match.params.day}/create-new-seed`);
@@ -188,7 +187,7 @@ export default function Review() {
     const overviewImages = images.map((img, i) => {
       return (
         <div key={i}>
-          <img src={URL.createObjectURL(img)} />
+          <img alt="screenshot" src={URL.createObjectURL(img)} />
         </div>
       );
     });
@@ -288,7 +287,7 @@ export default function Review() {
           <FileUploaderButton
             className={styles.uploadButton}
             buttonKind="tertiary"
-            accept={['.jpg', '.png']}
+            accept={['jpg', 'png']}
             size="small"
             labelText="Images"
             multiple

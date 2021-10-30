@@ -56,7 +56,7 @@ const onSetAccount = (state, payload) => {
   };
 };
 
-export default (state = initial_state, action = {}) => {
+export default function dashboardReducer(state = initial_state, action = {}) {
   const { type, payload, error } = action;
   switch (type) {
     case 'GET_STATS':

@@ -9,11 +9,11 @@ import Strategy from './../Tradebook/strategy'
 import { strategies } from '../../utils'
 import { Carousel } from 'react-responsive-carousel'
 
-import { Edit16, Checkmark16, Close16 } from '@carbon/icons-react'
+import { Edit16 } from '@carbon/icons-react'
 
 import styles from './seed.module.css'
 
-export default (props) => {
+export default function Seed(props) {
   const { tradeId, day } = useParams()
 
   function makeEditState() {
@@ -54,7 +54,7 @@ export default (props) => {
     if (!overviewSeeds) {
       dispatch(loadSeeds(dayStartUnixTime, dayEndUnixTime))
     }
-  }, [])
+  }, [overviewSeeds, dayStartUnixTime, dayEndUnixTime])
 
   let seed
   if (tradeId === 'create-new-seed') {
@@ -131,7 +131,7 @@ export default (props) => {
     const seedImages = images.map((img, i) => {
       return (
         <div key={i}>
-          <img src={URL.createObjectURL(img)} />
+          <img alt="seed" src={URL.createObjectURL(img)} />
         </div>
       )
     })
