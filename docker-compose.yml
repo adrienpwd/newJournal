@@ -16,7 +16,7 @@ services:
       MONGODB_DATABASE: tradeLogs
       MONGODB_USERNAME: tradeLogsUser
       MONGODB_PASSWORD: kill2mkt
-      MONGODB_HOSTNAME: 192.168.1.71
+      MONGODB_HOSTNAME: 192.168.1.83
     volumes:
       - ./app:/var/www/
       -  /home/adrien/tradeLogs:/tradeLogs
